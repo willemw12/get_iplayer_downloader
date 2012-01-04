@@ -1,0 +1,21 @@
+/* See /usr/share/themes/.../gtk-3... */
+
+* {
+	/* Smaller ProgressBar */
+	-GtkProgressBar-min-horizontal-bar-width: 90;
+	-GtkProgressBar-min-vertital-bar-height: 90;
+	/* font-size: smaller; */
+}
+
+/***************
+ * Progressbar *
+ ***************/
+/* through component */
+/*
+GtkProgressBar,
+.trough row {
+	-GtkProgressBar-min-horizontal-bar-width: 90;
+	-GtkProgressBar-min-vertital-bar-height: 90;
+	font-size: smaller;
+}
+*/
