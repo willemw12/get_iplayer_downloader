@@ -1,0 +1,11 @@
+*~
+*.pyc
+.*.swp
+
+/build/
+/build.sh
+/clean.sh
+/dist/
+/install.sh
+/MANIFEST
+
