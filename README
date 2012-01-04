@@ -1,0 +1,58 @@
+get_iplayer_downloader is download utility for the BBC get_iplayer program.
+
+This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --get" or "get_iplayer --info".
+
+It is a small utility program for me to try and find out what Python and GTK+ 3 can do, after creating a version of the downloader in bash with zenity, which ran too slow.
+
+This program works best with a not too low screen resolution (1024 pixels or wider).
+
+I let the downloads run in a separate terminal window, so I can see when and which download fails or hangs.
+
+
+
+Dependencies
+============
+
+Linux to run get_iplayer in a terminal window and to display the number of running get_iplayer processes (x-terminal-emulator, ps, grep, wc, $SHELL).
+
+Python (2.7).
+
+Python setuptools (to run setup.py).
+
+GNOME libraries for Python (GTK+ 3, etc.).
+
+get_iplayer and its dependencies.
+
+
+
+Configuration
+=============
+
+1) get_iplayer
+
+Configure get_iplayer presets "tv" and "radio" for tv, radio and podcasts (files ~/.get_iplayer/presets/tv and ~/.get_iplayer/presets/radio). Settings should preferable include:
+- "long=1" or "fields=..." to enable search inside program details
+- "tvmode=..." and "radiomode=...": the default download modes
+
+Now "get_iplayer --preset=radio ..." and "get_iplayer --preset=tv" work properly from the command line.
+
+get_iplayer has a limited download list size, which can be increased by modifying the get_iplayer file (/usr/bin/get_iplayer: my $info_limit = 40).
+
+2) get_iplayer_downloader
+
+Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config, which will be created after running the program for the first time). The default BBC program settings (channel lists and category lists) are configured according to my preference and don't contain all possible values.
+
+
+
+Installation
+============
+
+To execute without installing, run:
+<path to this folder>/src/get_iplayer_downloader.py
+
+Or to install, from the main folder, run:
+sudo python setup.py install
+sudo rm -rf build
+
+Then to execute, run:
+get_iplayer_downloader
