@@ -1,4 +1,4 @@
-get_iplayer_downloader is download utility for the BBC get_iplayer program.
+get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
 This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --get" or "get_iplayer --info".
 
