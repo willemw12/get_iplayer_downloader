@@ -6,7 +6,7 @@ It is a small utility program for me to try and find out what Python and GTK+ 3 
 
 This program works best with a screen resolution of 1024x768 or higher.
 
-I let the downloads run in a separate terminal window, so I can see when and which download fails or hangs.
+I let the downloads run in one or more terminal windows, so I can see when and which download fails or hangs.
 
 Some screenshots:
 
@@ -67,3 +67,4 @@ Or to install, from the main folder, run:
 Then to execute, run:
 
     get_iplayer_downloader
+
