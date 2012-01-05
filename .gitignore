@@ -2,10 +2,9 @@
 *.pyc
 .*.swp
 
+tmp/
+
 /build/
-/build.sh
-/clean.sh
 /dist/
-/install.sh
 /MANIFEST
 

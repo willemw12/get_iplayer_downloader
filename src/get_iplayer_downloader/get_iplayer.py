@@ -91,7 +91,11 @@ def search(search_text, preset=Preset.RADIO, prog_type=Type.RADIO, channel=Chann
             #if level == 1 and copy:
             if copy:
                 # Add two fields (Episode and Description) of the child/leave, the current line
-                output_lines.append([False, l[1], None, l[2]])
+                if l[2].startswith("- ~ "):
+                    # No episode title
+                    output_lines.append([False, string.decode(l[1]), None, string.decode(l[2][4:])])
+                else:
+                    output_lines.append([False, string.decode(l[1]), None, string.decode(l[2])])
             l_prev = l
 
     return output_lines

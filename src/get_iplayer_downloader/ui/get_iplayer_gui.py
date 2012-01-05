@@ -235,12 +235,11 @@ class ToolBarBox(Gtk.Box):
         
         ####
         
-        #(TODO as GUI preference setting)
-        show_label = False
+        hide_label = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
 
         def _label(label):
             #NOTE conditional expression (inline if-then-else)
-            return label if show_label else None
+            return None if hide_label else label
         
         ####
         
@@ -901,14 +900,17 @@ class DetailWindow(Gtk.Window):
         #for i, prop_row in enumerate(prop_table):
         for i, (prop_label, prop_value) in enumerate(prop_table):
             if prop_label in PROP_LABEL_LIST:
+                # Simple decoding
+                prop_value = prop_value
+
                 label1 = Gtk.Label(prop_label, valign=Gtk.Align.START, halign=Gtk.Align.START)
                 label1.set_padding(BORDER_WIDTH, 0)
                 label1.set_line_wrap(True)
                 #REMOVE and avoid automatic text selection
                 label1.set_selectable(True)
                 prop_grid.attach(label1, 0, i, 1, 1)
-                
-                label2 = Gtk.Label(markup.text2html(prop_value), valign=Gtk.Align.START,
+
+                label2 = Gtk.Label(markup.text2html(string.decode(prop_value)), valign=Gtk.Align.START,
                                    halign=Gtk.Align.START, use_markup=True)
                 label2.set_padding(BORDER_WIDTH, 0)
                 label2.set_line_wrap(True)
@@ -987,6 +989,9 @@ class PreferencesDialogWrapper(object):
         
         self.dialog = self.builder.get_object("PreferencesDialog")
 
+        self.general_compact_toolbar_entry = self.builder.get_object("PrefsGeneralCompactToolbar")
+        self.general_start_maximized_entry = self.builder.get_object("PrefsGeneralStartMaximized")
+
         self.radio_channels_entry = self.builder.get_object("PrefsRadioChannelsEntry")
         self.radio_download_path_entry = self.builder.get_object("PrefsRadioDownloadPathEntry")
         self.radio_download_file_chooser_button = self.builder.get_object("PrefsRadioDownloadFileChooserButton")
@@ -1017,6 +1022,9 @@ class PreferencesDialogWrapper(object):
         self.dialog.connect("response", self._response)
 
     def _get_settings(self):        
+        self.general_compact_toolbar_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
+        self.general_start_maximized_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
+
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
         self.radio_download_path_entry.set_text(settings.config().get("radio", "download-path"))
         self.radio_download_file_chooser_button.set_filename(settings.config().get("radio", "download-path"))
@@ -1028,6 +1036,9 @@ class PreferencesDialogWrapper(object):
         self.tv_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
     def _set_settings(self):        
+        settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_entry.get_active()))
+        settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_entry.get_active()))
+        
         settings.config().set("radio", "channels", self.radio_channels_entry.get_text())
         settings.config().set("radio", "download-path", self.radio_download_path_entry.get_text())
         settings.config().set("radio", "run-in-terminal", str(self.radio_run_in_terminal_entry.get_active()))
@@ -1050,14 +1061,14 @@ class PreferencesDialogWrapper(object):
 
     def _on_radio_download_file_chooser_file_set(self, entry_widget):
         filename = self.radio_download_file_chooser_button.get_filename()
-        #TODO entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
+        #entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
         entry_widget.set_text(filename)
         
     def _on_tv_download_file_chooser_file_set(self, entry_widget):
         filename = self.tv_download_file_chooser_button.get_filename()
-        #TODO entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
+        #entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
         entry_widget.set_text(filename)
-        
+
     def _response(self, dialog, response_id):
         if response_id != Gtk.ResponseType.NONE:    # -1
             self.dialog.hide()
