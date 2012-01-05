@@ -15,6 +15,10 @@ Some screenshots:
 
 For the latest version see https://github.com/willemw12/get_iplayer_downloader.
 
+This program is licensed under GPLv3 (see file COPYING).
+
+Disclaimer: this program doesn't do any downloading itself. It relies on the get_iplayer program to do the actual downloading.
+
 
 
 Dependencies
