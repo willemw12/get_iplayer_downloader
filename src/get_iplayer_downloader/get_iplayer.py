@@ -1,5 +1,4 @@
-""" Perform get_iplayer operations.
-"""
+""" Perform get_iplayer operations. """
 
 import ast
 from datetime import datetime
@@ -18,8 +17,8 @@ SINCE_LIST = [[0, "Since"], [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
               [120, "5 days"], [144, "6 days"], [168, "7 days"]]
 
 class Preset:
-    RADIO = "radio"
-    TV = "tv"
+    RADIO = settings.config().get("radio", "preset-file")
+    TV = settings.config().get("tv", "preset-file")
     
 class Type:
     #ALL = "all"
@@ -39,8 +38,15 @@ class Category:
     TV = [[None, "Genre"]]
     TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
 
-def search(search_text, preset=Preset.RADIO, prog_type=Type.RADIO, channel=Channel.RADIO,
-           category=None, since=0, search_all=False):
+class SearchResultColumn:
+    DOWNLOAD = 0
+    PID = 1
+    INDEX = 2
+    SERIE = 3
+    EPISODE = 4
+
+def search(search_text, preset=None, prog_type=None, channel=None, category=None, since=0, search_all=False):
+    """ Run get_iplayer (--search) """
     cmd = GET_IPLAYER_CMD
     if preset:
         cmd += " --preset=" + preset
@@ -54,22 +60,20 @@ def search(search_text, preset=Preset.RADIO, prog_type=Type.RADIO, channel=Chann
         cmd += " --category=\"" + category + "\""
     if since:
         cmd += " --since=" + str(since)
-    cmd += " --nocopyright --listformat=\"|<index>|<episode> ~ <desc>\" --tree"
+    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>\" --tree"
     if search_text:
         cmd += " \"" + search_text + "\""
     
     process_output = command.run(cmd)
 
-    # Convert the process output lines to lists (not dicts), matching the GtkTreeStore input data
-    
+    # Convert the process output lines to lists (not dicts, not objects), matching the GtkTreeStore input data
     lines = process_output.splitlines()
-
     output_lines = []
     l_prev = None
     level = 0
     copy = False
     for line in lines:
-        l = line.split("|", 2)
+        l = line.split("|", 3)
         # Skip empty lines
         if l[0]:
             # Match string containing only spaces
@@ -78,75 +82,114 @@ def search(search_text, preset=Preset.RADIO, prog_type=Type.RADIO, channel=Chann
             #2) CHECK_RE = re.compile('[ -]+$'); CHECK_RE.match(l)
             #3) re.match("^[ ]+$", l)
             if level == 0 and l[0].isspace():
-                # Going from root level (0) to level 1
+                # Going from root level (0, a serie) to level 1 (an episode)
                 level = 1
                 copy = True
                 if l_prev:
-                    # Add a field (Serie) of the parent on the previous line
-                    output_lines.append([False, None, l_prev[0], None])
+                    # Add serie line. Serie title from the previous line, the parent of the current line
+                    # No pid or index available for a serie from the output of get_iplayer --tree
+                    output_lines.append([False, None, None, l_prev[0], None])
             if level == 1 and not l[0].isspace():
-                # Going from level 1 to root level (0)
+                # Going from level 1 (an episode) to root level (0, a serie)
                 level = 0
                 copy = False
             #if level == 1 and copy:
             if copy:
-                # Add two fields (Episode and Description) of the child/leave, the current line
-                if l[2].startswith("- ~ "):
+                # Add an episode line. Episode title and description from the current line
+                if l[3].startswith("- ~ "):
                     # No episode title
-                    output_lines.append([False, string.decode(l[1]), None, string.decode(l[2][4:])])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][4:])])
                 else:
-                    output_lines.append([False, string.decode(l[1]), None, string.decode(l[2])])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3])])
             l_prev = l
 
+    # output_lines columns: download (True/False), followed by columns listed in SearchResultColumn.
     return output_lines
 
-def get(search_text, preset=Preset.RADIO, hd_tv_mode=False, force_download=False, output_path=None):
+def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=False, force_download=False, output_path=None):
+    """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue """
     if preset == Preset.RADIO:
-        week_number = datetime.today().isocalendar()[1]
-        ##ALTERNATIVE Week number
-        #dldate = <iplayer download date attribute "dldate">
-        #date = datetime.strptime(dldate, "%Y-%m-%d")
-        #week_number = date(date).isocalendar()[1]
-        #week_number = <Python formatted print equivalent of `date +%V`>
-
-        output_path = RADIO_DOWNLOAD_PATH + "/bbc." + str.format("{0:02}", week_number)
+        output_path = RADIO_DOWNLOAD_PATH
     elif preset == Preset.TV:
         output_path = TV_DOWNLOAD_PATH
 
-    cmd = GET_IPLAYER_CMD
-    if preset:
-        cmd += " --preset=" + preset
-    if hd_tv_mode:
-        cmd += " --tvmode=\"flashhigh,flashhd,flashvhigh\""
-    if force_download:
-        cmd += " --force"
-    cmd += " --output=" + output_path
-    cmd += " --nocopyright --hash --get "
-    if search_text:
-        # search_text is a set of program indices, so don't surround them with quotes
-        cmd += search_text
+    subdir_format = settings.config().get(preset, "subdir-format").lower()
+    if subdir_format:
+        # Perform additional substitution
+        #NOTE find substring
+        if "week" in subdir_format:
+            week_number = datetime.today().isocalendar()[1]
+            subdir_format = subdir_format.replace("<week>", "{0:02}".format(week_number))
 
-    run_in_terminal_window = string.str2bool(settings.config().get(preset, "run-in-terminal"))
+    run_in_terminal_window = string.str2bool(preset and settings.config().get(preset, "run-in-terminal"))
+
+    #cmd = "( for i in"
+    #for search_term in search_term_list:
+    #    cmd += " " + search_term
+    #cmd += "; do " + GET_IPLAYER_CMD
+    cmd = ""
+    for i, search_term in enumerate(search_term_list):
+        cmd += GET_IPLAYER_CMD
+        
+        if preset:
+            cmd += " --preset=" + preset
+            if hd_tv_mode:
+                cmd += " --tvmode=\"" + settings.config().get(preset, "hdmode") + "\""
+        if force_download:
+            cmd += " --force"
+        cmd += " --nocopyright --hash --output=\\\"" + output_path + "\\\""
+        if subdir_format:
+            # \\\" : escape double quote to handle special characters (<, >)
+            cmd += " --subdir --subdir-format=\\\"" + subdir_format + "\\\""
+        if pvr_queue:
+            if not preset:
+                return False
+            # Output will be displayed in a dialog window
+            run_in_terminal_window = False
+            # Must explicitly specify type and pid on the command line
+            cmd += " --pvrqueue --type " + preset + " --pid "
+        elif pid:
+            cmd += " --pid "
+        else:
+            cmd += " --get "        
+    
+    ##cmd += "\"$i\" ; done"
+    #cmd += "$i; done )"
+        if search_term:
+            # search_term_list could be a set of program indices, so don't surround them with quotes
+            cmd += search_term
+        
+        if (i < len(search_term_list) - 1):
+            cmd += "; "
 
     # One-liner: terminal_title = common.__program_name__ if run_in_terminal_window else None
     terminal_title = None
     if run_in_terminal_window:
         terminal_title = common.__program_name__
-        
-    #return CommandQueue.CommandQueue().run(cmd, run_in_terminal_window=run_in_terminal_window, terminal_title=terminal_title)
-    return command_queue.run(cmd, run_in_terminal_window=run_in_terminal_window, terminal_title=terminal_title)
-        
-def info(preset, search_text, proxy_enabled=False):
+    
+    if pvr_queue:
+        launched = True
+        process_output = command.run(cmd)
+    else:    
+        #CommandQueue.CommandQueue().run(...)
+        launched = command_queue.run(cmd, run_in_terminal_window=run_in_terminal_window, terminal_title=terminal_title)
+        process_output = None
+    return (launched, process_output)
+
+def info(search_term, preset=None, proxy_enabled=False):
+    """ Run get_iplayer --info """
+    # Cannot do a search on pid
     # Only from outside the UK and partial_proxy enabled in get_iplayer(?):
     #     If proxy_enabled is false then info retrieval will be faster but the info 
-    #     will not contain proper values for "modes" and "tvmodes" (the available tv download file sizes).
+    #     will not contain proper values for "modes" and "tvmodes" (the available tv download file sizes)
     cmd = GET_IPLAYER_CMD + " --info --nocopyright" 
     if preset:
         cmd += " --preset=" + preset
     if not proxy_enabled:
+        # Disable proxy setting
         cmd += " --proxy=0"
-    if search_text:
-        cmd += " \"" + search_text + "\""
+    if search_term:
+        cmd += " \"" + search_term + "\""
 
     process_output = command.run(cmd)
 
@@ -163,6 +206,7 @@ def info(preset, search_text, proxy_enabled=False):
     return output_lines
 
 def refresh(preset=None):
+    """ Run get_iplayer --refresh """
     if not preset:
         #preset = Preset.RADIO + "," + Preset.TV
         preset = "all"

@@ -54,16 +54,18 @@ class CommandQueue:
 
 # Convenience method
 def run(*args, **kwargs):
-    """ Push the command on a queue and run the command when there is a process free to run the command.
+    """ Push the command on a queue and run the command when there is a thread free to run the command. 
+        Return true if command was successfully put on the queue.
     """
     return CommandQueue().run(*args, **kwargs)
 
 def size():
+    """ Return size of the queue. """
     return _get_queue().qsize()
 
 ####
 
-# Singletong queue
+# Singleton queue
 _queue = None
 
 def _get_queue():

@@ -26,7 +26,7 @@ def _revert_config(config):
 
 def _reload_config(config):
     """ Reload configuration. Create user's configuration file (copy of the default configuration file)
-        if it did not exist
+        if it did not exist 
     """
     if os.path.isfile(CONFIG_FILENAME):
         #config.read(CONFIG_FILENAME)
@@ -61,28 +61,24 @@ def _create_args():
 
 # "Alternative" initialization method
 def revert():
-    """ Revert configuration to the default values.
-    """
+    """ Revert configuration to the default values. """
     conf = config(load_values=False)
     _revert_config(conf)
 
 # "Alternative" initialization method
 def reload():
-    """ Reload configuration from file.
-    """
+    """ Reload configuration from file. """
     conf = config(load_values=False)
     _reload_config(conf)
 
 def save():
-    """ Save configuration to file.
-    """
+    """ Save configuration to file. """
     _save_config(config(), CONFIG_FILENAME)
 
 # Convenience methods for properties that are both in _args and in _config
 
 def get_log_level():
-    """ Return the log level
-    """
+    """ Return the log level. """
     if args().debug:
         #level = logging.DEBUG
         level = "DEBUG"
@@ -105,8 +101,7 @@ _config = None
 _args = None
 
 def config(load_values=True):
-    """ Return configuration object.
-    """
+    """ Return configuration object. """
     global _config
     #if _config is None:
     if not _config:
@@ -119,8 +114,7 @@ def config(load_values=True):
     return _config
 
 def args():
-    """ Return program arguments object.
-    """
+    """ Return program arguments object. """
     global _args
     #if _args is None:
     if not _args:

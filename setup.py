@@ -11,7 +11,7 @@ import get_iplayer_downloader.common
 if os.path.exists(os.path.join(os.getcwd(), "MANIFEST")):
     os.remove(os.path.join(os.getcwd(), "MANIFEST"))
 
-#NOTE: name can be anything. It is the folder name in /usr/local/lib/python*/dist-packages
+#NOTE name can be anything. It is the folder name in /usr/local/lib/python*/dist-packages
 setup(name = get_iplayer_downloader.common.__program_name__,
     version = get_iplayer_downloader.common.__version__ ,
     description = get_iplayer_downloader.common.__description__,

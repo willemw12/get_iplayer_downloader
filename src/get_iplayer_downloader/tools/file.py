@@ -3,7 +3,6 @@ import urllib2
 
 def load_url(url, pathname):
     """ Download a file to a folder """
-
     if not os.path.exists(pathname):
         os.makedirs(pathname)
     

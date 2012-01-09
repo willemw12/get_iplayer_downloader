@@ -1,6 +1,6 @@
 get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
-This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --get" or "get_iplayer --info". It displays all the found programs in a large treeview with two main columns: serie title and episode title plus description
+This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays all the found programs in a large treeview with two main columns: serie title and episode title plus description
 
 It is a small utility program for me to try and find out what Python and GTK+ 3 can do, after creating a version of the downloader in bash with zenity, which ran too slow.
 
@@ -10,8 +10,8 @@ I let the downloads run in one or more terminal windows, so I can see when and w
 
 Some screenshots:
 
-    https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot1.png
-    https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot2.png
+    https://github.com/willemw12/get_iplayer_downloader/blob/master/screenshot1.png
+    https://github.com/willemw12/get_iplayer_downloader/blob/master/screenshot2.png
 
 For the latest version see https://github.com/willemw12/get_iplayer_downloader.
 
@@ -24,15 +24,11 @@ Disclaimer: this program doesn't do any downloading itself. It relies on the get
 Dependencies
 ============
 
-Linux to run get_iplayer in a terminal window and to display the number of running get_iplayer processes (gnome-terminal, ps, grep, wc, $SHELL).
-
-Python (2.7).
-
-Python setuptools (to run setup.py).
-
-GNOME libraries for Python (GTK+ 3, etc.).
-
 get_iplayer and its dependencies (http://www.infradead.org/get_iplayer/html/get_iplayer.html).
+
+Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3, etc.).
+
+Linux (to run get_iplayer in a terminal window and to display the number of running get_iplayer processes).
 
 
 
@@ -43,12 +39,13 @@ Configuration
 
 Configure get_iplayer presets "tv" and "radio" for tv, radio and podcasts (files ~/.get_iplayer/presets/tv and ~/.get_iplayer/presets/radio). Settings should preferable include:
 
-    "long=1" or "fields=..." to enable search inside program details
     "tvmode=..." and "radiomode=...": the default download modes
 
-Now "get_iplayer --preset=radio ..." and "get_iplayer --preset=tv" work properly from the command line.
+Now "get_iplayer --preset=radio ..." and "get_iplayer --preset=tv" should work properly from the command line.
 
-get_iplayer has a fixed download list size, which can be increased by modifying the get_iplayer file (/usr/bin/get_iplayer: my $info_limit = 40).
+Optionally, setup a get_iplayer pvr scheduler (cronjob).
+
+Note: get_iplayer has a fixed download list size (info_limit = 40).
 
 2) get_iplayer_downloader
 
@@ -71,4 +68,3 @@ Or to install, from the main folder, run:
 Then to execute, run:
 
     get_iplayer_downloader
-

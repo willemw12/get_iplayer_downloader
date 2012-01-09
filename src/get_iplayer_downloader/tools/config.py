@@ -1,14 +1,13 @@
 from ConfigParser import ConfigParser
 
-""" The in-memory section header that contains properties that will not be part of a section in the configuration file.
-"""
+""" The in-memory section header that contains properties that will not be part of a section in the configuration file. """
 NOSECTION = "nosection"
 
 class PropertiesConfigParser(ConfigParser):
+    
     """ Add support to config parsers for Linux config / Java properties files, 
         i.e. properties not inside a section.
-    """
-    
+    """    
     class NoSectionHeader(object):
     
         def __init__(self, fp):

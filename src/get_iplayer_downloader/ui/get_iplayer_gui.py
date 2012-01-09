@@ -7,16 +7,18 @@ from gi.repository import Gdk, Gtk, GObject, Pango, Gio
 import get_iplayer_downloader.common
 
 from get_iplayer_downloader import get_iplayer, settings
+from get_iplayer_downloader.get_iplayer import SearchResultColumn
 from get_iplayer_downloader.tools import command, command_queue, config, file, markup, string
 
 BORDER_WIDTH = 4
 
 class MainWindow(Gtk.Window):
-    
+
     def __init__(self):
         Gtk.Window.__init__(self)
         self.set_window_title()
-        self.set_size_request(960, 720)
+        # Set minimal size: self.set_size_request(...)
+        self.set_default_size(960, 720)
         self.set_border_width(BORDER_WIDTH)
         if string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")):
             self.maximize()
@@ -60,6 +62,7 @@ class MainWindow(Gtk.Window):
         self.main_grid.attach_next_to(self.main_treeview_scrollbar, self.tool_bar_box, Gtk.PositionType.BOTTOM, 1, 2)
 
         self.main_treeview = MainTreeView(self)
+        self.main_treeview._init_store()        #TODO refactor init treeview store from top_bar_box callback
         self.main_treeview_scrollbar.add(self.main_treeview)
         
     def set_window_title(self, prog_type=get_iplayer.Type.RADIO):
@@ -87,6 +90,7 @@ class UIManager():
     </menu>
     <menu action="ToolsMenu">
       <menuitem action="ToolsDownload"/>
+      <menuitem action="ToolsPvrQueue"/>
       <menuitem action="ToolsClear"/>
       <menuitem action="ToolsRefresh"/>
     </menu>
@@ -103,6 +107,7 @@ class UIManager():
   <popup name="PopupMenu">
     <menuitem action="ViewProperties"/>
     <menuitem action="ToolsDownload"/>
+    <menuitem action="ToolsPvrQueue"/>
     <menuitem action="ToolsClear"/>
     <menuitem action="ToolsRefresh"/>
     <separator/>
@@ -165,7 +170,9 @@ class UIManager():
     def _add_tools_menu_actions(self, action_group):
         action_group.add_actions([
             ("ToolsMenu", None, "Do"),
-            ("ToolsDownload", Gtk.STOCK_GO_DOWN, "Download", None, "Download selected programs", self._on_menu_others),
+            ("ToolsDownload", Gtk.STOCK_GO_DOWN, "Download", None, "Download or queue selected programs", self._on_menu_others),
+            #Gtk.STOCK_MEDIA_RECORD
+            ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "Queue", None, "Queue program for one-off downloading by get_iplayer pvr", self._on_menu_others),
             ("ToolsClear", Gtk.STOCK_CLEAR, "Clear", None, "Clear program download selection", self._on_menu_others),
             ("ToolsRefresh", Gtk.STOCK_REFRESH, "Refresh", None, "Refresh program cache", self._on_menu_others)
         ])
@@ -203,6 +210,8 @@ class UIManager():
             self.main_window.tool_bar_box._on_button_properties_clicked(None)
         elif name == "ToolsDownload":
             self.main_window.tool_bar_box._on_button_download_clicked(None)
+        elif name == "ToolsPvrQueue":
+            self.main_window.tool_bar_box._on_button_pvr_queue_clicked()
         elif name == "ToolsClear":
             self.main_window.tool_bar_box._on_button_clear_clicked(None)
         elif name == "ToolsRefresh":
@@ -243,12 +252,10 @@ class ToolBarBox(Gtk.Box):
         
         ####
         
-        #ALTERNATIVE define inline callback methods here (_on_button_download_clicked, etc.)
-        
         button = Gtk.Button(label="_Download", use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_GO_DOWN))
-        button.set_tooltip_text("Download selected programs")
+        button.set_tooltip_text("Download or queue selected programs")
         button.connect("clicked", self._on_button_download_clicked)
         self.pack_start(button, False, False, 0)
 
@@ -365,7 +372,7 @@ class ToolBarBox(Gtk.Box):
         separator = Gtk.VSeparator()
         self.pack_start(separator, False, False, 0)
 
-        grid = Gtk.Grid()
+        grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(grid, False, False, 0)
 
         self.force_download_checkbutton = Gtk.CheckButton("Force", relief=Gtk.ReliefStyle.NONE)
@@ -375,19 +382,19 @@ class ToolBarBox(Gtk.Box):
         grid.add(self.force_download_checkbutton)
         
         self.hd_tv_checkbutton = Gtk.CheckButton("HD", relief=Gtk.ReliefStyle.NONE)
-        self.hd_tv_checkbutton.set_tooltip_text("HD TV recording mode. Overrides the default TV mode.")
+        self.hd_tv_checkbutton.set_tooltip_text("HD TV recording mode. Overrides the default TV mode")
         self.hd_tv_checkbutton.set_focus_on_click(False)
         #grid.pack_start(self.force_download_checkbutton, False, False, 0)
         grid.attach_next_to(self.hd_tv_checkbutton, self.force_download_checkbutton, Gtk.PositionType.RIGHT, 1, 1)
         
         self.proxy_checkbutton = Gtk.CheckButton("Proxy", relief=Gtk.ReliefStyle.NONE)
-        self.proxy_checkbutton.set_tooltip_text("Force full proxy mode. Only applies to the retrieval of program properties. Useful outside the UK. When enabled, properties will include the available tv download sizes.")
+        self.proxy_checkbutton.set_tooltip_text("Force full proxy mode. Only applies to the retrieval of program properties. Useful outside the UK. When enabled, properties will include the available tv download sizes")
         self.proxy_checkbutton.set_focus_on_click(False)
         #grid.pack_start(self.proxy_checkbutton, False, False, 0)
         grid.attach_next_to(self.proxy_checkbutton, self.force_download_checkbutton, Gtk.PositionType.BOTTOM, 1, 1)
         
         self.search_all_checkbutton = Gtk.CheckButton("All", relief=Gtk.ReliefStyle.NONE)
-        self.search_all_checkbutton.set_tooltip_text("Search in all program types and channels. All radio and podcast channels or all tv channels.")
+        self.search_all_checkbutton.set_tooltip_text("Search in all program types and channels. All radio and podcast channels or all tv channels")
         self.search_all_checkbutton.set_focus_on_click(False)
         #grid.pack_start(self.search_all_checkbutton, False, False, 0)
         grid.attach_next_to(self.search_all_checkbutton, self.proxy_checkbutton, Gtk.PositionType.RIGHT, 1, 1)
@@ -410,15 +417,16 @@ class ToolBarBox(Gtk.Box):
 
         ##halign="start", min_horizontal_bar_width=16
         self.progress_bar = Gtk.ProgressBar()
-        #self.progress_bar.set_size_request(90, -1)
+        # Set minimal size: self.progress_bar.set_size_request(90, -1)
         self.progress_bar.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         self.progress_bar.set_show_text(True)
         self.progress_bar.set_valign(Gtk.Align.START)
         self.progress_bar.set_fraction(0.0)
-        self.progress_bar.set_tooltip_text("D (downloading), Q (waiting to download)")
-        self.pack_start(self.progress_bar, False, False, 0)
+        #self.progress_bar.set_tooltip_text("D (downloading), Q (waiting to download)")
+        self.progress_bar.set_tooltip_text("Downloading")
+        grid.add(self.progress_bar)
 
-        ####
+        ##
 
         #TODO one application-wide css file
         style_context = self.progress_bar.get_style_context()
@@ -430,13 +438,20 @@ class ToolBarBox(Gtk.Box):
         # Higher than the highest (other) priorities (GTK_STYLE_PROVIDER_PRIORITY_USER)
         style_context.add_provider(css_provider, 900)
         
-        ####
+        ##
 
         # Timeout in milliseconds
         self.timeout_id = GObject.timeout_add(5000, self.do_status_update, None)
         
         # Initialize label text
         self.do_status_update(None)
+
+        ####
+        
+        self.pvr_queue_checkbutton = Gtk.CheckButton("PVR", relief=Gtk.ReliefStyle.NONE)
+        self.pvr_queue_checkbutton.set_tooltip_text("Queue programs for one-off downloading by get_iplayer pvr")
+        self.pvr_queue_checkbutton.set_focus_on_click(False)
+        grid.add(self.pvr_queue_checkbutton)
 
         ####
 
@@ -451,14 +466,15 @@ class ToolBarBox(Gtk.Box):
 
     def do_status_update(self, user_data):
         #NOTE Linux specific
-        processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True))
+        processes = command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True)
 
         ##self.processes_label.set_label("D: " + str(processes))
         ##self.queue_size_label.set_label("Q: " + str(command_queue.size()))
 
         #NOTE string formatting: right-aligned (default for int), 4 characters wide:  str.format("D:{0:4}  Q:{1:4}", ...)
-        self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
-        self.progress_bar.set_fraction(processes / 6.0 % 1)
+        #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
+        self.progress_bar.set_text(processes)
+        self.progress_bar.set_fraction(int(processes) / 6.0 % 1)
         #Gray-out
         #self.progress_bar.set_sensitive(processes != 0 or command_queue.size() != 0)
 
@@ -506,7 +522,7 @@ class ToolBarBox(Gtk.Box):
 
         self.main_window.set_window_title(prog_type=prog_type)
         
-    def _on_button_download_clicked(self, button):
+    def _on_button_download_clicked(self, button, pvr_queue=False):
         #NOTE button can be None (this call is reused by other widgets on this panel)
         hd_tv_mode = False
         combo = self.preset_combo
@@ -518,32 +534,64 @@ class ToolBarBox(Gtk.Box):
                 hd_tv_mode = self.hd_tv_checkbutton.get_active()
 
         force_download = self.force_download_checkbutton.get_active()
+        if not pvr_queue:
+            pvr_queue = self.pvr_queue_checkbutton.get_active()
         
         # Search selected leaf nodes (the second level) two levels deep
         model = self.main_window.main_treeview.get_model()
-        indices = ""
+        #indices = ""
+        pid_list = []
         root_iter = model.get_iter_first()
         while root_iter is not None:
             row = model[root_iter]
             if row[0] and row[1]:
-                indices += row[1] + " "
+                #indices += row[1] + " "
+                pid_list.append(row[1])
             
             #if model.iter_has_child(root_iter):
             child_iter = model.iter_children(root_iter)
             while child_iter is not None:
                 row = model[child_iter]
                 if row[0]:
-                    indices += row[1] + " "
+                    #indices += row[1] + " "
+                    pid_list.append(row[1])
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
         
-        if indices:
-            launched = get_iplayer.get(indices, preset=preset, hd_tv_mode=hd_tv_mode, force_download=force_download)
+        #if indices:
+        if len(pid_list) > 0:
+            launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset, 
+                                                       hd_tv_mode=hd_tv_mode, force_download=force_download)
             if not launched:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.OK,
                                            "get_iplayer not launched")
-                dialog.format_secondary_text("Too many get_iplayers are running. Please try again later.")
+                #dialog.format_secondary_text("")
+                dialog.run()
+                dialog.destroy()
+            elif pvr_queue:
+                dialog = Gtk.MessageDialog(self.main_window, 0,
+                                           Gtk.MessageType.INFO, Gtk.ButtonsType.OK,
+                                           "Queued programs")
+
+                # Creating a secondary text results in a large "primary" text in bold
+                #dialog.format_secondary_text(string.decode(process_output))
+                dialog.format_secondary_text(" ")
+
+                #### Add scrollbar to the "secondary text"
+                
+                content_area = dialog.get_content_area()
+                content_area.set_size_request(600, 600)
+                scrolled_window = Gtk.ScrolledWindow(expand=True)
+                content_area.add(scrolled_window)
+
+                label = Gtk.Label(string.decode(process_output), valign=Gtk.Align.START, halign=Gtk.Align.START, selectable=True)
+                scrolled_window.add_with_viewport(label)
+
+                dialog.show_all()
+                
+                ####
+                
                 dialog.run()
                 dialog.destroy()
         else:
@@ -553,6 +601,9 @@ class ToolBarBox(Gtk.Box):
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
+
+    def _on_button_pvr_queue_clicked(self):
+        self._on_button_download_clicked(None, pvr_queue=True)
 
     def _on_button_preferences_clicked(self):       #, button):
         #NOTE not called from this widget
@@ -576,9 +627,9 @@ class ToolBarBox(Gtk.Box):
         
         model, tree_iter = self.main_window.main_treeview.get_selection().get_selected()
         if tree_iter is not None:
-            index = model[tree_iter][1]
+            index = model[tree_iter][SearchResultColumn.INDEX]
             if index:
-                get_iplayer_output_lines = get_iplayer.info(preset, index, proxy_enabled)
+                get_iplayer_output_lines = get_iplayer.info(index, preset=preset, proxy_enabled=proxy_enabled)
                 window = DetailWindow(get_iplayer_output_lines)
                 window.show_all()
             #else:
@@ -706,12 +757,14 @@ class MainTreeView(Gtk.TreeView):
         ##self.set_property("grid-line-pattern", "\000\001")
         ##self.set_style(grid_line_pattern="\000\001")
 
-        self._init_store()
+        #self._init_store()        #TODO refactor init treeview store from top_bar_box callback
         self._init_columns()
 
     def _init_store(self):
-        get_iplayer_output_lines = get_iplayer.search(None)
-        self.set_store(get_iplayer_output_lines)
+        #TODO refactor init treeview store from top_bar_box callback
+        #get_iplayer_output_lines = get_iplayer.search(None, preset=Preset.RADIO, prog_type=Type.RADIO, channel=Channel.RADIO, category=None, since=0, search_all=False)
+        #self.set_store(get_iplayer_output_lines)
+        self.main_window.tool_bar_box._on_button_find_clicked(None)
         
     def _init_columns(self):
         ### First column
@@ -720,14 +773,14 @@ class MainTreeView(Gtk.TreeView):
         renderer.set_alignment(0, 0.5)
         renderer.connect("toggled", self._on_cell_row_toggled)
         #sizing=Gtk.TreeViewColumn.FIXED
-        column = Gtk.TreeViewColumn(None, renderer, active=0)
+        column = Gtk.TreeViewColumn(None, renderer, active=SearchResultColumn.DOWNLOAD)
         self.append_column(column)
 
         #### Second column
 
         renderer = Gtk.CellRendererText(max_width_chars=256)
         #sizing=Gtk.TreeViewColumn.FIXED
-        column = Gtk.TreeViewColumn("Serie", renderer, text=2)
+        column = Gtk.TreeViewColumn("Serie", renderer, text=SearchResultColumn.SERIE)
         column.set_resizable(True)
         column.set_max_width(250)
         self.append_column(column)
@@ -736,7 +789,7 @@ class MainTreeView(Gtk.TreeView):
 
         renderer = Gtk.CellRendererText()
         #sizing=Gtk.TreeViewColumn.FIXED
-        column = Gtk.TreeViewColumn("Episode ~ Description", renderer, text=3)
+        column = Gtk.TreeViewColumn("Episode ~ Description", renderer, text=SearchResultColumn.EPISODE)
         column.set_resizable(True)
         self.append_column(column)
 
@@ -797,7 +850,8 @@ class MainTreeView(Gtk.TreeView):
         #        row[0] = new_toggle_value
 
     def set_store(self, tree_rows):
-        store = Gtk.TreeStore(bool, str, str, str)
+        #  Columns stored: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn.
+        store = Gtk.TreeStore(bool, str, str, str, str)
         
         #NOTE Could use "for i, row in enumerate(tree_rows):"
         #     except that "i += 1" to skip a list item has no effect
@@ -806,21 +860,20 @@ class MainTreeView(Gtk.TreeView):
         while i in range(len(tree_rows)):
             row = tree_rows[i]
             #if not row[2]:
-            if row[3] is None:
-                # Root level row
+            if row[SearchResultColumn.EPISODE] is None:
+                # Root level row (a serie)
                 
-                # If root has only one child/leave then merge the two into one row
-                #TODO try catch: if rows[i+ 1][2] and not rows[i+ 2][2]:
-                if (i + 1 < len(tree_rows) and tree_rows[i + 1][3]) and (i + 2 >= len(tree_rows) or not tree_rows[i + 2][3]):
-                    # Copy program index and description
-                    #row[0] = tree_rows[i+1][0]
-                    row[1] = tree_rows[i + 1][1]
-                    row[3] = tree_rows[i + 1][3]
-                    # Skip merged child/leave
+                # If root (a serie) has only one child/leave (an episode) then merge the two into one row
+                #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
+                if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
+                    row[SearchResultColumn.PID] = tree_rows[i + 1][SearchResultColumn.PID]
+                    row[SearchResultColumn.INDEX] = tree_rows[i + 1][SearchResultColumn.INDEX]
+                    row[SearchResultColumn.EPISODE] = tree_rows[i + 1][SearchResultColumn.EPISODE]
+                    # Skip merged row (an episode)
                     i += 1
                 root_iter = store.append(None, row)            
             else:
-                # Child/leave level row
+                # Child/leave level row (an episode)
                 store.append(root_iter, row)
             i += 1
         self.set_model(store)
@@ -845,16 +898,16 @@ class DetailWindow(Gtk.Window):
         ##min_content_height=600, min_content_width=600
         ##visible=True, can_focus=True, hscrollbar_policy=Gtk.Policy.AUTOMATIC, 
         #                               vscrollbar_policy=Gtk.Policy.AUTOMATIC
-        scrolledwindow = Gtk.ScrolledWindow()
+        scrolled_window = Gtk.ScrolledWindow()
         ##self.set_default_size(400, 400)
-        #scrolledwindow.set_hexpand(True)
-        #scrolledwindow.set_vexpand(True)
-        self.add(scrolledwindow)
+        #scrolled_window.set_hexpand(True)
+        #scrolled_window.set_vexpand(True)
+        self.add(scrolled_window)
 
         self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         ##self.grid.set_row_homogeneous(False)
         ##self.grid.set_column_homogeneous(False)
-        scrolledwindow.add_with_viewport(self.grid)
+        scrolled_window.add_with_viewport(self.grid)
 
         #### Thumbnail
         
@@ -968,11 +1021,11 @@ class DetailWindow(Gtk.Window):
         url += "      "
 
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "pvr")
-        url += files2urls(filepath)
+        url += _files2urls(filepath)
         url += "      "
-        
+
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
-        url += files2urls(filepath)
+        url += _files2urls(filepath)
 
         label1 = Gtk.Label(url, valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True)
         label1.set_padding(BORDER_WIDTH, 0)
@@ -1005,10 +1058,10 @@ class PreferencesDialogWrapper(object):
         ###
         
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "pvr")
-        url = files2urls(filepath)
+        url = _files2urls(filepath)
         url += "      "
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
-        url += files2urls(filepath)
+        url += _files2urls(filepath)
         
         label = self.builder.get_object("PrefsAdvGetIPlayerConfLabel")
         label.set_markup(url)
@@ -1020,6 +1073,9 @@ class PreferencesDialogWrapper(object):
 
         self.builder.connect_signals(self)
         self.dialog.connect("response", self._response)
+
+        #self.ok_button = self.builder.get_object("PrefsOkButton")
+        #self.dialog.connect("show", self._on_show)
 
     def _get_settings(self):        
         self.general_compact_toolbar_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
@@ -1046,6 +1102,9 @@ class PreferencesDialogWrapper(object):
         settings.config().set("tv", "channels", self.tv_channels_entry.get_text())
         settings.config().set("tv", "download-path", self.tv_download_path_entry.get_text())
         settings.config().set("tv", "run-in-terminal", str(self.tv_run_in_terminal_entry.get_active()))
+
+    #def _on_show(self, user_data):
+    #    self.ok_button.grab_focus()
 
     def _on_prefs_revert_clicked(self, user_data):
         settings.revert()
@@ -1091,18 +1150,21 @@ class SearchEntry(Gtk.Entry):
             entry.set_text("")
             #entry.set_placeholder_text("filter programs")
 
-def files2urls(filepath):
+def _files2urls(filepath):
+    """ Return a string with a url to the folder @filepath and the files inside filepath (one level deep) """
     basename = os.path.basename(filepath)
     url = "<a href=\"file://" + filepath + "\" title=\"get_iplayer " + basename + " configuration folder\">" + basename + "</a>"
     for root, dirs, files in os.walk(filepath):
-        # Skip empty and subfolders (one level deep)
+        # Skip empty and subfolders
         if len(files) > 0 and filepath == root:
             files.sort()
             url += " ("
             for i, filename in enumerate(files):
-                url += "<a href=\"file://" + os.path.join(filepath, filename) + "\" title=\"get_iplayer " + basename + " configuration file\">" + filename + "</a>"
-                if (i < len(files) - 1):
-                    url += ", "
+                # Skip files created by get_iplayer --pvrqueue
+                if not filename.startswith("ONCE_"):
+                    url += "<a href=\"file://" + os.path.join(filepath, filename) + "\" title=\"get_iplayer " + basename + " configuration file\">" + filename + "</a>"
+                    if (i < len(files) - 1):
+                        url += ", "
             url += ")"
     return url
     #ALTERNATIVE ways of sorting a list of files in a folder
