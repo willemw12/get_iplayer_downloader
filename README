@@ -2,7 +2,7 @@ get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
 This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays all the found programs in a large treeview with two main columns: serie title and episode title plus description
 
-It is a small utility program for me to try and find out what Python and GTK+ 3 can do, after creating a version of the downloader in bash with zenity, which ran too slow.
+It is a small utility program for me to try and find out what Python and GTK+ 3 can do, after creating a version of the downloader with zenity in bash, which was far too slow.
 
 This program works best with a screen resolution of 1024x768 or higher.
 
@@ -60,7 +60,7 @@ To execute without installing, run:
 
     <path to this folder>/src/get_iplayer_downloader.py
 
-Or to install, from the main folder, run:
+Or to install, run from this folder:
 
     sudo python setup.py install
     sudo rm -rf build

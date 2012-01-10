@@ -137,10 +137,9 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
                 cmd += " --tvmode=\"" + settings.config().get(preset, "hdmode") + "\""
         if force_download:
             cmd += " --force"
-        cmd += " --nocopyright --hash --output=\\\"" + output_path + "\\\""
+        cmd += " --nocopyright --hash --output=\"" + output_path + "\""
         if subdir_format:
-            # \\\" : escape double quote to handle special characters (<, >)
-            cmd += " --subdir --subdir-format=\\\"" + subdir_format + "\\\""
+            cmd += " --subdir --subdir-format=\"" + subdir_format + "\""
         if pvr_queue:
             if not preset:
                 return False

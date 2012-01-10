@@ -578,7 +578,7 @@ class ToolBarBox(Gtk.Box):
                 #dialog.format_secondary_text(string.decode(process_output))
                 dialog.format_secondary_text(" ")
 
-                #### Add scrollbar to the "secondary text"
+                #### Add text label with scrollbars
                 
                 content_area = dialog.get_content_area()
                 content_area.set_size_request(600, 600)
