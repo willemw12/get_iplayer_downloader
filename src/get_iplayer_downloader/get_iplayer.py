@@ -1,6 +1,7 @@
 """ Perform get_iplayer operations. """
 
 import ast
+import logging
 from datetime import datetime
 
 from get_iplayer_downloader import common, settings
@@ -20,7 +21,7 @@ class Preset:
     RADIO = settings.config().get("radio", "preset-file")
     TV = settings.config().get("tv", "preset-file")
     
-class Type:
+class ProgType:
     #ALL = "all"
     RADIO = "radio"
     PODCAST = "podcast"
@@ -64,9 +65,9 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
     if search_text:
         cmd += " \"" + search_text + "\""
     
-    process_output = command.run(cmd)
+    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
 
-    # Convert the process output lines to lists (not dicts, not objects), matching the GtkTreeStore input data
+    # Convert the process output lines to lists (no dicts, no objects), matching the GtkTreeStore input data
     lines = process_output.splitlines()
     output_lines = []
     l_prev = None
@@ -115,12 +116,11 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
 
     subdir_format = settings.config().get(preset, "subdir-format").lower()
     if subdir_format:
-        # Perform additional substitution
+        # Perform additional substitutions
         #NOTE find substring
         if "week" in subdir_format:
             week_number = datetime.today().isocalendar()[1]
             subdir_format = subdir_format.replace("<week>", "{0:02}".format(week_number))
-
     run_in_terminal_window = string.str2bool(preset and settings.config().get(preset, "run-in-terminal"))
 
     #cmd = "( for i in"
@@ -139,7 +139,10 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
             cmd += " --force"
         cmd += " --nocopyright --hash --output=\"" + output_path + "\""
         if subdir_format:
-            cmd += " --subdir --subdir-format=\"" + subdir_format + "\""
+            if pvr_queue:
+                cmd += " --subdir --subdir-format=\"" + subdir_format + "\""
+            else:
+                cmd += " --subdir --subdir-format=\\\"" + subdir_format + "\\\""
         if pvr_queue:
             if not preset:
                 return False
@@ -155,23 +158,23 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
     ##cmd += "\"$i\" ; done"
     #cmd += "$i; done )"
         if search_term:
-            # search_term_list could be a set of program indices, so don't surround them with quotes
+            # search_term_list could be a set of programme indices, so don't surround them with quotes
             cmd += search_term
         
         if (i < len(search_term_list) - 1):
             cmd += "; "
 
-    # One-liner: terminal_title = common.__program_name__ if run_in_terminal_window else None
+    # As a one-liner: terminal_title = common.__program_name__ if run_in_terminal_window else None
     terminal_title = None
     if run_in_terminal_window:
         terminal_title = common.__program_name__
     
     if pvr_queue:
         launched = True
-        process_output = command.run(cmd)
+        process_output = command.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME)
     else:    
         #CommandQueue.CommandQueue().run(...)
-        launched = command_queue.run(cmd, run_in_terminal_window=run_in_terminal_window, terminal_title=terminal_title)
+        launched = command_queue.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME, run_in_terminal_window=run_in_terminal_window, terminal_title=terminal_title)
         process_output = None
     return (launched, process_output)
 
@@ -190,7 +193,7 @@ def info(search_term, preset=None, proxy_enabled=False):
     if search_term:
         cmd += " \"" + search_term + "\""
 
-    process_output = command.run(cmd)
+    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
 
     lines = process_output.splitlines()
     output_lines = []
@@ -210,5 +213,5 @@ def refresh(preset=None):
         #preset = Preset.RADIO + "," + Preset.TV
         preset = "all"
     cmd = GET_IPLAYER_CMD + " --refresh --preset=" + preset    
-    return command.run(cmd)
+    return command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
 

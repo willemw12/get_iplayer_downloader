@@ -23,7 +23,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="tooltip_text" translatable="yes">Revert all settings to the default (including hidden settings)</property>
+                <property name="tooltip_text" translatable="yes">Revert all settings to the default. Does not include other settings in the configuration file</property>
                 <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
                 <signal name="clicked" handler="_on_prefs_revert_clicked" swapped="no"/>
@@ -101,7 +101,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">A compact toolbar has no combo box labels. Changes take effect after restart of this program.</property>
+                        <property name="tooltip_text" translatable="yes">A compact toolbar has no combo box labels. Changes take effect after restart of this program</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -236,7 +236,7 @@
                       <object class="GtkLabel" id="label4">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Comma-separated list. Limit program search to matched channels. No search limit if left empty</property>
+                        <property name="tooltip_text" translatable="yes">Comma-separated list. Limit programme search to matched channels. No search limit if left empty</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -434,7 +434,7 @@
                       <object class="GtkLabel" id="label7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Comma-separated list. Limit program search to matched channels. No search limit if left empty</property>
+                        <property name="tooltip_text" translatable="yes">Comma-separated list. Limit programme search to matched channels. No search limit if left empty</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>

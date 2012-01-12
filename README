@@ -1,6 +1,6 @@
 get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
-This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays all the found programs in a large treeview with two main columns: serie title and episode title plus description
+This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays all the found programmes in a large treeview with two main columns: serie title and episode title plus description.
 
 It is a small utility program for me to try and find out what Python and GTK+ 3 can do, after creating a version of the downloader with zenity in bash, which was far too slow.
 
@@ -49,7 +49,7 @@ Note: get_iplayer has a fixed download list size (info_limit = 40).
 
 2) get_iplayer_downloader
 
-Most configuration settings can be managed from the GUI (right-click, Preferences). Before downloading, check the download paths in the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config, which will be created after running the program for the first time). The default BBC program settings (channel lists and category lists) are configured according to my preference and don't contain all possible values.
+Most configuration settings can be managed from the GUI (right-click, Preferences). Before downloading, check the download paths in the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config, which will be created after running the program for the first time). The default BBC programme settings (channel lists and category lists) are configured according to my preference and don't contain all possible values.
 
 
 
@@ -68,3 +68,20 @@ Or to install, run from this folder:
 Then to execute, run:
 
     get_iplayer_downloader
+
+
+
+Shortcut keys
+=============
+
+alt + enter     Properties  View properties of highlighted programme (of programme in focus)
+ctrl + d        Download    Download or queue selected programmes
+ctrl + q        Queue       Queue selected programmes for one-off downloading by get_iplayer pvr
+ctrl + f        Find        Go to search entry field on the tool bar
+ctrl + t        Toggle      Rotate between programme types (radio, podcast, tv)
+ctrl + c        Clear       Clear programme download selection
+ctrl + r        Refresh     Refresh programme cache
+f1				Help		View shortcut key list
+
+down-arrow                  Go from tool bar to search result
+space or enter              Toggle programme selection in search result

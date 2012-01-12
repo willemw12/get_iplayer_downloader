@@ -33,8 +33,8 @@ class PropertiesConfigParser(ConfigParser):
 
     ####
     
-    def __init__(self, defaults=None, **kwds):
-        ConfigParser.__init__(self, **kwds)
+    def __init__(self, defaults=None, **keywords):
+        ConfigParser.__init__(self, **keywords)
         
     #def read(self, filenames):
     #    pass

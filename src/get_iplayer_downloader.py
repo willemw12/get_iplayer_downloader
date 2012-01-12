@@ -18,16 +18,13 @@ def _init_loggers():
 
     # Log to file
     
-    if not os.path.exists(settings.TEMP_FILEPATH):
-        os.mkdir(settings.TEMP_FILEPATH)
+    if not os.path.exists(settings.TEMP_PATHNAME):
+        os.mkdir(settings.TEMP_PATHNAME)
     
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    #ALTERNATIVE timestamp/number generation:
-    #NOTE os.getpgid() is Linux specific. Use mkstemp() instead
-    #pid = str(os.getpgid(0))
-    #timestamp = datetime.now().strftime("%s")
+    #ALTERNATIVE timestamp/number generation: pid = str(os.getpgid(0)), Linux; datetime.now().strftime("%s"); mkstemp()
 
-    log_filename = os.path.join(settings.TEMP_FILEPATH, timestamp + ".log")
+    log_filename = os.path.join(settings.TEMP_PATHNAME, timestamp + ".log")
     
     handler = logging.FileHandler(log_filename)
     logging.getLogger().addHandler(handler)

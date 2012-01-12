@@ -26,9 +26,9 @@ class CommandQueue:
     
         def run(self):
             while True:
-                cmd, run_in_terminal_window, terminal_title = self._queue.get()
+                cmd, keywords = self._queue.get()
                 try:
-                    command.run(cmd, run_in_terminal_window=run_in_terminal_window, terminal_title=terminal_title)
+                    command.run(cmd, **keywords)
                 except:
                     traceback.print_exc()
                     #raise
@@ -43,24 +43,26 @@ class CommandQueue:
             thread.setDaemon(True)
             thread.start()
     
-    def run(self, cmd, run_in_terminal_window=False, terminal_title=None):
+    def run(self, cmd, **keywords):
         try:
             # Timeout (in seconds)
-            self._queue.put((cmd, run_in_terminal_window, terminal_title), True, 2)
+            self._queue.put((cmd, keywords), True, 2)
             logger.debug("run(self, cmd): _queue size=" + str(self._queue.qsize()) + " empty=" + str(self._queue.empty()) + " full=" + str(self._queue.full()))
         except Full:
             return False
         return True
 
 # Convenience method
-def run(*args, **kwargs):
+#def run(*arguments, **keywords):
+def run(cmd, **keywords):
     """ Push the command on a queue and run the command when there is a thread free to run the command. 
         Return true if command was successfully put on the queue.
     """
-    return CommandQueue().run(*args, **kwargs)
+    #return CommandQueue().run(*arguments, **keywords)
+    return CommandQueue().run(cmd, **keywords)
 
 def size():
-    """ Return size of the queue. """
+    """ Return queue size. """
     return _get_queue().qsize()
 
 ####

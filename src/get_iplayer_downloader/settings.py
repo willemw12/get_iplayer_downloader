@@ -5,32 +5,31 @@ import tempfile
 # Application-wide constants
 import common
 
-# "as Config": avoid conflict with package method config() (and local variable config)
+# "as Config": to avoid conflict with package method config() (and local variable config)
 from get_iplayer_downloader.tools import config as Config
 
-CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, "config")
-TEMP_FILEPATH = tempfile.gettempdir() + os.sep + common.__program_name__
+# The default config file serves as a, per property, factory setting lookup fallback
+#NOTE __file__ is not defined when run from the interpreter
+DEFAULT_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.config")
 
-#### "Stateless" util configuration methods
+USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, "config")
+
+TEMP_PATHNAME = tempfile.gettempdir() + os.sep + common.__program_name__
+
+#### "Stateless" utility configuration methods
 
 def _revert_config(config):
-    #NOTE __file__ is not defined when run from the interpreter
-    current_resource_pathname = os.path.dirname(os.path.realpath(__file__))
-
-    #NOTE default_config_filename serves as factory setting fallback per property
-    default_config_filename = current_resource_pathname + os.sep + "default.config"
-
-    #NOTE properties not defined in the configuration file will still be created and have the default value
-    #     from the default configuration file
-    config.readfp(open(default_config_filename))
+    # Properties not defined in the user configuration file will still be created 
+    # and have the default value from the default configuration file
+    config.readfp(open(DEFAULT_CONFIG_FILENAME))
 
 def _reload_config(config):
     """ Reload configuration. Create user's configuration file (copy of the default configuration file)
         if it did not exist 
     """
-    if os.path.isfile(CONFIG_FILENAME):
-        #config.read(CONFIG_FILENAME)
-        config.readfp(open(CONFIG_FILENAME))
+    if os.path.isfile(USER_CONFIG_FILENAME):
+        #config.read(USER_CONFIG_FILENAME)
+        config.readfp(open(USER_CONFIG_FILENAME))
         
         #ALTERNATIVE read from string
         #    default_config = """
@@ -40,7 +39,7 @@ def _reload_config(config):
         #"""
         #config.readfp(io.BytesIO(default_config))
     else:
-        _save_config(config, CONFIG_FILENAME)
+        _save_config(config, USER_CONFIG_FILENAME)
 
 def _save_config(config, config_filename):
     config_pathname = os.path.dirname(config_filename)
@@ -73,7 +72,7 @@ def reload():
 
 def save():
     """ Save configuration to file. """
-    _save_config(config(), CONFIG_FILENAME)
+    _save_config(config(), USER_CONFIG_FILENAME)
 
 # Convenience methods for properties that are both in _args and in _config
 
@@ -94,17 +93,33 @@ def get_log_level():
             level = None
     return level
 
-####
+# Convenience config methods
+
+def revert_option(section, option):
+    default_value = default_config().get(section, option)
+    config().set(section, option, default_value)
 
 # Singletons
+
+_default_config = None
 _config = None
 _args = None
 
+def default_config(load_values=True):
+    """ Return default configuration. """
+    global _default_config
+    if _default_config is None:
+        # Create an empty config
+        _default_config = Config.PropertiesConfigParser(allow_no_value=True)
+        if load_values:
+            # Load default values
+            _revert_config(_default_config)
+    return _default_config
+
 def config(load_values=True):
-    """ Return configuration object. """
+    """ Return configuration. """
     global _config
-    #if _config is None:
-    if not _config:
+    if _config is None:
         # Create an empty config
         _config = Config.PropertiesConfigParser(allow_no_value=True)
         if load_values:
@@ -114,10 +129,9 @@ def config(load_values=True):
     return _config
 
 def args():
-    """ Return program arguments object. """
+    """ Return program arguments. """
     global _args
     #if _args is None:
     if not _args:
         _args = _create_args()
     return _args
-
