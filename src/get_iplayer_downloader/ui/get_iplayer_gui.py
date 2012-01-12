@@ -48,6 +48,9 @@ TOOLTIP_HELP_ABOUT = "About this program"
 
 class MainWindow(Gtk.Window):
 
+    def destroy(self):
+        pass
+    
     def __init__(self):
         Gtk.Window.__init__(self)
         self.set_window_title()
@@ -366,27 +369,29 @@ class ToolBarBox(Gtk.Box):
 
         ####
 
-        label = Gtk.Label(_label(" ProgType:"))
+        label = Gtk.Label(_label(" Type:"))
         self.pack_start(label, False, False, 0)
         
-        #NOTE Reuse radio channels in podcast preset
+        #NOTE Reusing radio channels in podcast preset
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO,
                     get_iplayer.Channel.RADIO, "Radio"],
                    [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST,
-                    get_iplayer.Channel.RADIO, "Podcasts"],
+                    get_iplayer.Channel.RADIO, "Podcast"],
                    [get_iplayer.Preset.TV, get_iplayer.ProgType.TV,
                     get_iplayer.Channel.TV, "TV"]]
         store = Gtk.ListStore(str, str, str, str)
         for preset in presets:
             store.append(preset)
+
         self.preset_combo = Gtk.ComboBox.new_with_model(store)
+        self.preset_combo.set_active(0)
+        
         self.preset_combo.set_valign(Gtk.Align.CENTER)
         self.preset_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_TYPE)
         self.preset_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
         self.preset_combo.pack_start(renderer_text, True)
         self.preset_combo.add_attribute(renderer_text, "text", 3)
-        self.preset_combo.set_active(0)
         self.preset_combo.connect("changed", self._on_combo_preset_changed)
         self.pack_start(self.preset_combo, False, False, 0)
         
@@ -404,13 +409,14 @@ class ToolBarBox(Gtk.Box):
             self.cat_tv_store.append(category)
 
         self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
+        self.category_combo.set_active(0)
+        
         self.category_combo.set_valign(Gtk.Align.CENTER)
         self.category_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CATEGORY)
         self.category_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
         self.category_combo.pack_start(renderer_text, True)
         self.category_combo.add_attribute(renderer_text, "text", 1)
-        self.category_combo.set_active(0)
         self.pack_start(self.category_combo, False, False, 0)
 
         ####
@@ -421,14 +427,16 @@ class ToolBarBox(Gtk.Box):
         store = Gtk.ListStore(int, str)
         for since in get_iplayer.SINCE_LIST:
             store.append(since)
+
         self.since_combo = Gtk.ComboBox.new_with_model(store)
+        self.since_combo.set_active(0)
+
         self.since_combo.set_valign(Gtk.Align.CENTER)
         self.since_combo.set_tooltip_text(TOOLTIP_FILTER_SINCE)
         self.since_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
         self.since_combo.pack_start(renderer_text, True)
         self.since_combo.add_attribute(renderer_text, "text", 1)
-        self.since_combo.set_active(0)
         self.pack_start(self.since_combo, False, False, 0)
 
         ####
@@ -836,6 +844,23 @@ class ToolBarBox(Gtk.Box):
                 # Disable since filter
                 combo.set_active(0)
 
+    def on_set_programme_type(self, prog_type):
+        #NOTE not called from this widget
+        # Lookup prog_type
+        combo = self.preset_combo
+        model = combo.get_model()
+        tree_iter = model.get_iter_first()
+        i = 0
+        while tree_iter is not None:
+            value = model.get_value(tree_iter, 1)
+            if value == prog_type:
+                combo.set_active(i)
+                #NOTE combo.set_active() already causes the invocation of _on_combo_preset_changed()
+                #self._on_combo_preset_changed(combo)
+                break
+            tree_iter = model.iter_next(tree_iter)
+            i += 1
+
     def on_rotate_programme_type(self):
         #NOTE not called from this widget
         combo = self.preset_combo
@@ -846,7 +871,6 @@ class ToolBarBox(Gtk.Box):
             active = combo.get_active()
             if active == -1:
                 combo.set_active(0)
-
             #NOTE combo.set_active() already causes the invocation of _on_combo_preset_changed()
             #self._on_combo_preset_changed(combo)
 
@@ -883,6 +907,8 @@ class MainTreeView(Gtk.TreeView):
         #get_iplayer_output_lines = get_iplayer.search(None, preset=Preset.RADIO, prog_type=ProgType.RADIO,
         #                                 channel=Channel.RADIO, category=None, since=0, search_all=False)
         #self.set_store(get_iplayer_output_lines)
+
+        _session_restore(self.main_window)
         self.main_window.tool_bar_box._on_button_find_clicked(None)
         
     def _init_columns(self):
@@ -1193,7 +1219,7 @@ class PreferencesDialogWrapper(object):
         ####
         
         self.dialog.set_title("preferences - " + get_iplayer_downloader.common.__program_name__)
-        self._get_settings()
+        self._display_settings()
 
         self.builder.connect_signals(self)
         self.dialog.connect("response", self._response)
@@ -1201,7 +1227,7 @@ class PreferencesDialogWrapper(object):
         #self.ok_button = self.builder.get_object("PrefsOkButton")
         #self.dialog.connect("show", self._on_show)
 
-    def _get_settings(self):        
+    def _display_settings(self):        
         self.general_compact_toolbar_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
         self.general_start_maximized_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
@@ -1215,7 +1241,7 @@ class PreferencesDialogWrapper(object):
         self.tv_download_file_chooser_button.set_filename(settings.config().get("tv", "download-path"))
         self.tv_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
-    def _set_settings(self):        
+    def _capture_settings(self):        
         settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_entry.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_entry.get_active()))
         
@@ -1246,14 +1272,14 @@ class PreferencesDialogWrapper(object):
         settings.revert_option("tv", "download-path")
         settings.revert_option("tv", "run-in-terminal")
 
-        self._get_settings()
+        self._display_settings()
 
     def _on_prefs_cancel_clicked(self, user_data):
         settings.reload()
-        self._get_settings()
+        self._display_settings()
           
     def _on_prefs_ok_clicked(self, user_data):
-        self._set_settings()
+        self._capture_settings()
         settings.save()
 
     def _on_radio_download_file_chooser_file_set(self, entry_widget):
@@ -1349,13 +1375,41 @@ def _files2urls(filepath):
                         url += ", "
             url += ")"
     return url
-    #ALTERNATIVE ways of sorting a list of files in a folder
-    #1) glob(<filename filter>)
-    #2) listdir()
+    #ALTERNATIVE ways of sorting a list of files in a folder: glob(<filename filter>); listdir()
+
+def _session_save(main_window):
+    restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
+    if restore_session:
+        #preset = None
+        prog_type = None
+        combo = main_window.tool_bar_box.preset_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            #preset = model[tree_iter][0]
+            prog_type = model[tree_iter][1]
+            #channel = model[tree_iter][2]
+        if prog_type:
+            # Programme type is not an empty string
+            settings.config().set("session", "programme-type", prog_type)
+            settings.save()
+
+def _session_restore(main_window):
+    restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
+    if restore_session:
+        prog_type = settings.config().get("session", "programme-type")
+        if prog_type:
+            # Programme type is not an empty string
+            main_window.tool_bar_box.on_set_programme_type(prog_type)
+
+#NOTE _session_save is done outside the window class and _session_restore is done inside the window class,
+def _main_quit(main_window, event):
+    _session_save(main_window)
+    Gtk.main_quit(main_window, event)
 
 def main():
     window = MainWindow()
-    window.connect("delete-event", Gtk.main_quit)
+    window.connect("delete-event", _main_quit)
     window.show_all()
     
     # Enable threads
@@ -1365,4 +1419,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

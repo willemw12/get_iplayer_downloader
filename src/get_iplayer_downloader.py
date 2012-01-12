@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-### Logging
-
 import logging
 import os
 from datetime import datetime
@@ -10,13 +8,13 @@ from get_iplayer_downloader import settings
 
 def _init_loggers():
     
-    # Initialize logging
+    #### Initialize logging
     
     level = settings.get_log_level()
     logging.basicConfig(level=level)
     #root_logger = logging.getLogger()
 
-    # Log to file
+    #### Log to file
     
     if not os.path.exists(settings.TEMP_PATHNAME):
         os.mkdir(settings.TEMP_PATHNAME)
