@@ -1387,7 +1387,11 @@ def main():
     window = MainWindow()
     window.connect("delete-event", _main_quit)
     window.show_all()
-    
+
+    # Force images on buttons
+    settings = Gtk.Settings.get_default()
+    settings.props.gtk_button_images = True
+
     # Enable threads
     GObject.threads_init()
 
