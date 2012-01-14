@@ -285,27 +285,38 @@ class UIManager():
         #dialog.hide()
 
     def on_help(self):
-        dialog = ExtendedMessageDialog(self.main_window, 0,
-                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "Shortcut keys")
+        dialog = Gtk.MessageDialog(self.main_window, 0,
+                                   Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                   "Shortcut keys")
         dialog.set_default_response(Gtk.ResponseType.CLOSE)
-        
-        #dialog.format_secondary_text("")
-        dialog.get_content_area().set_size_request(800, 400)
+        dialog.format_secondary_text(" ")
 
-        shortcut_keys = "alt + enter        -        Properties        -        " + TOOLTIP_VIEW_PROPERTIES + \
-                        "\nctrl + d        -        Download\t        -        " + TOOLTIP_TOOLS_DOWNLOAD + \
-                        "\nctrl + q        -        Queue        -        " + TOOLTIP_TOOLS_PVR_QUEUE + \
-                        "\nctrl + f        -        Find        -        " + TOOLTIP_SEARCH_GO_TO_FIND + \
-                        "\nctrl + t        -        Toggle        -        " + TOOLTIP_SEARCH_ROTATE_PROG_TYPE + \
-                        "\nctrl + c        -        Clear        -        " + TOOLTIP_TOOLS_CLEAR + \
-                        "\nctrl + r        -        Refresh        -        " + TOOLTIP_TOOLS_REFRESH + \
-                        "\n" + \
-                        "\ndown-arrow        -        Go from tool bar to search result" + \
-                        "\nspace or enter        -        Toggle programme selection in search result"
-        dialog.format_tertiary_scrolled_text(shortcut_keys)
-        label = dialog.get_scrolled_label()
-        label.set_valign(Gtk.Align.START)
+        content_area = dialog.get_content_area()
+        content_area.set_size_request(800, 400)
+
+        SHORTCUT_KEYS = [["alt + enter", "Properties", TOOLTIP_VIEW_PROPERTIES],
+                         ["ctrl + d", "Download", TOOLTIP_TOOLS_DOWNLOAD],
+                         ["ctrl + q", "Queue", TOOLTIP_TOOLS_PVR_QUEUE],
+                         ["ctrl + f", "Find", TOOLTIP_SEARCH_GO_TO_FIND],
+                         ["ctrl + t", "Toggle", TOOLTIP_SEARCH_ROTATE_PROG_TYPE],
+                         ["ctrl + c", "Clear", TOOLTIP_TOOLS_CLEAR],
+                         ["ctrl + r", "Refresh", TOOLTIP_TOOLS_REFRESH],
+                         [None, None, None],
+                         ["down-arrow", None, "Go from tool bar to search result"],
+                         ["space or enter", None, "Toggle programme selection in search result"]]
+
+        grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        for i, shortcut_key in enumerate(SHORTCUT_KEYS):
+            for j, label in enumerate(shortcut_key):
+                if label:
+                    label = Gtk.Label(label, valign=Gtk.Align.START, halign=Gtk.Align.START, 
+                                      hexpand_set=True, hexpand=True)
+                    label.set_padding(BORDER_WIDTH, 0)
+                    grid.attach(label, j, i, 1, 1)
+        content_area.add(grid)
+        
+        #dialog.show_all()
+        grid.show_all()
 
         dialog.run()
         dialog.destroy()
@@ -853,9 +864,6 @@ class PropertiesWindow(Gtk.Window):
         #for i, prop_row in enumerate(prop_table):
         for i, (prop_label, prop_value) in enumerate(prop_table):
             if prop_label in PROP_LABEL_LIST:
-                # Simple decoding
-                prop_value = prop_value
-
                 label1 = Gtk.Label(prop_label, valign=Gtk.Align.START, halign=Gtk.Align.START)
                 label1.set_padding(BORDER_WIDTH, 0)
                 label1.set_line_wrap(True)
