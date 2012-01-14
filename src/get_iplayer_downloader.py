@@ -7,9 +7,6 @@ from datetime import datetime
 from get_iplayer_downloader import settings
 
 def _init_loggers():
-    
-    #### Initialize logging
-    
     level = settings.get_log_level()
     logging.basicConfig(level=level)
     #root_logger = logging.getLogger()
@@ -20,7 +17,8 @@ def _init_loggers():
         os.mkdir(settings.TEMP_PATHNAME)
     
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    #ALTERNATIVE timestamp/number generation: pid = str(os.getpgid(0)), Linux; datetime.now().strftime("%s"); mkstemp()
+    #ALTERNATIVE timestamp/number generation: 
+    #    pid = str(os.getpgid(0)), Linux; datetime.now().strftime("%s"); mkstemp()
 
     log_filename = os.path.join(settings.TEMP_PATHNAME, timestamp + ".log")
     

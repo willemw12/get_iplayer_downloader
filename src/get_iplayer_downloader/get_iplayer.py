@@ -33,10 +33,15 @@ class Channel:
 
 class Category:
     #NOTE doesn't work: RADIO = [[None, "Genre"]].extend(...)
-    RADIO = [[None, "Genre"]]
+
+    #WORKAROUND see get_iplayer_gui.py
+    #RADIO = [[None, "Genre"]]
+    RADIO = [["", "Genre"]]
     RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories")))
     
-    TV = [[None, "Genre"]]
+    #WORKAROUND see get_iplayer_gui.py
+    #TV = [[None, "Genre"]]
+    TV = [["", "Genre"]]
     TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
 
 class SearchResultColumn:

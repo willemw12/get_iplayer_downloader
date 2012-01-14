@@ -20,5 +20,4 @@ def load_url(url, pathname):
         #fp.closed()
         
         stream.close()
-
     return filename

@@ -25,7 +25,7 @@ def _revert_config(config):
 
 def _reload_config(config):
     """ Reload configuration. Create user's configuration file (copy of the default configuration file)
-        if it did not exist 
+        if it did not exist.
     """
     if os.path.isfile(USER_CONFIG_FILENAME):
         #config.read(USER_CONFIG_FILENAME)

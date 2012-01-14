@@ -23,8 +23,10 @@ setup(name = get_iplayer_downloader.common.__program_name__,
     platforms = get_iplayer_downloader.common.__platforms__,
 
     package_dir = {"get_iplayer_downloader": "src/get_iplayer_downloader"},
-    packages = ["get_iplayer_downloader", "get_iplayer_downloader.tools", "get_iplayer_downloader.ui"],
-    #packages = ["", "get_iplayer_downloader.tools", "get_iplayer_downloader.ui"],
+    packages = ["get_iplayer_downloader", "get_iplayer_downloader.tools",
+                "get_iplayer_downloader.ui", "get_iplayer_downloader.ui.tools"],
+    #packages = ["", "get_iplayer_downloader.tools", 
+    #            "get_iplayer_downloader.ui", "get_iplayer_downloader.ui.tools"],
 
     #"ui/*.ui", "ui/*.css"
     package_data = {"get_iplayer_downloader": ["default.config", "ui/preferences.ui", "ui/style.css"]},

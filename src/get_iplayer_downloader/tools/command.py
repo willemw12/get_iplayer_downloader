@@ -9,7 +9,6 @@ def run(cmd, run_in_terminal_window=False, terminal_title=None, quiet=False,
         log_level=logging.DEBUG, temp_pathname=None):
     if not quiet:
         logger.log(log_level, "run(cmd): cmd=%s", cmd)
-
         if log_level == logging.DEBUG:
             #temp_pathname = keywords["temp_pathname"] if "temp_pathname" in keywords else None
             if temp_pathname is not None:

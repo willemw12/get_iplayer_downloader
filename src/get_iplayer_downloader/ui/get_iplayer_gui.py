@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import signal
 from gi.repository import Gdk, Gtk, GObject, Pango, Gio
 
 # Application-wide constants
@@ -9,7 +10,7 @@ import get_iplayer_downloader.common
 from get_iplayer_downloader import get_iplayer, settings
 from get_iplayer_downloader.get_iplayer import SearchResultColumn
 from get_iplayer_downloader.tools import command, config, file, markup, string
-from gi.overrides.Gtk import MessageDialog
+from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
 BORDER_WIDTH = 4
 
@@ -21,7 +22,7 @@ TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme (of programm
 
 #TOOLTIP_EDIT_PREFERENCES
 
-TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download or queue selected programmes"
+TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes or queue programmes if PVR checked"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
 TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer pvr"
 TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
@@ -48,9 +49,6 @@ TOOLTIP_HELP_ABOUT = "About this program"
 
 class MainWindow(Gtk.Window):
 
-    def destroy(self):
-        pass
-    
     def __init__(self):
         Gtk.Window.__init__(self)
         self.set_window_title()
@@ -60,24 +58,23 @@ class MainWindow(Gtk.Window):
         if string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")):
             self.maximize()
         
-        ####
+        self.main_controller = MainWindowController(self)
         
         self._init_ui_manager()
         self._init_builder()
 
-        ####
-        
         self._init_main_grid()
         #self._init_menu_bar()
         self._init_tool_bar_box()
         self._init_main_tree_view()
 
+        self.main_controller.init()
+        self.main_tree_view.init_store()        
+
     def _init_ui_manager(self):
-        #TODO move outside Window class
         self.ui_manager = UIManager(self)
 
     def _init_builder(self):
-        #TODO move outside Window class
         self.builder = Builder()
 
     def _init_main_grid(self):
@@ -99,8 +96,6 @@ class MainWindow(Gtk.Window):
         self.main_grid.attach_next_to(self.main_tree_view_scrollbar, self.tool_bar_box, Gtk.PositionType.BOTTOM, 1, 2)
 
         self.main_tree_view = MainTreeView(self)
-        #TODO refactor init treeview store from top_bar_box callback
-        self.main_tree_view._init_store()        
         self.main_tree_view_scrollbar.add(self.main_tree_view)
         
     def set_window_title(self, prog_type=get_iplayer.ProgType.RADIO):
@@ -127,7 +122,7 @@ class UIManager():
       <menuitem action="ViewProperties"/>
     </menu>
     <menu action="SearchMenu">
-      <menuitem action="SearchFind"/>
+      <menuitem action="SearchGoToFind"/>
     </menu>
     <menu action="ToolsMenu">
       <menuitem action="ToolsDownload"/>
@@ -153,7 +148,7 @@ class UIManager():
     <menuitem action="ToolsClear"/>
     <menuitem action="ToolsRefresh"/>
     <separator/>
-    <menuitem action="SearchFind"/>
+    <menuitem action="SearchGoToFind"/>
     <separator/>
     <menuitem action="EditPreferences"/>
     <separator/>
@@ -170,8 +165,6 @@ class UIManager():
         self.main_window = main_window
         self.ui_manager = self._create_ui_manager()
 
-        ####
-        
         action_group = Gtk.ActionGroup("action_group")
 
         self._add_file_menu_actions(action_group)
@@ -220,14 +213,14 @@ class UIManager():
     def _add_search_menu_actions(self, action_group):
         action_group.add_actions([
             ("SearchMenu", None, "Search"),
-            ("SearchFind", Gtk.STOCK_FIND, "Find", "<control>F", TOOLTIP_SEARCH_GO_TO_FIND, self._on_menu_others),
+            ("SearchGoToFind", Gtk.STOCK_FIND, "Find", "<control>F", TOOLTIP_SEARCH_GO_TO_FIND, self._on_menu_others),
             ("SearchRotateProgrammeType", None, None, "<control>T", TOOLTIP_SEARCH_ROTATE_PROG_TYPE, self._on_menu_others)
         ])
 
     def _add_tools_menu_actions(self, action_group):
         action_group.add_actions([
             ("ToolsMenu", None, "Tools"),
-            ("ToolsDownload", Gtk.STOCK_GO_DOWN, "Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE, self._on_menu_others),
+            ("ToolsDownload", Gtk.STOCK_GO_DOWN, "Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
             ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", TOOLTIP_TOOLS_PVR_QUEUE, self._on_menu_others),
             ("ToolsClear", Gtk.STOCK_CLEAR, "Clear", "<control>C", TOOLTIP_TOOLS_CLEAR, self._on_menu_others),
             ("ToolsRefresh", Gtk.STOCK_REFRESH, "Refresh", "<control>R", TOOLTIP_TOOLS_REFRESH, self._on_menu_others)
@@ -240,9 +233,9 @@ class UIManager():
             ("HelpAbout", Gtk.STOCK_ABOUT, "About", None, TOOLTIP_HELP_ABOUT, self._on_menu_others)
         ])
 
-    #NOTE the underscore (alt-<character) accelerator/mnemonic only works when the widget is shown
-    #NOTE an accelerator does not override the desktop accelerator (global shortcut)
-    #NOTE use glade or desktop shortcut settings to find "undocumented" keys (Return, ...)
+    #NOTE The underscore (alt-<character) accelerator/mnemonic only works when the widget is shown
+    #NOTE An accelerator does not override the desktop accelerator (global shortcut)
+    #NOTE Use glade or desktop shortcut settings to find "undocumented" keys (Return, ...)
     def _create_ui_manager(self):
         ui_manager = Gtk.UIManager()
 
@@ -261,35 +254,84 @@ class UIManager():
         Gtk.main_quit()
 
     def _on_menu_others(self, widget):
-        #print "Menu item " + widget.get_name() + " was selected"
-        
         name = widget.get_name()
         if name == "EditPreferences":
-            self.main_window.tool_bar_box.on_preferences()
+            self.on_preferences()
         elif name == "ViewProperties":
-            self.main_window.tool_bar_box._on_button_properties_clicked(None)
-        elif name == "SearchFind":
-            self.main_window.tool_bar_box.search_entry.grab_focus()
+            self.main_window.main_controller.on_button_properties_clicked(None)
+        elif name == "SearchGoToFind":
+            self.main_window.main_controller.on_accel_go_to_find()
         elif name == "SearchRotateProgrammeType":
-            self.main_window.tool_bar_box.on_rotate_programme_type()
+            self.main_window.main_controller.on_accel_rotate_programme_type()
         elif name == "ToolsDownload":
-            self.main_window.tool_bar_box._on_button_download_clicked(None)
+            self.main_window.main_controller.on_button_download_clicked(None)
         elif name == "ToolsPvrQueue":
-            self.main_window.tool_bar_box._on_button_pvr_queue_clicked()
+            self.main_window.main_controller.on_button_pvr_queue_clicked()
         elif name == "ToolsClear":
-            self.main_window.tool_bar_box._on_button_clear_clicked(None)
+            self.main_window.main_controller.on_button_clear_clicked(None)
         elif name == "ToolsRefresh":
-            self.main_window.tool_bar_box._on_button_refresh_clicked(None)
+            self.main_window.main_controller.on_button_refresh_clicked(None)
         elif name == "HelpHelp":
-            self.main_window.tool_bar_box.on_help()
+            self.on_help()
         elif name == "HelpAbout":
-            self.main_window.tool_bar_box.on_about()
+            self.on_about()
 
-#NOTE Glade 
-# Glade generates the following deprecated property for Grid: 
+    def on_preferences(self):
+        try:
+            getattr(self.main_window, "preferences_dialog")
+        except AttributeError:
+            self.main_window.preferences_dialog = PreferencesDialogWrapper(self.main_window)
+        self.main_window.preferences_dialog.run()
+        #dialog.hide()
+
+    def on_help(self):
+        dialog = ExtendedMessageDialog(self.main_window, 0,
+                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                       "Shortcut keys")
+        dialog.set_default_response(Gtk.ResponseType.CLOSE)
+        
+        #dialog.format_secondary_text("")
+        dialog.get_content_area().set_size_request(800, 400)
+
+        shortcut_keys = "alt + enter        -        Properties        -        " + TOOLTIP_VIEW_PROPERTIES + \
+                        "\nctrl + d        -        Download\t        -        " + TOOLTIP_TOOLS_DOWNLOAD + \
+                        "\nctrl + q        -        Queue        -        " + TOOLTIP_TOOLS_PVR_QUEUE + \
+                        "\nctrl + f        -        Find        -        " + TOOLTIP_SEARCH_GO_TO_FIND + \
+                        "\nctrl + t        -        Toggle        -        " + TOOLTIP_SEARCH_ROTATE_PROG_TYPE + \
+                        "\nctrl + c        -        Clear        -        " + TOOLTIP_TOOLS_CLEAR + \
+                        "\nctrl + r        -        Refresh        -        " + TOOLTIP_TOOLS_REFRESH + \
+                        "\n" + \
+                        "\ndown-arrow        -        Go from tool bar to search result" + \
+                        "\nspace or enter        -        Toggle programme selection in search result"
+        dialog.format_tertiary_scrolled_text(shortcut_keys)
+        label = dialog.get_scrolled_label()
+        label.set_valign(Gtk.Align.START)
+
+        dialog.run()
+        dialog.destroy()
+
+    def on_about(self):
+        ##dialog = self.main_window.builder.get_object("AboutDialog")
+        dialog = Gtk.AboutDialog()
+        dialog.set_transient_for(self.main_window)
+
+        dialog.set_program_name(get_iplayer_downloader.common.__program_name__)
+        dialog.set_comments(get_iplayer_downloader.common.__description__ + "\n\n" + get_iplayer_downloader.common.__long_description__)
+        dialog.set_version(get_iplayer_downloader.common.__version__)
+        dialog.set_website(get_iplayer_downloader.common.__url__)
+        dialog.set_website_label(get_iplayer_downloader.common.__url__)
+        #NOTE '[""]' means 'char**' in C
+        dialog.set_authors([get_iplayer_downloader.common.__authors__])
+
+        dialog.connect("response", lambda dialog, response: dialog.destroy())
+        dialog.run()
+        dialog.destroy()
+
+#NOTE on Glade
+# Glade generates the following deprecated Grid property: 
 #     <property name="n_rows">1</property>
 # It causes a Gtk warning. This property can be removed from the generated .ui file.
-#
+
 #class Builder(Gtk.Builder):
 class Builder(object):
     
@@ -321,28 +363,28 @@ class ToolBarBox(Gtk.Box):
         button = Gtk.Button(label="_Download", use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_GO_DOWN))
-        button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD)
-        button.connect("clicked", self._on_button_download_clicked)
+        button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
+        button.connect("clicked", self.main_window.main_controller.on_button_download_clicked)
         self.pack_start(button, False, False, 0)
 
         button = Gtk.Button(stock=Gtk.STOCK_PROPERTIES, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
-        button.connect("clicked", self._on_button_properties_clicked)
+        button.connect("clicked", self.main_window.main_controller.on_button_properties_clicked)
         self.pack_start(button, False, False, 0)
 
         button = Gtk.Button(stock=Gtk.STOCK_CLEAR, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_tooltip_text(TOOLTIP_TOOLS_CLEAR)
         button.set_focus_on_click(False)
-        button.connect("clicked", self._on_button_clear_clicked)
+        button.connect("clicked", self.main_window.main_controller.on_button_clear_clicked)
         self.pack_start(button, False, False, 0)
 
         button = Gtk.Button(stock=Gtk.STOCK_REFRESH, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_tooltip_text(TOOLTIP_TOOLS_REFRESH)
         button.set_focus_on_click(False)
-        button.connect("clicked", self._on_button_refresh_clicked)
+        button.connect("clicked", self.main_window.main_controller.on_button_refresh_clicked)
         self.pack_start(button, False, False, 0)
         #button.grab_focus()
         
@@ -358,12 +400,12 @@ class ToolBarBox(Gtk.Box):
         button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
-        button.connect("clicked", self._on_button_find_clicked)
+        button.connect("clicked", self.main_window.main_controller.on_button_find_clicked)
         self.pack_start(button, False, False, 0)
 
         self.search_entry = SearchEntry()
         self.search_entry.set_tooltip_text(TOOLTIP_FILTER_SEARCH_ENTRY)
-        self.search_entry.connect("activate", self._on_button_find_clicked)
+        self.search_entry.connect("activate", self.main_window.main_controller.on_button_find_clicked)
         self.pack_start(self.search_entry, False, False, 0)
         self.search_entry.grab_focus()
 
@@ -384,7 +426,7 @@ class ToolBarBox(Gtk.Box):
             store.append(preset)
 
         self.preset_combo = Gtk.ComboBox.new_with_model(store)
-        self.preset_combo.set_active(0)
+        #self.preset_combo.set_active(-1)
         
         self.preset_combo.set_valign(Gtk.Align.CENTER)
         self.preset_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_TYPE)
@@ -392,7 +434,7 @@ class ToolBarBox(Gtk.Box):
         renderer_text = Gtk.CellRendererText()
         self.preset_combo.pack_start(renderer_text, True)
         self.preset_combo.add_attribute(renderer_text, "text", 3)
-        self.preset_combo.connect("changed", self._on_combo_preset_changed)
+        self.preset_combo.connect("changed", self.main_window.main_controller.on_combo_preset_changed)
         self.pack_start(self.preset_combo, False, False, 0)
         
         ####
@@ -408,8 +450,10 @@ class ToolBarBox(Gtk.Box):
         for category in get_iplayer.Category.TV:
             self.cat_tv_store.append(category)
 
-        self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
-        self.category_combo.set_active(0)
+        #self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
+        self.category_combo = Gtk.ComboBox()
+        # Mark as unselected, to allow it to be set automatically (by session restore) 
+        self.category_combo.set_active(-1)
         
         self.category_combo.set_valign(Gtk.Align.CENTER)
         self.category_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CATEGORY)
@@ -447,25 +491,25 @@ class ToolBarBox(Gtk.Box):
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(grid, False, False, 0)
 
-        self.force_download_check_button = Gtk.CheckButton("Force", relief=Gtk.ReliefStyle.NONE)
+        self.force_download_check_button = Gtk.CheckButton("Force")
         self.force_download_check_button.set_tooltip_text(TOOLTIP_OPTION_FORCE_DOWNLOAD)
         self.force_download_check_button.set_focus_on_click(False)
         #grid.pack_start(self.force_download_check_button, False, False, 0)
         grid.add(self.force_download_check_button)
         
-        self.hd_tv_check_button = Gtk.CheckButton("HD", relief=Gtk.ReliefStyle.NONE)
+        self.hd_tv_check_button = Gtk.CheckButton("HD")
         self.hd_tv_check_button.set_tooltip_text(TOOLTIP_OPTION_HD_TV)
         self.hd_tv_check_button.set_focus_on_click(False)
         #grid.pack_start(self.force_download_check_button, False, False, 0)
         grid.attach_next_to(self.hd_tv_check_button, self.force_download_check_button, Gtk.PositionType.RIGHT, 1, 1)
         
-        self.proxy_check_button = Gtk.CheckButton("Proxy", relief=Gtk.ReliefStyle.NONE)
+        self.proxy_check_button = Gtk.CheckButton("Proxy")
         self.proxy_check_button.set_tooltip_text(TOOLTIP_OPTION_FULL_PROXY)
         self.proxy_check_button.set_focus_on_click(False)
         #grid.pack_start(self.proxy_check_button, False, False, 0)
         grid.attach_next_to(self.proxy_check_button, self.force_download_check_button, Gtk.PositionType.BOTTOM, 1, 1)
         
-        self.search_all_check_button = Gtk.CheckButton("All", relief=Gtk.ReliefStyle.NONE)
+        self.search_all_check_button = Gtk.CheckButton("All")
         self.search_all_check_button.set_tooltip_text(TOOLTIP_OPTION_FIND_ALL)
         self.search_all_check_button.set_focus_on_click(False)
         #grid.pack_start(self.search_all_check_button, False, False, 0)
@@ -485,7 +529,7 @@ class ToolBarBox(Gtk.Box):
         #
         #self.queue_size_label = Gtk.Label("Q: 0")
         #self.queue_size_label.set_tooltip_text("Waiting to download")
-        #grid.add(self.queue_size_label)
+        #grid.addmain_window.main_controller.(self.queue_size_label)
 
         ##halign="start", min_horizontal_bar_width=16
         self.progress_bar = Gtk.ProgressBar()
@@ -513,14 +557,14 @@ class ToolBarBox(Gtk.Box):
         ##
 
         # Timeout in milliseconds
-        self.timeout_id = GObject.timeout_add(5000, self.do_status_update, None)
+        self.timeout_id = GObject.timeout_add(5000, self._on_progress_bar_update, None)
         
         # Initialize label text
-        self.do_status_update(None)
+        self._on_progress_bar_update(None)
 
         ####
         
-        self.pvr_queue_check_button = Gtk.CheckButton("PVR", relief=Gtk.ReliefStyle.NONE)
+        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
         self.pvr_queue_check_button.set_tooltip_text(TOOLTIP_TOOLS_PVR_QUEUE)
         self.pvr_queue_check_button.set_focus_on_click(False)
         grid.add(self.pvr_queue_check_button)
@@ -536,7 +580,7 @@ class ToolBarBox(Gtk.Box):
         #self.progress_bar.set_pulse_step(0.01)
         #self.pack_start(self.progress_bar, False, False, 0)
 
-    def do_status_update(self, user_data):
+    def _on_progress_bar_update(self, user_data):
         #NOTE Linux specific
         processes = command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True)
 
@@ -552,246 +596,8 @@ class ToolBarBox(Gtk.Box):
 
         return True
 
-    def _on_button_find_clicked(self, button):
-        #NOTE button can be None (this method is reused by other widgets on this panel)
-        search_text = self.search_entry.get_text()
-
-        preset = None
-        prog_type = None
-        combo = self.preset_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            preset = model[tree_iter][0]
-            prog_type = model[tree_iter][1]
-            channel = model[tree_iter][2]
-
-        category = None
-        combo = self.category_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            category = model[tree_iter][0]
-
-        since = 0
-        combo = self.since_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            since = model[tree_iter][0]
-
-        search_all = self.search_all_check_button.get_active()
-
-        get_iplayer_output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
-                                                      channel=channel, category=category, since=since,
-                                                      search_all=search_all)
-        self.main_window.main_tree_view.set_store(get_iplayer_output_lines)
-        # Scroll up
-        adjustment = self.main_window.main_tree_view_scrollbar.get_vadjustment()
-        adjustment.set_value(0.0)
-        adjustment.value_changed()
-        #adjustment = self.main_window.main_tree_view_scrollbar.set_vadjustment(adjustment)
-
-        self.main_window.set_window_title(prog_type=prog_type)
-        
-    def _on_button_download_clicked(self, button, pvr_queue=False):
-        #NOTE button can be None (this method is reused by other widgets on this panel)
-        hd_tv_mode = False
-        combo = self.preset_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            preset = model[tree_iter][0]
-            if preset == get_iplayer.Preset.TV:
-                hd_tv_mode = self.hd_tv_check_button.get_active()
-
-        force_download = self.force_download_check_button.get_active()
-        if button is not None and not pvr_queue:
-            # Invoked from Download button, not from a shortcut key,
-            # then the PVR check button determines the download/queue mode
-            pvr_queue = self.pvr_queue_check_button.get_active()
-        
-        # Search selected leaf nodes (the second level) two levels deep
-        model = self.main_window.main_tree_view.get_model()
-        #indices = ""
-        pid_list = []
-        root_iter = model.get_iter_first()
-        while root_iter is not None:
-            row = model[root_iter]
-            if row[0] and row[1]:
-                #indices += row[1] + " "
-                pid_list.append(row[1])
-            
-            #if model.iter_has_child(root_iter):
-            child_iter = model.iter_children(root_iter)
-            while child_iter is not None:
-                row = model[child_iter]
-                if row[0]:
-                    #indices += row[1] + " "
-                    pid_list.append(row[1])
-                child_iter = model.iter_next(child_iter)
-            root_iter = model.iter_next(root_iter)
-        
-        #if indices:
-        if len(pid_list) > 0:
-            launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset, 
-                                                       hd_tv_mode=hd_tv_mode, force_download=force_download)
-            if not launched:
-                dialog = Gtk.MessageDialog(self.main_window, 0,
-                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "get_iplayer not launched")
-                #dialog.format_secondary_text("")
-                dialog.run()
-                dialog.destroy()
-            elif pvr_queue:
-                dialog = ExtendedMessageDialog(self.main_window, 0,
-                                               Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                               "Queued programmes")
-                dialog.set_default_response(Gtk.ResponseType.CLOSE)
-                #dialog.format_secondary_text("")
-                dialog.get_content_area().set_size_request(600, 500)
-                dialog.format_tertiary_scrolled_text(string.decode(process_output))
-                label = dialog.get_scrolled_label()
-                label.set_valign(Gtk.Align.START)
-                label.set_halign(Gtk.Align.START)
-                label.set_selectable(True)
-                dialog.run()
-                dialog.destroy()
-            #else:
-            #    self.main_window.main_tree_view.grab_focus()
-        else:
-            dialog = Gtk.MessageDialog(self.main_window, 0,
-                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No programmes selected")
-            #dialog.format_secondary_text("")
-            dialog.run()
-            dialog.destroy()
-
-    def _on_button_pvr_queue_clicked(self):
-        self._on_button_download_clicked(None, pvr_queue=True)
-
-    def on_preferences(self):
-        #NOTE not called from this widget
-        try:
-            getattr(self.main_window, "preferences_dialog")
-        except AttributeError:
-            self.main_window.preferences_dialog = PreferencesDialogWrapper(self.main_window)
-        self.main_window.preferences_dialog.run()
-        #dialog.hide()
-
-    def _on_button_properties_clicked(self, button):
-        #NOTE button can be None (this method is reused by other widgets)
-        preset = None
-        combo = self.preset_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            preset = model[tree_iter][0]
-
-        proxy_enabled = self.proxy_check_button.get_active()
-        
-        model, tree_iter = self.main_window.main_tree_view.get_selection().get_selected()
-        if tree_iter is not None:
-            index = model[tree_iter][SearchResultColumn.INDEX]
-            if index:
-                get_iplayer_output_lines = get_iplayer.info(index, preset=preset, proxy_enabled=proxy_enabled)
-                window = PropertiesWindow(get_iplayer_output_lines)
-                window.show_all()
-            #else:
-            #    assert(False)
-        else:
-            dialog = Gtk.MessageDialog(self.main_window, 0,
-                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No programme highlighted (no programme in focus)")
-            #dialog.format_secondary_text("")
-            dialog.run()
-            dialog.destroy()
-            
-    def _on_button_clear_clicked(self, button):
-        #NOTE button can be None (this method is reused by other widgets)
-        model = self.main_window.main_tree_view.get_model()
-        
-        # Search selected nodes one level deep
-        for row in model:
-            if row[0]:
-                row[0] = False
-
-        # Search two levels deep
-        root_iter = model.get_iter_first()
-        while root_iter is not None:
-            #if model.iter_has_child(root_iter):
-            child_iter = model.iter_children(root_iter)
-            while child_iter is not None:
-                row = model[child_iter]
-                if row[0]:
-                    row[0] = False
-                child_iter = model.iter_next(child_iter)
-            root_iter = model.iter_next(root_iter)
-
-        self.main_window.main_tree_view.get_selection().unselect_all()
-
-    def _on_button_refresh_clicked(self, button):
-        #NOTE button can be None (this method is reused by other widgets)
-        
-        # Refresh programme cache
-        #preset = None
-        #combo = self.preset_combo
-        #tree_iter = combo.get_active_iter()
-        #if tree_iter is not None:
-        #    model = combo.get_model()
-        #    preset = model[tree_iter][0]
-        get_iplayer.refresh(preset=None)
-        
-        # Refresh programme list
-        self._on_button_find_clicked(None)
-
-    def on_help(self):
-        #NOTE not called from this widget
-        dialog = ExtendedMessageDialog(self.main_window, 0,
-                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "Shortcut keys")
-        dialog.set_default_response(Gtk.ResponseType.CLOSE)
-        
-        #dialog.format_secondary_text("")
-        dialog.get_content_area().set_size_request(800, 400)
-
-        shortcut_keys = "alt + enter\t\t\tProperties\t" + TOOLTIP_VIEW_PROPERTIES + \
-                        "\nctrl + d\t\t\tDownload\t\t" + TOOLTIP_TOOLS_DOWNLOAD + \
-                        "\nctrl + q\t\t\tQueue\t\t\t" + TOOLTIP_TOOLS_PVR_QUEUE + \
-                        "\nctrl + f\t\t\t\tFind\t\t\t" + TOOLTIP_SEARCH_GO_TO_FIND + \
-                        "\nctrl + t\t\t\t\tToggle\t\t\t" + TOOLTIP_SEARCH_ROTATE_PROG_TYPE + \
-                        "\nctrl + c\t\t\t\tClear\t\t\t" + TOOLTIP_TOOLS_CLEAR + \
-                        "\nctrl + r\t\t\t\tRefresh\t\t" + TOOLTIP_TOOLS_REFRESH + \
-                        "\n" + \
-                        "\ndown-arrow\t\t\t\t\t\tGo from tool bar to search result" + \
-                        "\nspace or enter\t\t\t\t\tToggle programme selection in search result"
-        dialog.format_tertiary_scrolled_text(shortcut_keys)
-        label = dialog.get_scrolled_label()
-        label.set_valign(Gtk.Align.START)
-
-        dialog.run()
-        dialog.destroy()
-
-    def on_about(self):
-        #NOTE not called from this widget
-        ##dialog = self.main_window.builder.get_object("AboutDialog")
-        dialog = Gtk.AboutDialog()
-        dialog.set_transient_for(self.main_window)
-
-        dialog.set_program_name(get_iplayer_downloader.common.__program_name__)
-        dialog.set_comments(get_iplayer_downloader.common.__description__ + "\n\n" + get_iplayer_downloader.common.__long_description__)
-        dialog.set_version(get_iplayer_downloader.common.__version__)
-        dialog.set_website(get_iplayer_downloader.common.__url__)
-        dialog.set_website_label(get_iplayer_downloader.common.__url__)
-        #NOTE '[""]' means 'char**' in C
-        dialog.set_authors([get_iplayer_downloader.common.__authors__])
-
-        dialog.connect("response", lambda dialog, response: dialog.destroy())
-        dialog.run()
-        dialog.destroy()
-
     ##### Spinner
-    #
+
     #def spinner_start(self):
     #    #self.spinner.set_visible(True)
     #    self.spinner.start()
@@ -801,7 +607,7 @@ class ToolBarBox(Gtk.Box):
     #    #self.spinner.set_visible(False)
     
     ##### Progressbar
-    #
+
     #def set_progressbar_pulse(self, pulse):
     #    self.progressbar_pulse = pulse
     #    if (pulse):
@@ -814,71 +620,12 @@ class ToolBarBox(Gtk.Box):
     #    self.progress_bar.pulse()
     #    return self.progressbar_pulse
 
-    def _on_combo_preset_changed(self, combo):
-        """ Synchronize associated model settings. """
-        #NOTE reused by another method in this widget
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            preset = model[tree_iter][0]
-            prog_type = model[tree_iter][1]
-            
-            if preset == get_iplayer.Preset.RADIO:
-                self.category_combo.set_model(self.cat_radio_store)
-                self.category_combo.set_active(0)
-            elif preset == get_iplayer.Preset.TV:
-                self.category_combo.set_model(self.cat_tv_store)
-                self.category_combo.set_active(0)
-
-            # Limit the initial podcast search result by enabling the since filter
-            combo = self.since_combo
-            if prog_type == get_iplayer.ProgType.PODCAST:
-                tree_iter = combo.get_active_iter()
-                if tree_iter is not None:
-                    model = combo.get_model()
-                    since = model[tree_iter][0]
-                    if since == 0:
-                        # Set to longest by not unlimited since filter
-                        combo.set_active(len(get_iplayer.SINCE_LIST) - 1)
-            elif combo.get_active() == len(get_iplayer.SINCE_LIST) - 1:
-                # Disable since filter
-                combo.set_active(0)
-
-    def on_set_programme_type(self, prog_type):
-        #NOTE not called from this widget
-        # Lookup prog_type
-        combo = self.preset_combo
-        model = combo.get_model()
-        tree_iter = model.get_iter_first()
-        i = 0
-        while tree_iter is not None:
-            value = model.get_value(tree_iter, 1)
-            if value == prog_type:
-                combo.set_active(i)
-                #NOTE combo.set_active() already causes the invocation of _on_combo_preset_changed()
-                #self._on_combo_preset_changed(combo)
-                break
-            tree_iter = model.iter_next(tree_iter)
-            i += 1
-
-    def on_rotate_programme_type(self):
-        #NOTE not called from this widget
-        combo = self.preset_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            active = combo.get_active()
-            combo.set_active(active + 1)
-            active = combo.get_active()
-            if active == -1:
-                combo.set_active(0)
-            #NOTE combo.set_active() already causes the invocation of _on_combo_preset_changed()
-            #self._on_combo_preset_changed(combo)
-
 class MainTreeView(Gtk.TreeView):
 
     def __init__(self, main_window):
         Gtk.TreeView.__init__(self)
         self.main_window = main_window
+        self.button_pressed = False
         
         #selection = self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         #self.set_tooltip_column(3)
@@ -888,31 +635,24 @@ class MainTreeView(Gtk.TreeView):
         self.set_grid_lines(Gtk.TreeViewGridLines.VERTICAL)
         self.set_enable_search(False)
         self.connect("button-press-event", self._on_button_press_event)
+        self.connect("button-release-event", self._on_button_release_event)
         self.connect("row-activated", self._on_row_activated)
 
         # First column
         self.set_show_expanders(False)
-        self.set_level_indentation(12)
-        self.set_enable_tree_lines(True)
+        self.set_level_indentation(10)
+        self.set_enable_tree_lines(False)
         ##self.set_property("grid-line-pattern", "\000\001")
         ##self.set_style(grid_line_pattern="\000\001")
 
-        #TODO refactor init treeview store from top_bar_box callback
-        #self._init_store()        
-        
         self._init_columns()
 
-    def _init_store(self):
-        #TODO refactor init treeview store from top_bar_box callback
-        #get_iplayer_output_lines = get_iplayer.search(None, preset=Preset.RADIO, prog_type=ProgType.RADIO,
-        #                                 channel=Channel.RADIO, category=None, since=0, search_all=False)
-        #self.set_store(get_iplayer_output_lines)
-
-        _session_restore(self.main_window)
-        self.main_window.tool_bar_box._on_button_find_clicked(None)
+    def init_store(self):
+        self.main_window.main_controller.session_restore()
+        self.main_window.main_controller.on_button_find_clicked(None)
         
     def _init_columns(self):
-        ### First column
+        #### First column
         
         renderer = Gtk.CellRendererToggle(indicator_size=11)
         renderer.set_alignment(0, 0.5)
@@ -947,21 +687,31 @@ class MainTreeView(Gtk.TreeView):
     #    tooltip.set_text(widget.get_label())
 
     def _on_button_press_event(self, widget, event):
-        # Check if right mouse button was pressed
-        if event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
+        self.button_pressed = True
+
+        if event.type == Gdk.EventType._2BUTTON_PRESS:
+            # Double-clicked
+            self.main_window.main_controller.on_button_properties_clicked(None)
+            #return True
+        elif event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
+            # Right mouse button pressed
             self.main_window.ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
-            return True
+            #return True
         #return False
     
-    #DOC BUG? extra undocumented parameter: self == widget
-    def _on_row_activated(self, widget, path, column):
-        #self.main_window.tool_bar_box._on_button_properties_clicked(None)
-        self._on_cell_row_toggled(None, path)
+    def _on_button_release_event(self, widget, event):
+        self.button_pressed = False
 
+    #DOC BUG? extra undocumented parameter: widget (== self)
+    def _on_row_activated(self, widget, path, column):
+        if not self.button_pressed:
+            self._on_cell_row_toggled(None, path)
+        
     #DOC BUG?
     def _on_cell_row_toggled(self, widget, path):
-        #NOTE widget can be None (this method is reused by another signal method)
+        # widget can be None
         model = self.get_model()
+        
         # Toggle check box
         new_toggle_value = not model[path][SearchResultColumn.DOWNLOAD]
         model[path][SearchResultColumn.DOWNLOAD] = new_toggle_value
@@ -1000,7 +750,7 @@ class MainTreeView(Gtk.TreeView):
         #        row[0] = new_toggle_value
 
     def set_store(self, tree_rows):
-        #  Columns stored: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn.
+        # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
         store = Gtk.TreeStore(bool, str, str, str, str)
         
         #NOTE Could use "for i, row in enumerate(tree_rows):"
@@ -1012,7 +762,6 @@ class MainTreeView(Gtk.TreeView):
             #if not row[2]:
             if row[SearchResultColumn.EPISODE] is None:
                 # Root level row (a serie)
-                
                 # If root (a serie) has only one child/leave (an episode) then merge the two into one row
                 #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
                 if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
@@ -1073,6 +822,7 @@ class PropertiesWindow(Gtk.Window):
         #    image_url = prop_table[i][1]
 
         if image_url is not None:
+            #TODO g_markup_escape_text() or g_markup_printf_escaped()
             image_url = markup.html2text(image_url)
             image_pathname = settings.TEMP_PATHNAME + os.sep + "images"
             image_filename = file.load_url(image_url, image_pathname)
@@ -1109,7 +859,7 @@ class PropertiesWindow(Gtk.Window):
                 label1 = Gtk.Label(prop_label, valign=Gtk.Align.START, halign=Gtk.Align.START)
                 label1.set_padding(BORDER_WIDTH, 0)
                 label1.set_line_wrap(True)
-                #REMOVE and avoid automatic text selection
+                #TODO avoid automatic text selection
                 label1.set_selectable(True)
                 prop_grid.attach(label1, 0, i, 1, 1)
 
@@ -1121,11 +871,11 @@ class PropertiesWindow(Gtk.Window):
                 label2.set_selectable(True)
                 prop_grid.attach(label2, 1, i, 1, 1)
 
-                #REMOVE and avoid automatic text selection
+                #TODO avoid automatic text selection
                 if prop_label == "episode" or prop_label == "title":
                     focused_label = label2
 
-        #REMOVE and avoid automatic text selection
+        #TODO avoid automatic text selection
         if focused_label:
             focused_label.grab_focus()
         
@@ -1170,10 +920,12 @@ class PropertiesWindow(Gtk.Window):
         url = "<a href=\"http://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
         url += "      "
 
+        # Add urls to get_iplayer's pvr configuration folder and files
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "pvr")
         url += _files2urls(filepath)
         url += "      "
 
+        # Add urls to get_iplayer's presets configuration folder and files
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
         url += _files2urls(filepath)
 
@@ -1205,7 +957,7 @@ class PreferencesDialogWrapper(object):
         self.tv_download_file_chooser_button = self.builder.get_object("PrefsTvDownloadFileChooserButton")
         self.tv_run_in_terminal_entry = self.builder.get_object("PrefsTvRunInTerminalCheckButton")
 
-        ###
+        ####
         
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "pvr")
         url = _files2urls(filepath)
@@ -1227,7 +979,8 @@ class PreferencesDialogWrapper(object):
         #self.ok_button = self.builder.get_object("PrefsOkButton")
         #self.dialog.connect("show", self._on_show)
 
-    def _display_settings(self):        
+    def _display_settings(self):
+        """ Retrieve in-memory settings and put them in dialog fields """
         self.general_compact_toolbar_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
         self.general_start_maximized_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
@@ -1241,7 +994,8 @@ class PreferencesDialogWrapper(object):
         self.tv_download_file_chooser_button.set_filename(settings.config().get("tv", "download-path"))
         self.tv_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
-    def _capture_settings(self):        
+    def _capture_settings(self):
+        """ Retrieve settings from dialog fields and put them in in-memory settings """
         settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_entry.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_entry.get_active()))
         
@@ -1257,10 +1011,11 @@ class PreferencesDialogWrapper(object):
     #    self.ok_button.grab_focus()
 
     def _on_prefs_revert_clicked(self, user_data):
-        # Factory-reset of all options
+        """ Only reset settings visible on the preferences dialog window """
+
+        # Factory-reset all options
         #settings.revert()
 
-        # Only reset options visible in the preferences dialog window
         settings.revert_option(config.NOSECTION, "compact-toolbar")
         settings.revert_option(config.NOSECTION, "start-maximized")
 
@@ -1299,50 +1054,6 @@ class PreferencesDialogWrapper(object):
     def run(self):
         self.dialog.run()
 
-class ExtendedMessageDialog(MessageDialog):
-    """ A message dialog with a third scrollable text widget. """
-
-    def __init__(self,
-                 parent,
-                 flags,
-                 message_type,
-                 buttons,
-                 message_format,
-                 **keywords):
-        #super(MessageDialog, self).__init__(parent=parent, ...
-        MessageDialog.__init__(self,
-                               parent=parent,
-                               flags=flags,
-                               message_type=message_type,
-                               buttons=buttons,
-                               message_format=message_format,
-                               **keywords)
-        
-        # Creating a secondary text results in a large "primary" text in bold
-        #self.format_secondary_text(string.decode(process_output))
-        self.format_secondary_text(" ")
-
-        #### Add text label with scrollbars
-        
-        content_area = self.get_content_area()
-        scrolled_window = Gtk.ScrolledWindow(expand=True)
-        content_area.add(scrolled_window)
-
-        self.scrolled_label = Gtk.Label(None)
-        scrolled_window.add_with_viewport(self.scrolled_label)
-
-        #self.show_all()
-        scrolled_window.show_all()
-
-    def get_scrolled_label(self):
-        return self.scrolled_label
-    
-    def format_tertiary_scrolled_text(self, message_format):
-        self.scrolled_label.set_text(message_format)
-
-    def format_tertiary_scrolled_markup(self, message_format):
-        self.scrolled_label.set_markup(message_format)
-
 class SearchEntry(Gtk.Entry):
 
     def __init__(self):
@@ -1358,8 +1069,298 @@ class SearchEntry(Gtk.Entry):
             entry.set_text("")
             #entry.set_placeholder_text("filter programmes")
 
+class MainWindowController:
+    """ Handle the active part of the main window related widgets. Activity between main widgets and 
+        activity towards the model (get_iplayer.py)
+    """
+    
+    def __init__(self, main_window):
+        self.main_window = main_window
+
+    # Convenience method
+    def init(self):
+        """ Complete initialization, after the main window has completed its initialization """
+        self.tool_bar_box = self.main_window.tool_bar_box
+        self.main_tree_view = self.main_window.main_tree_view
+
+    def on_button_find_clicked(self, button):
+        # button can be None
+        search_text = self.tool_bar_box.search_entry.get_text()
+
+        preset = None
+        prog_type = None
+        combo = self.tool_bar_box.preset_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            preset = model[tree_iter][0]
+            prog_type = model[tree_iter][1]
+            channel = model[tree_iter][2]
+
+        category = None
+        combo = self.tool_bar_box.category_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            #WORKAROUND see also get_iplayer.py
+            #    On some systems, when model[tree_iter][0] == None, the following exception is raised:
+            #    AttributeError: 'NoneType' object has no attribute 'decode'
+            #    In the debugger, model[tree_iter][0] is displayed as a unicode string.
+            category = model[tree_iter][0]
+
+        since = 0
+        combo = self.tool_bar_box.since_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            since = model[tree_iter][0]
+
+        search_all = self.tool_bar_box.search_all_check_button.get_active()
+
+        get_iplayer_output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
+                                                      channel=channel, category=category, since=since,
+                                                      search_all=search_all)
+        self.main_tree_view.set_store(get_iplayer_output_lines)
+        # Scroll up
+        adjustment = self.main_window.main_tree_view_scrollbar.get_vadjustment()
+        adjustment.set_value(0.0)
+        adjustment.value_changed()
+        #adjustment = self.main_window.main_tree_view_scrollbar.set_vadjustment(adjustment)
+
+        self.main_window.set_window_title(prog_type=prog_type)
+
+    def on_button_download_clicked(self, button, pvr_queue=False):
+        # button can be None
+        hd_tv_mode = False
+        combo = self.tool_bar_box.preset_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            preset = model[tree_iter][0]
+            if preset == get_iplayer.Preset.TV:
+                hd_tv_mode = self.tool_bar_box.hd_tv_check_button.get_active()
+
+        force_download = self.tool_bar_box.force_download_check_button.get_active()
+        if button is not None and not pvr_queue:
+            # If event was raised from the tool bar download button and not from a shortcut key,
+            # then the PVR check button determines the download/queue mode
+            pvr_queue = self.tool_bar_box.pvr_queue_check_button.get_active()
+        
+        # Search selected leaf nodes (the second level) two levels deep
+        model = self.main_tree_view.get_model()
+        #indices = ""
+        pid_list = []
+        root_iter = model.get_iter_first()
+        while root_iter is not None:
+            row = model[root_iter]
+            if row[0] and row[1]:
+                #indices += row[1] + " "
+                pid_list.append(row[1])
+            
+            #if model.iter_has_child(root_iter):
+            child_iter = model.iter_children(root_iter)
+            while child_iter is not None:
+                row = model[child_iter]
+                if row[0]:
+                    #indices += row[1] + " "
+                    pid_list.append(row[1])
+                child_iter = model.iter_next(child_iter)
+            root_iter = model.iter_next(root_iter)
+        
+        #if indices:
+        if len(pid_list) > 0:
+            launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset, 
+                                                       hd_tv_mode=hd_tv_mode, force_download=force_download)
+            if not launched:
+                dialog = Gtk.MessageDialog(self.main_window, 0,
+                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                           "get_iplayer not launched")
+                #dialog.format_secondary_text("")
+                dialog.run()
+                dialog.destroy()
+            elif pvr_queue:
+                dialog = ExtendedMessageDialog(self.main_window, 0,
+                                               Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                               "Queued programmes")
+                dialog.set_default_response(Gtk.ResponseType.CLOSE)
+                #dialog.format_secondary_text("")
+                dialog.get_content_area().set_size_request(600, 500)
+                dialog.format_tertiary_scrolled_text(string.decode(process_output))
+                label = dialog.get_scrolled_label()
+                label.set_valign(Gtk.Align.START)
+                label.set_halign(Gtk.Align.START)
+                label.set_selectable(True)
+                dialog.run()
+                dialog.destroy()
+            #else:
+            #    self.main_window.main_tree_view.grab_focus()
+        else:
+            dialog = Gtk.MessageDialog(self.main_window, 0,
+                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                       "No programmes selected")
+            #dialog.format_secondary_text("")
+            dialog.run()
+            dialog.destroy()
+
+    def on_button_pvr_queue_clicked(self):
+        self.on_button_download_clicked(None, pvr_queue=True)
+
+    def on_button_properties_clicked(self, button):
+        # button can be None
+        preset = None
+        combo = self.tool_bar_box.preset_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            preset = model[tree_iter][0]
+
+        proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
+        
+        model, tree_iter = self.main_tree_view.get_selection().get_selected()
+        if tree_iter is not None:
+            index = model[tree_iter][SearchResultColumn.INDEX]
+            if index:
+                get_iplayer_output_lines = get_iplayer.info(index, preset=preset, proxy_enabled=proxy_enabled)
+                window = PropertiesWindow(get_iplayer_output_lines)
+                window.show_all()
+            #else:
+            #    assert(False)
+        else:
+            dialog = Gtk.MessageDialog(self.main_window, 0,
+                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                       "No programme highlighted (no programme in focus)")
+            #dialog.format_secondary_text("")
+            dialog.run()
+            dialog.destroy()
+            
+    def on_accel_go_to_find(self):
+        self.tool_bar_box.search_entry.grab_focus()
+
+    def on_accel_rotate_programme_type(self):
+        combo = self.tool_bar_box.preset_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            active = combo.get_active()
+            combo.set_active(active + 1)
+            active = combo.get_active()
+            if active == -1:
+                combo.set_active(0)
+            #NOTE combo.set_active() already causes the invocation of on_combo_preset_changed()
+            #self.tool_bar_box.on_combo_preset_changed(combo)
+
+    def on_button_clear_clicked(self, button):
+        # button can be None
+        model = self.main_tree_view.get_model()
+        
+        # Search selected nodes one level deep
+        for row in model:
+            if row[0]:
+                row[0] = False
+
+        # Search two levels deep
+        root_iter = model.get_iter_first()
+        while root_iter is not None:
+            #if model.iter_has_child(root_iter):
+            child_iter = model.iter_children(root_iter)
+            while child_iter is not None:
+                row = model[child_iter]
+                if row[0]:
+                    row[0] = False
+                child_iter = model.iter_next(child_iter)
+            root_iter = model.iter_next(root_iter)
+
+        self.main_tree_view.get_selection().unselect_all()
+
+    def on_button_refresh_clicked(self, button):
+        # button can be None
+        
+        # Refresh programme cache
+        #preset = None
+        #combo = self.tool_bar_box.preset_combo
+        #tree_iter = combo.get_active_iter()
+        #if tree_iter is not None:
+        #    model = combo.get_model()
+        #    preset = model[tree_iter][0]
+        get_iplayer.refresh(preset=None)
+        
+        # Refresh programme list
+        self.on_button_find_clicked(None)
+
+    def on_combo_preset_changed(self, combo):
+        """ Synchronize associated model settings. """
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            preset = model[tree_iter][0]
+            prog_type = model[tree_iter][1]
+            
+            if preset == get_iplayer.Preset.RADIO:
+                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_radio_store)
+                self.tool_bar_box.category_combo.set_active(0)
+            elif preset == get_iplayer.Preset.TV:
+                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
+                self.tool_bar_box.category_combo.set_active(0)
+
+            # Limit the initial podcast search result by enabling the since filter
+            combo = self.tool_bar_box.since_combo
+            if prog_type == get_iplayer.ProgType.PODCAST:
+                tree_iter = combo.get_active_iter()
+                if tree_iter is not None:
+                    model = combo.get_model()
+                    since = model[tree_iter][0]
+                    if since == 0:
+                        # Set to longest by not unlimited since filter
+                        combo.set_active(len(get_iplayer.SINCE_LIST) - 1)
+            elif combo.get_active() == len(get_iplayer.SINCE_LIST) - 1:
+                # Disable since filter
+                combo.set_active(0)
+
+    def on_set_programme_type(self, prog_type):
+        # Lookup prog_type
+        combo = self.tool_bar_box.preset_combo
+        model = combo.get_model()
+        tree_iter = model.get_iter_first()
+        i = 0
+        while tree_iter is not None:
+            value = model.get_value(tree_iter, 1)
+            if value == prog_type:
+                combo.set_active(i)
+                #NOTE combo.set_active() already causes the invocation of on_combo_preset_changed()
+                #self.on_combo_preset_changed(combo)
+                break
+            tree_iter = model.iter_next(tree_iter)
+            i += 1
+
+    ####
+    
+    def session_save(self):
+        restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
+        if restore_session:
+            #preset = None
+            prog_type = None
+            combo = self.tool_bar_box.preset_combo
+            tree_iter = combo.get_active_iter()
+            if tree_iter is not None:
+                model = combo.get_model()
+                #preset = model[tree_iter][0]
+                prog_type = model[tree_iter][1]
+                #channel = model[tree_iter][2]
+            if prog_type:
+                # Programme type is not an empty string
+                settings.config().set("session", "programme-type", prog_type)
+                settings.save()
+    
+    def session_restore(self):
+        restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
+        if restore_session:
+            prog_type = settings.config().get("session", "programme-type")
+            if not prog_type:
+                # Programme type is an empty string (or None)
+                prog_type = get_iplayer.ProgType.RADIO
+            self.on_set_programme_type(prog_type)
+    
 def _files2urls(filepath):
-    """ Return a string with a url to the folder @filepath and the files inside filepath (one level deep) """
+    """ Return a string containing a url to the folder @filepath and the files inside @filepath (one level deep), sorted by file name """
     basename = os.path.basename(filepath)
     url = "<a href=\"file://" + filepath + "\" title=\"get_iplayer " + basename + " configuration folder\">" + basename + "</a>"
     for root, dirs, files in os.walk(filepath):
@@ -1377,34 +1378,9 @@ def _files2urls(filepath):
     return url
     #ALTERNATIVE ways of sorting a list of files in a folder: glob(<filename filter>); listdir()
 
-def _session_save(main_window):
-    restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
-    if restore_session:
-        #preset = None
-        prog_type = None
-        combo = main_window.tool_bar_box.preset_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            #preset = model[tree_iter][0]
-            prog_type = model[tree_iter][1]
-            #channel = model[tree_iter][2]
-        if prog_type:
-            # Programme type is not an empty string
-            settings.config().set("session", "programme-type", prog_type)
-            settings.save()
-
-def _session_restore(main_window):
-    restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
-    if restore_session:
-        prog_type = settings.config().get("session", "programme-type")
-        if prog_type:
-            # Programme type is not an empty string
-            main_window.tool_bar_box.on_set_programme_type(prog_type)
-
-#NOTE _session_save is done outside the window class and _session_restore is done inside the window class,
+#NOTE session_save() is done from outside the window class and session_restore() is done from inside the window class,
 def _main_quit(main_window, event):
-    _session_save(main_window)
+    main_window.main_controller.session_save()
     Gtk.main_quit(main_window, event)
 
 def main():
@@ -1414,7 +1390,10 @@ def main():
     
     # Enable threads
     GObject.threads_init()
-    
+
+    # Allow ctrl+c to quit the program
+    signal.signal(signal.SIGINT, lambda signal, frame: Gtk.main_quit())
+
     Gtk.main()
 
 if __name__ == "__main__":
