@@ -233,9 +233,9 @@ class UIManager():
             ("HelpAbout", Gtk.STOCK_ABOUT, "About", None, TOOLTIP_HELP_ABOUT, self._on_menu_others)
         ])
 
-    #NOTE The underscore (alt-<character) accelerator/mnemonic only works when the widget is shown
+    #NOTE The underscore (alt-<character) mnemonic only works when the widget is shown
     #NOTE An accelerator does not override the desktop accelerator (global shortcut)
-    #NOTE Use glade or desktop shortcut settings to find "undocumented" keys (Return, ...)
+    #NOTE Use glade or desktop shortcut keys system configration tool to find "undocumented" keys (Return, ...)
     def _create_ui_manager(self):
         ui_manager = Gtk.UIManager()
 
@@ -301,7 +301,7 @@ class UIManager():
                          ["ctrl + t", "Toggle", TOOLTIP_SEARCH_ROTATE_PROG_TYPE],
                          ["ctrl + c", "Clear", TOOLTIP_TOOLS_CLEAR],
                          ["ctrl + r", "Refresh", TOOLTIP_TOOLS_REFRESH],
-                         [None, None, None],
+                         [" ", None, None],
                          ["down-arrow", None, "Go from tool bar to search result"],
                          ["space or enter", None, "Toggle programme selection in search result"]]
 
@@ -311,7 +311,7 @@ class UIManager():
                 if label:
                     label = Gtk.Label(label, valign=Gtk.Align.START, halign=Gtk.Align.START, 
                                       hexpand_set=True, hexpand=True)
-                    label.set_padding(BORDER_WIDTH, 0)
+                    #label.set_padding(BORDER_WIDTH, 0)
                     grid.attach(label, j, i, 1, 1)
         content_area.add(grid)
         
@@ -592,8 +592,10 @@ class ToolBarBox(Gtk.Box):
         #self.pack_start(self.progress_bar, False, False, 0)
 
     def _on_progress_bar_update(self, user_data):
-        #NOTE Linux specific
-        processes = command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True)
+        if os.name == "posix":
+            processes = command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True)
+        else:
+            processes = 0
 
         ##self.processes_label.set_label("D: " + str(processes))
         ##self.queue_size_label.set_label("Q: " + str(command_queue.size()))

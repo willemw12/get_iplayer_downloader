@@ -7,8 +7,7 @@ from datetime import datetime
 from get_iplayer_downloader import common, settings
 from get_iplayer_downloader.tools import command, command_queue, string
 
-#NOTE Linux specific
-GET_IPLAYER_CMD = "/usr/bin/get_iplayer"
+GET_IPLAYER_CMD = "get_iplayer"
 
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
@@ -138,8 +137,8 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
         
         if preset:
             cmd += " --preset=" + preset
-            if hd_tv_mode:
-                cmd += " --tvmode=\"" + settings.config().get(preset, "hdmode") + "\""
+            if hd_tv_mode and preset == Preset.TV:
+                cmd += " --tvmode=\"" + settings.config().get(preset, "hd-mode") + "\""
         if force_download:
             cmd += " --force"
         cmd += " --nocopyright --hash --output=\"" + output_path + "\""

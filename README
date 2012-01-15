@@ -69,6 +69,11 @@ Then to execute, run:
 
     get_iplayer_downloader
 
+If python 2 (2.7 or higher) and python 3 are both installed and the name of the python 2 executable is python2, then replace the first two commands above by:
+
+    python2 <path to this folder>/src/get_iplayer_downloader.py
+    sudo python2 setup.py install
+
 
 
 Shortcut keys

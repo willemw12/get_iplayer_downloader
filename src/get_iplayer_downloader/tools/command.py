@@ -20,10 +20,8 @@ def run(cmd, run_in_terminal_window=False, terminal_title=None, quiet=False,
 
     if run_in_terminal_window:
         # Add commands to run in a terminal window
-        #NOTE Linux specific
-        #NOTE x-terminal-emulator doesn't take arguments
-        #cmd = "gnome-terminal --geometry=132x43 --title=\"" + str(terminal_title) + "\" --command=\"bash -c '" + cmd + " ; cd ; $SHELL'\" ; exit 0"
-        cmd = "gnome-terminal --geometry=132x43 --title=\"" + str(terminal_title) + "\" --command=\"bash -c '" + cmd + " ; cd ; $SHELL'\" ; exit 0"
+        if os.name == "posix":
+            cmd = "x-terminal-emulator --geometry=132x43 --title=\"" + str(terminal_title) + "\" --command=\"bash -c '" + cmd + " ; cd ; $SHELL'\" ; exit 0"
 
     process_output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
 
