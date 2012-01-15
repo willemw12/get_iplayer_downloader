@@ -292,7 +292,7 @@ class UIManager():
         dialog.format_secondary_text(" ")
 
         content_area = dialog.get_content_area()
-        content_area.set_size_request(800, 400)
+        #content_area.set_size_request(800, 400)
 
         SHORTCUT_KEYS = [["alt + enter", "Properties", TOOLTIP_VIEW_PROPERTIES],
                          ["ctrl + d", "Download", TOOLTIP_TOOLS_DOWNLOAD],
@@ -305,11 +305,12 @@ class UIManager():
                          ["down-arrow", None, "Go from tool bar to search result"],
                          ["space or enter", None, "Toggle programme selection in search result"]]
 
-        grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
         for i, shortcut_key in enumerate(SHORTCUT_KEYS):
             for j, label in enumerate(shortcut_key):
                 if label:
-                    label = Gtk.Label(label, valign=Gtk.Align.START, halign=Gtk.Align.START, 
+                    label = Gtk.Label(label, valign=Gtk.Align.START, halign=Gtk.Align.START,
+                                      margin_left=16, margin_right=16, 
                                       hexpand_set=True, hexpand=True)
                     #label.set_padding(BORDER_WIDTH, 0)
                     grid.attach(label, j, i, 1, 1)
