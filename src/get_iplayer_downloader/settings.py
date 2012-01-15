@@ -12,8 +12,11 @@ from get_iplayer_downloader.tools import config as Config
 #NOTE __file__ is not defined when run from the interpreter
 DEFAULT_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.config")
 
-USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, "config")
-
+if os.name == "posix":
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, "config")
+else:
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.__program_name__, "config")
+    
 TEMP_PATHNAME = tempfile.gettempdir() + os.sep + common.__program_name__
 
 #### "Stateless" utility configuration methods
