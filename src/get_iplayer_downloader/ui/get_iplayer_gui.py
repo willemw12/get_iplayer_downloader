@@ -53,7 +53,7 @@ class MainWindow(Gtk.Window):
         Gtk.Window.__init__(self)
         self.set_window_title()
         # Set minimal size: self.set_size_request(...)
-        self.set_default_size(960, 720)
+        self.set_default_size(-1, 720)
         self.set_border_width(BORDER_WIDTH)
         if string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")):
             self.maximize()
@@ -556,15 +556,14 @@ class ToolBarBox(Gtk.Box):
 
         ##
 
-        #TODO one application-wide css file
-        style_context = self.progress_bar.get_style_context()
-
-        css_provider = Gtk.CssProvider()
-        package_pathname = os.path.dirname(os.path.realpath(__file__))
-        css_filename = os.path.join(package_pathname, "style.css")
-        css_provider.load_from_file(Gio.File.new_for_path(css_filename))
-        # Higher than the highest (other) priorities (GTK_STYLE_PROVIDER_PRIORITY_USER)
-        style_context.add_provider(css_provider, 900)
+        ## Load css file
+        ##ALTERNATIVE set style for one widget, instead for the whole program on a screen
+        #style_context = self.progress_bar.get_style_context()
+        #css_provider = Gtk.CssProvider()
+        #package_pathname = os.path.dirname(os.path.realpath(__file__))
+        #css_filename = os.path.join(package_pathname, "style.css")
+        #css_provider.load_from_file(Gio.File.new_for_path(css_filename))
+        #style_context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
         
         ##
 
@@ -643,7 +642,7 @@ class MainTreeView(Gtk.TreeView):
         
         #selection = self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         #self.set_tooltip_column(3)
-        #self.get_tooltip_window().set_defaujlt_size(200, -1)
+        #self.get_tooltip_window().set_default_size(200, -1)
         ##self.set_style(allow_rules=True)
         #self.set_rules_hint(True)
         self.set_grid_lines(Gtk.TreeViewGridLines.VERTICAL)
@@ -1403,6 +1402,16 @@ def main():
     window = MainWindow()
     window.connect("delete-event", _main_quit)
     window.show_all()
+
+    # Load css file
+    screen = Gdk.Screen.get_default()
+    css_provider = Gtk.CssProvider()
+    package_pathname = os.path.dirname(os.path.realpath(__file__))
+    css_filename = os.path.join(package_pathname, "style.css")
+    #css_provider.load_from_file(Gio.File.new_for_path(css_filename))
+    css_provider.load_from_path(css_filename)
+    context = Gtk.StyleContext()
+    context.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
     # Force images on buttons
     settings = Gtk.Settings.get_default()
