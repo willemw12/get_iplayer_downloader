@@ -1410,11 +1410,14 @@ def main():
 
     # Enable threads
     GObject.threads_init()
+    #GObject.threads_enter()
 
     # Allow ctrl+c to quit the program
     signal.signal(signal.SIGINT, lambda signal, frame: Gtk.main_quit())
 
     Gtk.main()
+
+    #GObject.threads_leave()
 
 if __name__ == "__main__":
     main()
