@@ -207,30 +207,30 @@ class UIManager():
     def _add_view_menu_actions(self, action_group):
         action_group.add_actions([
             ("ViewMenu", None, "View"),
-            ("ViewProperties", Gtk.STOCK_PROPERTIES, "Properties", "<alt>Return", TOOLTIP_VIEW_PROPERTIES, self._on_menu_others)
+            ("ViewProperties", Gtk.STOCK_PROPERTIES, "_Properties", "<alt>Return", TOOLTIP_VIEW_PROPERTIES, self._on_menu_others)
         ])
 
     def _add_search_menu_actions(self, action_group):
         action_group.add_actions([
             ("SearchMenu", None, "Search"),
-            ("SearchGoToFind", Gtk.STOCK_FIND, "Find", "<control>F", TOOLTIP_SEARCH_GO_TO_FIND, self._on_menu_others),
+            ("SearchGoToFind", Gtk.STOCK_FIND, "_Find", "<control>F", TOOLTIP_SEARCH_GO_TO_FIND, self._on_menu_others),
             ("SearchRotateProgrammeType", None, None, "<control>T", TOOLTIP_SEARCH_ROTATE_PROG_TYPE, self._on_menu_others)
         ])
 
     def _add_tools_menu_actions(self, action_group):
         action_group.add_actions([
             ("ToolsMenu", None, "Tools"),
-            ("ToolsDownload", Gtk.STOCK_GO_DOWN, "Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
+            ("ToolsDownload", Gtk.STOCK_GO_DOWN, "_Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
             ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", TOOLTIP_TOOLS_PVR_QUEUE, self._on_menu_others),
-            ("ToolsClear", Gtk.STOCK_CLEAR, "Clear", "<control>C", TOOLTIP_TOOLS_CLEAR, self._on_menu_others),
-            ("ToolsRefresh", Gtk.STOCK_REFRESH, "Refresh", "<control>R", TOOLTIP_TOOLS_REFRESH, self._on_menu_others)
+            ("ToolsClear", Gtk.STOCK_CLEAR, "_Clear", "<control>C", TOOLTIP_TOOLS_CLEAR, self._on_menu_others),
+            ("ToolsRefresh", Gtk.STOCK_REFRESH, "_Refresh", "<control>R", TOOLTIP_TOOLS_REFRESH, self._on_menu_others)
         ])
 
     def _add_help_menu_actions(self, action_group):
         action_group.add_actions([
             ("HelpMenu", None, "Help"),
-            ("HelpHelp", Gtk.STOCK_HELP, "Help", "F1", TOOLTIP_HELP_HELP, self._on_menu_others),
-            ("HelpAbout", Gtk.STOCK_ABOUT, "About", None, TOOLTIP_HELP_ABOUT, self._on_menu_others)
+            ("HelpHelp", Gtk.STOCK_HELP, "_Help", "F1", TOOLTIP_HELP_HELP, self._on_menu_others),
+            ("HelpAbout", Gtk.STOCK_ABOUT, "_About", None, TOOLTIP_HELP_ABOUT, self._on_menu_others)
         ])
 
     #NOTE The underscore (alt-<character) mnemonic only works when the widget is shown
@@ -650,6 +650,7 @@ class MainTreeView(Gtk.TreeView):
         self.set_enable_search(False)
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("button-release-event", self._on_button_release_event)
+        self.connect("popup-menu", self._on_popup_menu_event)
         self.connect("row-activated", self._on_row_activated)
 
         # First column
@@ -715,6 +716,10 @@ class MainTreeView(Gtk.TreeView):
     
     def _on_button_release_event(self, widget, event):
         self.button_pressed = False
+
+    #DOC BUG?
+    def _on_popup_menu_event(self, widget):
+        self.main_window.ui_manager.get_popup_menu().popup(None, None, None, None, 0, Gtk.get_current_event_time())
 
     #DOC BUG? extra undocumented parameter: widget (== self)
     def _on_row_activated(self, widget, path, column):
