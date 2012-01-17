@@ -2,19 +2,23 @@
 
 import os
 import signal
-from gi.repository import Gdk, Gtk, GObject, Pango, Gio
+from gi.repository import Gdk, Gio, GObject, Gtk, Pango
 
 # Application-wide constants
 import get_iplayer_downloader.common
 
 from get_iplayer_downloader import get_iplayer, settings
-from get_iplayer_downloader.get_iplayer import SearchResultColumn
+from get_iplayer_downloader.get_iplayer import SearchResultColumn, KEY_INDEX
 from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
+
+#### Main window
 
 BORDER_WIDTH = 4
 
 ####
+
+#(TODO move inside MainWindow class)
 
 #TOOLTIP_FILE_QUIT
 
@@ -445,6 +449,7 @@ class ToolBarBox(Gtk.Box):
         self.preset_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
         self.preset_combo.pack_start(renderer_text, True)
+        # Render fourth store column 
         self.preset_combo.add_attribute(renderer_text, "text", 3)
         self.preset_combo.connect("changed", self.main_window.main_controller.on_combo_preset_changed)
         self.pack_start(self.preset_combo, False, False, 0)
@@ -472,6 +477,7 @@ class ToolBarBox(Gtk.Box):
         self.category_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
         self.category_combo.pack_start(renderer_text, True)
+        # Render second store column 
         self.category_combo.add_attribute(renderer_text, "text", 1)
         self.pack_start(self.category_combo, False, False, 0)
 
@@ -492,6 +498,7 @@ class ToolBarBox(Gtk.Box):
         self.since_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
         self.since_combo.pack_start(renderer_text, True)
+        # Render second store column 
         self.since_combo.add_attribute(renderer_text, "text", 1)
         self.pack_start(self.since_combo, False, False, 0)
 
@@ -758,14 +765,14 @@ class MainTreeView(Gtk.TreeView):
         #        iter_previous = model.iter_previous(tree_iter)
         #        while iter_previous != None:
         #            row = model[iter_previous]
-        #            if row[0] != new_toggle_value:
+        #            if row[SearchResultColumn.DOWNLOAD] != new_toggle_value:
         #                toggle_parent = False
         #                break
         #            iter_previous = model.iter_previous(iter_previous)
         #    if toggle_parent:
         #        print "Toggle parent"
         #        row = model[parent_iter]
-        #        row[0] = new_toggle_value
+        #        row[SearchResultColumn.DOWNLOAD] = new_toggle_value
 
     def set_store(self, tree_rows):
         # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
@@ -777,12 +784,12 @@ class MainTreeView(Gtk.TreeView):
         i = 0
         while i in range(len(tree_rows)):
             row = tree_rows[i]
-            #if not row[2]:
             if row[SearchResultColumn.EPISODE] is None:
                 # Root level row (a serie)
                 # If root (a serie) has only one child/leave (an episode) then merge the two into one row
                 #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
-                if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
+                if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and \
+                   (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
                     row[SearchResultColumn.PID] = tree_rows[i + 1][SearchResultColumn.PID]
                     row[SearchResultColumn.INDEX] = tree_rows[i + 1][SearchResultColumn.INDEX]
                     row[SearchResultColumn.EPISODE] = tree_rows[i + 1][SearchResultColumn.EPISODE]
@@ -834,10 +841,10 @@ class PropertiesWindow(Gtk.Window):
                 image_url = prop_value
         ##ALTERNATIVE
         #for i in range(len(prop_table)):
-        #    if prop_table[i][0] == "thumbnail4":
+        #    if prop_table[i][InfoResultColumn.PROP_LABEL /* 0 */] == "thumbnail4":
         #        break
         #if i < len(prop_table):
-        #    image_url = prop_table[i][1]
+        #    image_url = prop_table[i][InfoResultColumn.PROP_VALUE /* 1 */]
 
         if image_url is not None:
             #TODO g_markup_escape_text() or g_markup_printf_escaped()
@@ -913,13 +920,13 @@ class PropertiesWindow(Gtk.Window):
         #
         #i = 0
         #for prop_row in prop_list:
-        #    label = Gtk.Label(prop_row[0], valign=Gtk.Align.START, halign=Gtk.Align.START)
+        #    label = Gtk.Label(prop_row[InfoResultColumn.PROP_LABEL /* 0 */], valign=Gtk.Align.START, halign=Gtk.Align.START)
         #    label.set_padding(4, 0)
         #    label.set_line_wrap(True)
         #    prop_table.attach(label, 0, 1, i, i+1)
         #
         #    #, use_markup=True
-        #    label = Gtk.Label(prop_row[1], valign=Gtk.Align.START, halign=Gtk.Align.START)
+        #    label = Gtk.Label(prop_row[InfoResultColumn.PROP_VALUE /* 1 */], valign=Gtk.Align.START, halign=Gtk.Align.START)
         #    label.set_padding(4, 0)
         #    label.set_line_wrap(True)
         #    prop_table.attach(label, 1, 2, i, i+1)
@@ -1084,9 +1091,17 @@ class SearchEntry(Gtk.Entry):
             entry.set_text("")
             #entry.set_placeholder_text("filter programmes")
 
+#### Main window controller
+
+#(TODO move inside MainWindowController)
+class PresetComboModelColumn:
+    PRESET = 0
+    PROG_TYPE = 1
+    CHANNEL = 2
+
 class MainWindowController:
     """ Handle the active part of the main window related widgets. Activity between main widgets and 
-        activity towards the model (get_iplayer.py)
+        activity towards the (source of the gtk widget) model get_iplayer.py
     """
     
     def __init__(self, main_window):
@@ -1108,9 +1123,9 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][0]
-            prog_type = model[tree_iter][1]
-            channel = model[tree_iter][2]
+            preset = model[tree_iter][PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+            channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
 
         category = None
         combo = self.tool_bar_box.category_combo
@@ -1118,17 +1133,17 @@ class MainWindowController:
         if tree_iter is not None:
             model = combo.get_model()
             #WORKAROUND see also get_iplayer.py
-            #    On some systems, when model[tree_iter][0] == None, the following exception is raised:
+            #    On some systems, when model[tree_iter][KEY_INDEX] == None, the following exception is raised:
             #    AttributeError: 'NoneType' object has no attribute 'decode'
-            #    In the debugger, model[tree_iter][0] is displayed as a unicode string.
-            category = model[tree_iter][0]
+            #    In the debugger, model[tree_iter][KEY_INDEX] is displayed as a unicode string.
+            category = model[tree_iter][KEY_INDEX]
 
         since = 0
         combo = self.tool_bar_box.since_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            since = model[tree_iter][0]
+            since = model[tree_iter][KEY_INDEX]
 
         search_all = self.tool_bar_box.search_all_check_button.get_active()
 
@@ -1151,7 +1166,7 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][0]
+            preset = model[tree_iter][PresetComboModelColumn.PRESET]
             if preset == get_iplayer.Preset.TV:
                 hd_tv_mode = self.tool_bar_box.hd_tv_check_button.get_active()
 
@@ -1168,17 +1183,17 @@ class MainWindowController:
         root_iter = model.get_iter_first()
         while root_iter is not None:
             row = model[root_iter]
-            if row[0] and row[1]:
-                #indices += row[1] + " "
-                pid_list.append(row[1])
+            if row[SearchResultColumn.DOWNLOAD] and row[SearchResultColumn.PID]:
+                #indices += row[SearchResultColumn.INDEX] + " "
+                pid_list.append(row[SearchResultColumn.PID])
             
             #if model.iter_has_child(root_iter):
             child_iter = model.iter_children(root_iter)
             while child_iter is not None:
                 row = model[child_iter]
-                if row[0]:
-                    #indices += row[1] + " "
-                    pid_list.append(row[1])
+                if row[SearchResultColumn.DOWNLOAD]:
+                    #indices += row[SearchResultColumn.INDEX] + " "
+                    pid_list.append(row[SearchResultColumn.PID])
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
         
@@ -1227,7 +1242,7 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][0]
+            preset = model[tree_iter][PresetComboModelColumn.PRESET]
 
         proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
         
@@ -1269,8 +1284,8 @@ class MainWindowController:
         
         # Search selected nodes one level deep
         for row in model:
-            if row[0]:
-                row[0] = False
+            if row[SearchResultColumn.DOWNLOAD]:
+                row[SearchResultColumn.DOWNLOAD] = False
 
         # Search two levels deep
         root_iter = model.get_iter_first()
@@ -1279,8 +1294,8 @@ class MainWindowController:
             child_iter = model.iter_children(root_iter)
             while child_iter is not None:
                 row = model[child_iter]
-                if row[0]:
-                    row[0] = False
+                if row[SearchResultColumn.DOWNLOAD]:
+                    row[SearchResultColumn.DOWNLOAD] = False
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
 
@@ -1295,7 +1310,7 @@ class MainWindowController:
         #tree_iter = combo.get_active_iter()
         #if tree_iter is not None:
         #    model = combo.get_model()
-        #    preset = model[tree_iter][0]
+        #    preset = model[tree_iter][PresetComboModelColumn.PRESET]
         get_iplayer.refresh(preset=None)
         
         # Refresh programme list
@@ -1306,8 +1321,8 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][0]
-            prog_type = model[tree_iter][1]
+            preset = model[tree_iter][PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
             
             if preset == get_iplayer.Preset.RADIO:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_radio_store)
@@ -1322,7 +1337,7 @@ class MainWindowController:
                 tree_iter = combo.get_active_iter()
                 if tree_iter is not None:
                     model = combo.get_model()
-                    since = model[tree_iter][0]
+                    since = model[tree_iter][KEY_INDEX]
                     if since == 0:
                         # Set to longest by not unlimited since filter
                         combo.set_active(len(get_iplayer.SINCE_LIST) - 1)
@@ -1357,9 +1372,9 @@ class MainWindowController:
             tree_iter = combo.get_active_iter()
             if tree_iter is not None:
                 model = combo.get_model()
-                #preset = model[tree_iter][0]
-                prog_type = model[tree_iter][1]
-                #channel = model[tree_iter][2]
+                #preset = model[tree_iter][PresetComboModelColumn.PRESET]
+                prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+                #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
             if prog_type:
                 # Programme type is not an empty string
                 settings.config().set("session", "programme-type", prog_type)
@@ -1373,7 +1388,9 @@ class MainWindowController:
                 # Programme type is an empty string (or None)
                 prog_type = get_iplayer.ProgType.RADIO
             self.on_set_programme_type(prog_type)
-    
+
+####
+
 def _files2urls(filepath):
     """ Return a string containing a url to the folder @filepath and the files inside @filepath (one level deep), sorted by file name """
     basename = os.path.basename(filepath)
@@ -1393,17 +1410,15 @@ def _files2urls(filepath):
     return url
     #ALTERNATIVE ways of sorting a list of files in a folder: glob(<filename filter>); listdir()
 
+####
+
 #NOTE session_save() is done from outside the window class and session_restore() is done from inside the window class,
 def _main_quit(main_window, event):
     main_window.main_controller.session_save()
     Gtk.main_quit(main_window, event)
 
 def main():
-    window = MainWindow()
-    window.connect("delete-event", _main_quit)
-    window.show_all()
-
-    # Load css file
+    # Load css file. Do this before window.show_all() since some themes don't resize after a css update
     screen = Gdk.Screen.get_default()
     css_provider = Gtk.CssProvider()
     package_pathname = os.path.dirname(os.path.realpath(__file__))
@@ -1412,6 +1427,10 @@ def main():
     css_provider.load_from_path(css_filename)
     context = Gtk.StyleContext()
     context.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
+    window = MainWindow()
+    window.connect("delete-event", _main_quit)
+    window.show_all()
 
     # Force images on buttons
     settings = Gtk.Settings.get_default()

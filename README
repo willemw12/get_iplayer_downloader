@@ -26,9 +26,9 @@ Dependencies
 
 get_iplayer and its dependencies (http://www.infradead.org/get_iplayer/html/get_iplayer.html).
 
-Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3, etc.).
+Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3 and associated libraries Gdk, GObject, Gio and Pango).
 
-Linux (to run get_iplayer in a terminal window and to display the number of running get_iplayer processes).
+Linux (only to run get_iplayer in a terminal window and to display the number of running get_iplayer processes). This program may work on other platforms as well, but that has not been tested.
 
 
 
@@ -49,7 +49,7 @@ Note: get_iplayer has a fixed download list size (info_limit = 40).
 
 2) get_iplayer_downloader
 
-Most configuration settings can be managed from the GUI (right-click, Preferences). Before downloading, check the download paths in the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config, which will be created after running the program for the first time). The default BBC programme settings (channel lists and category lists) are configured according to my preference and don't contain all possible values.
+Most configuration settings can be managed from the GUI (right-click, Preferences). Other settings can be found in the configuration file (~/get_iplayer_downloader/config, which will be created after running the program for the first time). Before downloading, check the download paths and terminal emulator program name in the GUI or in the configuration file. The default BBC programme settings (channel lists and category lists) are configured according to my preference and don't contain all possible values.
 
 
 

@@ -5,18 +5,24 @@ import logging
 from datetime import datetime
 
 from get_iplayer_downloader import common, settings
-from get_iplayer_downloader.tools import command, command_queue, string
-
-GET_IPLAYER_CMD = "get_iplayer"
+from get_iplayer_downloader.tools import command, command_queue, config, string
 
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
 
+# Index of a key-value pair
+KEY_INDEX = 0
+
+_GET_IPLAYER_PROG = "get_iplayer"
+_TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
+
+# List of key-value pairs
 SINCE_LIST = [[0, "Since"], [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
               [24, "1 day"], [48, "2 days"], [72, "3 days"], [96, "4 days"],
               [120, "5 days"], [144, "6 days"], [168, "7 days"]]
 
 class Preset:
+    # preset-file: filename in folder ~/.get_iplayer/presets
     RADIO = settings.config().get("radio", "preset-file")
     TV = settings.config().get("tv", "preset-file")
     
@@ -31,6 +37,8 @@ class Channel:
     TV = settings.config().get("tv", "channels")
 
 class Category:
+    # List of key-value pairs
+    
     #NOTE doesn't work: RADIO = [[None, "Genre"]].extend(...)
 
     #WORKAROUND see get_iplayer_gui.py
@@ -51,8 +59,10 @@ class SearchResultColumn:
     EPISODE = 4
 
 def search(search_text, preset=None, prog_type=None, channel=None, category=None, since=0, search_all=False):
-    """ Run get_iplayer (--search) """
-    cmd = GET_IPLAYER_CMD
+    """ Run get_iplayer (--search).
+        Return table with columns: download (False), followed by columns listed in SearchResultColumn.
+    """
+    cmd = _GET_IPLAYER_PROG
     if preset:
         cmd += " --preset=" + preset
     if search_all:
@@ -108,11 +118,12 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                     output_lines.append([False, l[1], l[2], None, string.decode(l[3])])
             l_prev = l
 
-    # output_lines columns: download (True/False), followed by columns listed in SearchResultColumn.
     return output_lines
 
 def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=False, force_download=False, output_path=None):
-    """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue """
+    """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
+        Return table with columns: download (False), followed by columns listed in SearchResultColumn.
+    """
     if preset == Preset.RADIO:
         output_path = RADIO_DOWNLOAD_PATH
     elif preset == Preset.TV:
@@ -130,10 +141,10 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
     #cmd = "( for i in"
     #for search_term in search_term_list:
     #    cmd += " " + search_term
-    #cmd += "; do " + GET_IPLAYER_CMD
+    #cmd += "; do " + _GET_IPLAYER_PROG
     cmd = ""
     for i, search_term in enumerate(search_term_list):
-        cmd += GET_IPLAYER_CMD
+        cmd += _GET_IPLAYER_PROG
         
         if preset:
             cmd += " --preset=" + preset
@@ -168,27 +179,26 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
         if (i < len(search_term_list) - 1):
             cmd += "; "
 
-    # As a one-liner: terminal_title = common.__program_name__ if run_in_terminal_window else None
-    terminal_title = None
-    if run_in_terminal_window:
-        terminal_title = common.__program_name__
-    
     if pvr_queue:
         launched = True
         process_output = command.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME)
     else:    
         #CommandQueue.CommandQueue().run(...)
-        launched = command_queue.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME, run_in_terminal_window=run_in_terminal_window, terminal_title=terminal_title)
+        launched = command_queue.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME,
+                                     terminal_prog=_TERMINAL_PROG)
         process_output = None
+
     return (launched, process_output)
 
 def info(search_term, preset=None, proxy_enabled=False):
-    """ Run get_iplayer --info """
+    """ Run get_iplayer --info.
+        Return table with columns: serie title, episode title plus description.
+    """
     # Cannot do a search on pid
     # Only from outside the UK and partial_proxy enabled in get_iplayer(?):
     #     If proxy_enabled is false then info retrieval will be faster but the info 
     #     will not contain proper values for "modes" and "tvmodes" (the available tv download file sizes)
-    cmd = GET_IPLAYER_CMD + " --info --nocopyright" 
+    cmd = _GET_IPLAYER_PROG + " --info --nocopyright" 
     if preset:
         cmd += " --preset=" + preset
     if not proxy_enabled:
@@ -212,10 +222,10 @@ def info(search_term, preset=None, proxy_enabled=False):
     return output_lines
 
 def refresh(preset=None):
-    """ Run get_iplayer --refresh """
+    """ Run get_iplayer --refresh. """
     if not preset:
         #preset = Preset.RADIO + "," + Preset.TV
         preset = "all"
-    cmd = GET_IPLAYER_CMD + " --refresh --preset=" + preset    
+    cmd = _GET_IPLAYER_PROG + " --refresh --preset=" + preset    
     return command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
 
