@@ -51,12 +51,17 @@ class Category:
     TV = [["", "Genre"]]
     TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
 
+class SearchTermColumn:
+    PID_OR_INDEX = 0
+    CATEGORIES = 1
+
 class SearchResultColumn:
     DOWNLOAD = 0
     PID = 1
     INDEX = 2
     SERIE = 3
     EPISODE = 4
+    CATEGORIES = 5
 
 def search(search_text, preset=None, prog_type=None, channel=None, category=None, since=0, search_all=False):
     """ Run get_iplayer (--search).
@@ -75,6 +80,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
         cmd += " --category=\"" + category + "\""
     if since:
         cmd += " --since=" + str(since)
+    #cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>\" --tree"
     cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>\" --tree"
     if search_text:
         cmd += " \"" + search_text + "\""
@@ -88,7 +94,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
     level = 0
     copy = False
     for line in lines:
-        l = line.split("|", 3)
+        l = line.split("|", 4)
         # Skip empty lines
         if l[0]:
             # Match string containing only spaces
@@ -103,7 +109,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                 if l_prev:
                     # Add serie line. Serie title from the previous line, the parent of the current line
                     # No pid or index available for a serie from the output of get_iplayer --tree
-                    output_lines.append([False, None, None, l_prev[0], None])
+                    output_lines.append([False, None, None, l_prev[0], None, None])
             if level == 1 and not l[0].isspace():
                 # Going from level 1 (an episode) to root level (0, a serie)
                 level = 0
@@ -113,15 +119,19 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                 # Add an episode line. Episode title and description from the current line
                 if l[3].startswith("- ~ "):
                     # No episode title
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][4:])])
+                    #output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4]])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), None])
                 else:
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3])])
+                    #output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4]])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), None])
             l_prev = l
 
     return output_lines
 
-def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=False, force_download=False, output_path=None):
+def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_mode=False, force_download=False, output_path=None, categories=None):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
+        @search_term_table has columns listed in SearchTermColumn.
+        If @pid is true, then the first column of @search_term_table contains pids.
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
     if preset == Preset.RADIO:
@@ -143,11 +153,11 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
         terminal_prog = None
 
     #cmd = "( for i in"
-    #for search_term in search_term_list:
-    #    cmd += " " + search_term
+    #for search_term_row in search_term_table:
+    #    cmd += " " + search_term_row[SearchTermColumn.PID_OR_INDEX]
     #cmd += "; do " + _GET_IPLAYER_PROG
     cmd = ""
-    for i, search_term in enumerate(search_term_list):
+    for i, search_term_row in enumerate(search_term_table):
         cmd += _GET_IPLAYER_PROG
         
         if preset:
@@ -158,6 +168,16 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
             cmd += " --force"
         cmd += " --nocopyright --hash --output=\"" + output_path + "\""
         if subdir_format:
+            #NOTE cannot do this because categories has been modified (sorted, categories added)
+            ## Perform additional substitutions
+            #categories = search_term_row[SearchTermColumn.CATEGORIES]
+            #category_list = categories.split(",")
+            ##ALTERNATIVE re or tokenize
+            #category = category_list[0]
+            #subdir_format = subdir_format.replace("<general-category>", category)
+            #category = category_list[len(category_list) - 1]
+            #subdir_format = subdir_format.replace("<specific-category>", category)
+
             if pvr_queue:
                 cmd += " --subdir --subdir-format=\"" + subdir_format + "\""
             else:
@@ -176,11 +196,12 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
     
     ##cmd += "\"$i\" ; done"
     #cmd += "$i; done )"
+        search_term = search_term_row[SearchTermColumn.PID_OR_INDEX]
         if search_term:
             # search_term_list could be a set of programme indices, so don't surround them with quotes
             cmd += search_term
         
-        if (i < len(search_term_list) - 1):
+        if (i < len(search_term_table[:]) - 1):
             cmd += "; "
 
     if pvr_queue:

@@ -703,6 +703,17 @@ class MainTreeView(Gtk.TreeView):
         column.set_resizable(True)
         self.append_column(column)
 
+        #### Fourth column
+
+        #renderer = Gtk.CellRendererText(width=250)
+        ##sizing=Gtk.TreeViewColumn.FIXED
+        #column = Gtk.TreeViewColumn("Categories", renderer, text=SearchResultColumn.CATEGORIES)
+        #column.set_resizable(True)
+        #column.set_max_width(600)
+        #self.append_column(column)
+
+        ####
+        
         #tooltip = Gtk.Tooltip()
         #self.connect("query-tooltip", self._on_query_tooltip)
         #self.set_tooltip_cell(tooltip, None, column, None)
@@ -780,7 +791,7 @@ class MainTreeView(Gtk.TreeView):
 
     def set_store(self, tree_rows):
         # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
-        store = Gtk.TreeStore(bool, str, str, str, str)
+        store = Gtk.TreeStore(bool, str, str, str, str, str)
         
         #NOTE Could use "for i, row in enumerate(tree_rows):"
         #     except that "i += 1" to skip a list item has no effect
@@ -797,6 +808,7 @@ class MainTreeView(Gtk.TreeView):
                     row[SearchResultColumn.PID] = tree_rows[i + 1][SearchResultColumn.PID]
                     row[SearchResultColumn.INDEX] = tree_rows[i + 1][SearchResultColumn.INDEX]
                     row[SearchResultColumn.EPISODE] = tree_rows[i + 1][SearchResultColumn.EPISODE]
+                    row[SearchResultColumn.CATEGORIES] = tree_rows[i + 1][SearchResultColumn.CATEGORIES]
                     # Skip merged row (an episode)
                     i += 1
                 root_iter = store.append(None, row)            
@@ -860,7 +872,7 @@ class PropertiesWindow(Gtk.Window):
 
         #### Property table
         
-        frame = Gtk.Frame(label="Properties", label_xalign=0.02, margin=BORDER_WIDTH,
+        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=BORDER_WIDTH,
                           width_request=PropertiesWindow.WIDTH - (8 * BORDER_WIDTH))
         self.grid.add(frame)
 
@@ -885,7 +897,6 @@ class PropertiesWindow(Gtk.Window):
                 label1 = Gtk.Label(prop_label, valign=Gtk.Align.START, halign=Gtk.Align.START)
                 label1.set_padding(BORDER_WIDTH, 0)
                 label1.set_line_wrap(True)
-                #TODO avoid automatic text selection
                 label1.set_selectable(True)
                 prop_grid.attach(label1, 0, i, 1, 1)
 
@@ -893,17 +904,18 @@ class PropertiesWindow(Gtk.Window):
                                    halign=Gtk.Align.START, use_markup=True)
                 label2.set_padding(BORDER_WIDTH, 0)
                 label2.set_line_wrap(True)
-                label2.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                #WORD_CHAR
+                label2.set_line_wrap_mode(Pango.WrapMode.CHAR)
                 label2.set_selectable(True)
                 prop_grid.attach(label2, 1, i, 1, 1)
 
-                #TODO avoid automatic text selection
                 if prop_label == "episode" or prop_label == "title":
                     focused_label = label2
 
-        #TODO avoid automatic text selection
         if focused_label:
             focused_label.grab_focus()
+            # Avoid highlighted text
+            focused_label.select_region(0, 0)
         
         ####
                 
@@ -958,11 +970,11 @@ class PropertiesWindow(Gtk.Window):
         label1 = Gtk.Label(url, valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True)
         label1.set_padding(BORDER_WIDTH, 0)
         label1.set_line_wrap(True)
-        label1.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        #WORD_CHAR
+        label1.set_line_wrap_mode(Pango.WrapMode.CHAR)
         label1.set_selectable(True)
         frame.add(label1)
 
-#TODO avoid automatic text selection
 class PreferencesDialogWrapper(object):
 
     def __init__(self, main_window):
@@ -1189,7 +1201,7 @@ class MainWindowController:
             row = model[root_iter]
             if row[SearchResultColumn.DOWNLOAD] and row[SearchResultColumn.PID]:
                 #indices += row[SearchResultColumn.INDEX] + " "
-                pid_list.append(row[SearchResultColumn.PID])
+                pid_list.append([row[SearchResultColumn.PID], row[SearchResultColumn.CATEGORIES]])
             
             #if model.iter_has_child(root_iter):
             child_iter = model.iter_children(root_iter)
@@ -1197,7 +1209,7 @@ class MainWindowController:
                 row = model[child_iter]
                 if row[SearchResultColumn.DOWNLOAD]:
                     #indices += row[SearchResultColumn.INDEX] + " "
-                    pid_list.append(row[SearchResultColumn.PID])
+                    pid_list.append([row[SearchResultColumn.PID], row[SearchResultColumn.CATEGORIES]])
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
         
