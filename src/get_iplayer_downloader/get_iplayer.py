@@ -136,7 +136,11 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
         if "week" in subdir_format:
             week_number = datetime.today().isocalendar()[1]
             subdir_format = subdir_format.replace("<week>", "{0:02}".format(week_number))
-    run_in_terminal_window = string.str2bool(preset and settings.config().get(preset, "run-in-terminal"))
+
+    if string.str2bool(preset and settings.config().get(preset, "run-in-terminal")):
+        terminal_prog = _TERMINAL_PROG 
+    else:
+        terminal_prog = None
 
     #cmd = "( for i in"
     #for search_term in search_term_list:
@@ -185,7 +189,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fal
     else:    
         #CommandQueue.CommandQueue().run(...)
         launched = command_queue.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME,
-                                     terminal_prog=_TERMINAL_PROG)
+                                     terminal_prog=terminal_prog)
         process_output = None
 
     return (launched, process_output)

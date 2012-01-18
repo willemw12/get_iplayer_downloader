@@ -470,7 +470,10 @@ class ToolBarBox(Gtk.Box):
         #self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
         self.category_combo = Gtk.ComboBox()
         # Mark as unselected, to allow it to be set automatically (by session restore) 
-        self.category_combo.set_active(-1)
+        #WORKAROUND set to 99 (out of bounds) instead of -1 to avoid this error message:
+        #    Gtk-CRITICAL **: gtk_cell_view_set_displayed_row: assertion `GTK_IS_TREE_MODEL (cell_view->priv->model)' failed
+        #self.category_combo.set_active(-1)
+        self.category_combo.set_active(99)
         
         self.category_combo.set_valign(Gtk.Align.CENTER)
         self.category_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CATEGORY)
@@ -575,7 +578,7 @@ class ToolBarBox(Gtk.Box):
         ##
 
         # Timeout in milliseconds
-        self.timeout_id = GObject.timeout_add(5000, self._on_progress_bar_update, None)
+        self.timeout_id = GObject.timeout_add(4000, self._on_progress_bar_update, None)
         
         # Initialize label text
         self._on_progress_bar_update(None)
@@ -684,11 +687,12 @@ class MainTreeView(Gtk.TreeView):
 
         #### Second column
 
-        renderer = Gtk.CellRendererText(max_width_chars=256)
+        #max_width_chars=250
+        renderer = Gtk.CellRendererText(width=250)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Serie", renderer, text=SearchResultColumn.SERIE)
         column.set_resizable(True)
-        column.set_max_width(250)
+        column.set_max_width(600)
         self.append_column(column)
         
         #### Third column
