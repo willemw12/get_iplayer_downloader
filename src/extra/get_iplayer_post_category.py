@@ -1,15 +1,5 @@
 #!/usr/bin/env python
 
-""" get_iplayer post-processing script.
-    Arguments: @filename and @categories
-    Move @filename to directory which name is the last category in @categories
-    Configuration: for example, put in ~/.get_iplayer/presets/tv:
-        command get_iplayer_tv_post.py "<filename>" "<categories>"
-"""
-#AlTERNATIVE retrieve category from subdir
-#        subdir 1
-#        subdir-format <categories>
-
 import argparse
 import logging
 import os
@@ -17,6 +7,7 @@ import sys
 import re
 import shutil
 import tempfile
+from datetime import datetime
 
 progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
 logger = logging.getLogger(progname)
@@ -25,7 +16,7 @@ logger = logging.getLogger(progname)
 #global args
 args = None
 
-#AlTERNATIVE retrieve category from subdir
+#AlTERNATIVE retrieve category name from subdir
 #TODO match multiple camel case strings separated by underscore
 #
 #def first_camel_case(str):
@@ -46,12 +37,24 @@ args = None
 ####
 
 def _init_argparser():
-    argparser = argparse.ArgumentParser()
+    argparser = argparse.ArgumentParser(description="""This is a get_iplayer post-processing script,
+        that can be used by the get_iplayer command option. It moves the downloaded file to the 
+        output subdirectory with the most specific programme category name.
+        Configuration: for example, put in ~/.get_iplayer/presets/tv:
+        command get_iplayer_post_category.py --filename="<filename>" --categories="<categories>"
+        """)
+    #AlTERNATIVE retrieve category name from subdir
+    #        subdir 1
+    #        subdir-format <categories>
+    
     argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
-    argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")    
     argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
-    argparser.add_argument("filename", nargs=1)
-    argparser.add_argument("categories", nargs=1)
+    argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")
+    argparser.add_argument("--subdir", dest="subdir_format", metavar="<subdir-format>", nargs=1, default=None, help="subdirectory name, optionally containing substitution strings (<week>)")
+    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, required=True, help="programme categories, comma-separated")
+    argparser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="file to be moved")
+    #argparser.add_argument("filename", nargs=1)
+    #argparser.add_argument("categories", nargs=1)
     global args
     args = argparser.parse_args()
 
@@ -77,7 +80,7 @@ def _init_loggers():
 def _move_file(filename, categories):
     src_dirname = os.path.dirname(filename)
     basedirname = os.path.dirname(src_dirname)
-    #AlTERNATIVE retrieve category from subdir
+    #AlTERNATIVE retrieve category name from subdir
     #categories = os.path.basename(src_dirname)
     #specific_category = last_camel_case(categories)
     category_list = categories.split(",")
@@ -88,16 +91,22 @@ def _move_file(filename, categories):
     p = re.compile("([\s;<>\*\|&\$!#\(\)\[\]\{\}:'\"]+)")
     specific_category = p.sub("_", specific_category)
     
-    dest_dirname = os.path.join(basedirname, specific_category)
-    if not os.path.exists(dest_dirname):
-        os.mkdir(dest_dirname)
+    # Perform additional substitutions
+    if args.subdir_format is not None:
+        week_number = datetime.today().isocalendar()[1]
+        subdir_format = args.subdir_format[0]
+        subdir_format = subdir_format.replace("<week>", "{0:02}".format(week_number))
+        basedirname = os.path.join(basedirname, subdir_format)
 
     try:
+        dest_dirname = os.path.join(basedirname, specific_category)
+        if not os.path.exists(dest_dirname):
+            os.mkdir(dest_dirname)
         shutil.move(filename, dest_dirname)
-        logger.info("Moved {0} to {1}".format(filename, dest_dirname))
+        logger.info("Moved \"{0}\" to \"{1}\"".format(filename, dest_dirname))
     #NOTE combined exception handling
     except (IOError, os.error, shutil.Error), why:
-        logger.warning("Failed to move {0} to {1}".format(filename, dest_dirname))
+        logger.warning("Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         logger.debug(str(why))
 
     # Remove empty directory
@@ -110,6 +119,7 @@ def main():
     _init_argparser()
     _init_loggers()
     
+    #NOTE if arg not required, then check e.g. args.filename is not None
     _move_file(args.filename[0], args.categories[0])
 
 if __name__ == "__main__":

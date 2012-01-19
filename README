@@ -96,10 +96,15 @@ space or enter              Toggle programme selection in search result
 Extras
 ======
 
-Additional output directory name substitution: <week> in get_iplayer subdir option generates the current week number. For example, in ~/.config/get_iplayer_downloader/config:
+File ./extra/get_iplayer_tv_post.py is a get_iplayer post-processing script, that can be used by the get_iplayer command option. The script moves the downloaded file to the output subdirectory with the most specific programme category name. Substitution <categories> in the get_iplayer output directory option does something similar, but that option combines all the categories ("FactualArts_Culture_the_MediaHistory" instead of "History", which is the most specific category). Copy or link the script to a $PATH directory, for example:
+
+    ln -s <path to this directory>/src/extra/get_iplayer_post_category.py ~/bin/get_iplayer_post_category.py
+
+or add a path in front of the command below. In, for example, ~/.get_iplayer/presets/tv put:
+
+    command get_iplayer_post_category.py --filename="<filename>" --categories="<categories>"
+
+There is also an additional output directory name substitution supported by get_iplayer_downloader: <week>. It generates the current week number in the get_iplayer --subdir-format command line option. It overrides the subdir and subdir-format options in the preset file. For example, in ~/.config/get_iplayer_downloader/config:
 
     subdir-format = bbc.<week>
-
-And ./extra/get_iplayer_tv_post.py is a get_iplayer post-processing script that moves downloaded files to a specific category directory. For example, put script in a $PATH directory and in ~/.get_iplayer/presets/tv:
-
-    command get_iplayer_tv_post.py "<filename>" "<categories>"
+    
