@@ -18,7 +18,7 @@ def _init_loggers():
     
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     #ALTERNATIVE timestamp/number generation: 
-    #    pid = str(os.getpgid(0)), Linux; datetime.now().strftime("%s"); mkstemp()
+    #    pid = str(os.getpgid(0)), Linux specific; datetime.now().strftime("%s"); mkstemp()
 
     log_filename = os.path.join(settings.TEMP_PATHNAME, timestamp + ".log")
     

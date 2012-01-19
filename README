@@ -2,7 +2,7 @@ get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
 This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays all the found programmes in a large treeview with two main columns: serie title and episode title plus description.
 
-It is a small utility program for me to try and find out what Python and GTK+ 3 can do, after creating a version of the downloader with zenity in bash, which was far too slow.
+It is a small utility program for me to try and find out what standard Python and GTK+ 3 can do, after creating a version of the downloader with zenity in bash, which was far too slow.
 
 This program works best with a screen resolution of 1024x768 or higher.
 
@@ -58,9 +58,9 @@ Installation
 
 To execute without installing, run:
 
-    <path to this folder>/src/get_iplayer_downloader.py
+    <path to this directory>/src/get_iplayer_downloader.py
 
-Or to install, run from this folder:
+Or to install, run from this directory:
 
     sudo python setup.py install
     sudo rm -rf build
@@ -71,7 +71,7 @@ Then to execute, run:
 
 If python 2 (2.7 or higher) and python 3 are both installed and the name of the python 2 executable is python2, then replace the first two commands above by:
 
-    python2 <path to this folder>/src/get_iplayer_downloader.py
+    python2 <path to this directory>/src/get_iplayer_downloader.py
     sudo python2 setup.py install
 
 
@@ -90,3 +90,16 @@ f1				Help		View shortcut key list
 
 down-arrow                  Go from tool bar to search result
 space or enter              Toggle programme selection in search result
+
+
+
+Extras
+======
+
+Additional output directory name substitution: <week> in get_iplayer subdir option generates the current week number. For example, in ~/.config/get_iplayer_downloader/config:
+
+    subdir-format = bbc.<week>
+
+And ./extra/get_iplayer_tv_post.py is a get_iplayer post-processing script that moves downloaded files to a specific category directory. For example, put script in a $PATH directory and in ~/.get_iplayer/presets/tv:
+
+    command get_iplayer_tv_post.py "<filename>" "<categories>"

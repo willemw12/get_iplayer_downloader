@@ -54,10 +54,11 @@ def _save_config(config, config_filename):
         config.write(config_file)    
 
 def _create_args():
-    parser = argparse.ArgumentParser(description=common.__long_description__)
-    parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="enable debug log level")
-    parser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="enable info log level")    
-    return parser.parse_args()
+    argparser = argparse.ArgumentParser(description=common.__long_description__)
+    argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
+    argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")    
+    argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
+    return argparser.parse_args()
 
 ####
 
@@ -88,11 +89,9 @@ def get_log_level():
         #level = logging.INFO
         level = "INFO"
     else:
-        #TODO test not exist, empty: return None in that case.
         #NOTE ConfigParser already trims spaces
         level = config().get(Config.NOSECTION, "debug-level")
         if not level:
-            # Else level is None: default level logging.WARNING
             level = None
     return level
 

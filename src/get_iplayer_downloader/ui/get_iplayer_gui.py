@@ -647,6 +647,7 @@ class MainTreeView(Gtk.TreeView):
 
     def __init__(self, main_window):
         Gtk.TreeView.__init__(self)
+        #self.set_property("fixed-height-mode", True)
         self.main_window = main_window
         self.button_pressed = False
         
@@ -676,10 +677,18 @@ class MainTreeView(Gtk.TreeView):
         self.main_window.main_controller.on_button_find_clicked(None)
         
     def _init_columns(self):
+        if string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")):
+            widget = Gtk.Label()
+        else:
+            widget = Gtk.CheckButton()
+        (minimum_height, natural_height) = widget.get_preferred_height()
+        row_height = natural_height
+        
         #### First column
         
         renderer = Gtk.CellRendererToggle(indicator_size=11)
         renderer.set_alignment(0, 0.5)
+        renderer.set_property("height", row_height)
         renderer.connect("toggled", self._on_cell_row_toggled)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn(None, renderer, active=SearchResultColumn.DOWNLOAD)
@@ -689,6 +698,7 @@ class MainTreeView(Gtk.TreeView):
 
         #max_width_chars=250
         renderer = Gtk.CellRendererText(width=250)
+        renderer.set_property("height", row_height)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Serie", renderer, text=SearchResultColumn.SERIE)
         column.set_resizable(True)
@@ -698,6 +708,7 @@ class MainTreeView(Gtk.TreeView):
         #### Third column
 
         renderer = Gtk.CellRendererText()
+        renderer.set_property("height", row_height)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Episode ~ Description", renderer, text=SearchResultColumn.EPISODE)
         column.set_resizable(True)
@@ -706,6 +717,7 @@ class MainTreeView(Gtk.TreeView):
         #### Fourth column
 
         #renderer = Gtk.CellRendererText(width=250)
+        #renderer.set_property("height", row_height)
         ##sizing=Gtk.TreeViewColumn.FIXED
         #column = Gtk.TreeViewColumn("Categories", renderer, text=SearchResultColumn.CATEGORIES)
         #column.set_resizable(True)
@@ -982,8 +994,9 @@ class PreferencesDialogWrapper(object):
         
         self.dialog = self.builder.get_object("PreferencesDialog")
 
-        self.general_compact_toolbar_entry = self.builder.get_object("PrefsGeneralCompactToolbar")
-        self.general_start_maximized_entry = self.builder.get_object("PrefsGeneralStartMaximized")
+        self.general_compact_toolbar_checkbox = self.builder.get_object("PrefsGeneralCompactToolbar")
+        self.general_compact_treeview_checkbox = self.builder.get_object("PrefsGeneralCompactTreeview")
+        self.general_start_maximized_checkbox = self.builder.get_object("PrefsGeneralStartMaximized")
 
         self.radio_channels_entry = self.builder.get_object("PrefsRadioChannelsEntry")
         self.radio_download_path_entry = self.builder.get_object("PrefsRadioDownloadPathEntry")
@@ -1019,8 +1032,9 @@ class PreferencesDialogWrapper(object):
 
     def _display_settings(self):
         """ Retrieve in-memory settings and put them in dialog fields """
-        self.general_compact_toolbar_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
-        self.general_start_maximized_entry.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
+        self.general_compact_toolbar_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
+        self.general_compact_treeview_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
+        self.general_start_maximized_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
         self.radio_download_path_entry.set_text(settings.config().get("radio", "download-path"))
@@ -1034,8 +1048,9 @@ class PreferencesDialogWrapper(object):
 
     def _capture_settings(self):
         """ Retrieve settings from dialog fields and put them in in-memory settings """
-        settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_entry.get_active()))
-        settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_entry.get_active()))
+        settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_checkbox.get_active()))
+        settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_checkbox.get_active()))
+        settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_checkbox.get_active()))
         
         settings.config().set("radio", "channels", self.radio_channels_entry.get_text())
         settings.config().set("radio", "download-path", self.radio_download_path_entry.get_text())
@@ -1055,6 +1070,7 @@ class PreferencesDialogWrapper(object):
         #settings.revert()
 
         settings.revert_option(config.NOSECTION, "compact-toolbar")
+        settings.revert_option(config.NOSECTION, "compact-treeview")
         settings.revert_option(config.NOSECTION, "start-maximized")
 
         settings.revert_option("radio", "channels")
