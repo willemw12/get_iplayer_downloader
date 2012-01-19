@@ -96,7 +96,7 @@ space or enter              Toggle programme selection in search result
 Extras
 ======
 
-File ./extra/get_iplayer_tv_post.py is a get_iplayer post-processing script, that can be used by the get_iplayer command option. The script moves the downloaded file to the output subdirectory with the most specific programme category name. Substitution <categories> in the get_iplayer output directory option does something similar, but that option combines all the categories ("FactualArts_Culture_the_MediaHistory" instead of "History", which is the most specific category). Copy or link the script to a $PATH directory, for example:
+File ./extra/get_iplayer_tv_post.py is a get_iplayer post-processing script, that can be assigned to the get_iplayer command option. The script moves the downloaded file to the output subdirectory with the most specific programme category name. Substitution <categories> in the get_iplayer output directory option does something similar, but that option combines all the categories ("FactualArts_Culture_the_MediaHistory" instead of "History", which is the most specific category). Copy or link the script to a $PATH directory, for example:
 
     ln -s <path to this directory>/src/extra/get_iplayer_post_category.py ~/bin/get_iplayer_post_category.py
 
