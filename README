@@ -102,7 +102,7 @@ File ./extra/get_iplayer_tv_post.py is a get_iplayer post-processing script. It 
 
 or add a path in front of the command below. In, for example, ~/.get_iplayer/presets/tv put:
 
-    command get_iplayer_post_category.py --filename="<filename>" --categories="<categories>"
+    command get_iplayer_post_category.py --categories="<categories>" --filename="<filename>"
 
 There is also an additional output directory name substitution supported by get_iplayer_downloader: <week>. It generates the current week number and it overrides the get_iplayer subdir and subdir-format options in the preset file. For example, in ~/.config/get_iplayer_downloader/config, put:
 
