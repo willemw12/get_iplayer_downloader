@@ -602,9 +602,12 @@ class ToolBarBox(Gtk.Box):
         #self.pack_start(self.progress_bar, False, False, 0)
 
     def _on_progress_bar_update(self, user_data):
-        if os.name == "posix":
-            processes = command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True)
-        else:
+        try:
+            if os.name == "posix":
+                processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) || 0 ; exit 0", quiet=True))
+            else:
+                processes = 0
+        except ValueError:
             processes = 0
 
         ##self.processes_label.set_label("D: " + str(processes))
@@ -612,8 +615,8 @@ class ToolBarBox(Gtk.Box):
 
         #NOTE string formatting: right-aligned (default for int), 4 characters wide:  str.format("D:{0:4}  Q:{1:4}", ...)
         #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
-        self.progress_bar.set_text(processes)
-        self.progress_bar.set_fraction(int(processes) / 6.0 % 1)
+        self.progress_bar.set_text(str(processes))
+        self.progress_bar.set_fraction(processes / 6.0 % 1)
         #Gray-out
         #self.progress_bar.set_sensitive(processes != 0 or command_queue.size() != 0)
 
@@ -835,15 +838,12 @@ class MainTreeView(Gtk.TreeView):
 
 class PropertiesWindow(Gtk.Window):
 
-    WIDTH = 800
-    
     def __init__(self, get_iplayer_output_lines):
         Gtk.Window.__init__(self, title="properties - " + get_iplayer_downloader.common.__program_name__)
+        self.set_default_size(800, 700)
         self.set_border_width(BORDER_WIDTH)
-        self.set_default_size(PropertiesWindow.WIDTH, 700)
-        #self.maximize()
         #self.set_resizable(False)
-
+        
         self._init_grid(get_iplayer_output_lines)
 
     def _init_grid(self, prop_table):
@@ -851,6 +851,10 @@ class PropertiesWindow(Gtk.Window):
         ##visible=True, can_focus=True, hscrollbar_policy=Gtk.Policy.AUTOMATIC, 
         #                               vscrollbar_policy=Gtk.Policy.AUTOMATIC
         scrolled_window = Gtk.ScrolledWindow()
+        ##scrolled_window.min_content_height(700)
+        ##scrolled_window.min_content_width(800)
+        #scrolled_window.set_property("min-content-height", 5800)
+        #scrolled_window.set_property("min-content-width", 400)
         ##self.set_default_size(400, 400)
         #scrolled_window.set_hexpand(True)
         #scrolled_window.set_vexpand(True)
@@ -884,22 +888,18 @@ class PropertiesWindow(Gtk.Window):
 
         #### Property table
         
-        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=BORDER_WIDTH,
-                          width_request=PropertiesWindow.WIDTH - (8 * BORDER_WIDTH))
+        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=BORDER_WIDTH)
         self.grid.add(frame)
-
-        viewport = Gtk.Viewport()
-        frame.add(viewport)
 
         ####
         
         PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir", "duration",
-                           "episode", "expiryrel", "index", "longname", "modes",
-                           "modesizes", "pid", "player", "senum", "timeadded", "title",
-                           "type", "versions", "web"]
+                           "episode", "expiryrel", "index", "longname", "modes", "modesizes",
+                           "pid", "player", "senum", "timeadded", "title", "type", "versions", "web"]
 
-        prop_grid = Gtk.Grid(column_homogeneous=False, row_homogeneous=False)
-        viewport.add(prop_grid)
+        prop_grid = Gtk.Grid(column_homogeneous=False, row_homogeneous=False,
+                             margin_top=BORDER_WIDTH, margin_bottom=BORDER_WIDTH)
+        frame.add(prop_grid)
         
         focused_label = None
         #for prop_row in prop_table:
@@ -912,13 +912,14 @@ class PropertiesWindow(Gtk.Window):
                 label1.set_selectable(True)
                 prop_grid.attach(label1, 0, i, 1, 1)
 
-                label2 = Gtk.Label(markup.text2html(string.decode(prop_value)), valign=Gtk.Align.START,
-                                   halign=Gtk.Align.START, use_markup=True)
+                label2 = Gtk.Label(markup.text2html(string.decode(prop_value)), margin_left=40,
+                                   valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True)
                 label2.set_padding(BORDER_WIDTH, 0)
                 label2.set_line_wrap(True)
-                #WORD_CHAR
-                label2.set_line_wrap_mode(Pango.WrapMode.CHAR)
                 label2.set_selectable(True)
+                label2.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                # Avoid centering of text, when line wrap warps at word boundaries (WORD, WORD_CHAR)
+                label2.set_alignment(0, 0)
                 prop_grid.attach(label2, 1, i, 1, 1)
 
                 if prop_label == "episode" or prop_label == "title":
@@ -930,7 +931,7 @@ class PropertiesWindow(Gtk.Window):
             focused_label.select_region(0, 0)
         
         ####
-                
+
         ##ALTERNATIVE array indexing and populating Gtk.Grid
         #self.table = Gtk.Table()
         #self.add(self.table)
@@ -963,8 +964,7 @@ class PropertiesWindow(Gtk.Window):
 
         ####
 
-        frame = Gtk.Frame(label="Additional links", label_xalign=0.02, margin=BORDER_WIDTH,
-                          width_request=PropertiesWindow.WIDTH - (8 * BORDER_WIDTH))
+        frame = Gtk.Frame(label="Additional links", label_xalign=0.01, margin=BORDER_WIDTH)
         self.grid.add(frame)
 
         url = "<a href=\"http://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
@@ -979,7 +979,8 @@ class PropertiesWindow(Gtk.Window):
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
         url += _files2urls(filepath)
 
-        label1 = Gtk.Label(url, valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True)
+        label1 = Gtk.Label(url, valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True,
+                           margin_top=BORDER_WIDTH, margin_bottom=BORDER_WIDTH)
         label1.set_padding(BORDER_WIDTH, 0)
         label1.set_line_wrap(True)
         #WORD_CHAR

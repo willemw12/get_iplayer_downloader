@@ -11,17 +11,13 @@ def _init_loggers():
     logging.basicConfig(level=level)
     #root_logger = logging.getLogger()
 
-    #### Log to file
-    
+    # Log to file
     if not os.path.exists(settings.TEMP_PATHNAME):
         os.mkdir(settings.TEMP_PATHNAME)
-    
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     #ALTERNATIVE timestamp/number generation: 
     #    pid = str(os.getpgid(0)), Linux specific; datetime.now().strftime("%s"); mkstemp()
-
     log_filename = os.path.join(settings.TEMP_PATHNAME, timestamp + ".log")
-    
     handler = logging.FileHandler(log_filename)
     logging.getLogger().addHandler(handler)
 

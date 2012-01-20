@@ -37,11 +37,11 @@ args = None
 ####
 
 def _init_argparser():
-    argparser = argparse.ArgumentParser(description="""This is a get_iplayer post-processing script,
-        that can be used by the get_iplayer command option. It moves the downloaded file to the 
-        output subdirectory with the most specific programme category name.
-        Configuration: for example, put in ~/.get_iplayer/presets/tv:
-        command get_iplayer_post_category.py --filename="<filename>" --categories="<categories>"
+    argparser = argparse.ArgumentParser(description="""This is a get_iplayer post-processing script.
+        It moves the downloaded file to the output subdirectory with the most specific programme category name.
+        The script filename can be assigned to the get_iplayer command option, for example,
+        in ~/.get_iplayer/presets/tv put:
+        command get_iplayer_post_category.py --categories="<categories>" --filename="<filename>"
         """)
     #AlTERNATIVE retrieve category name from subdir
     #        subdir 1
@@ -50,9 +50,9 @@ def _init_argparser():
     argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
     argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")
-    argparser.add_argument("--subdir", dest="subdir_format", metavar="<subdir-format>", nargs=1, default=None, help="subdirectory name, optionally containing substitution strings (<week>)")
-    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, required=True, help="programme categories, comma-separated")
-    argparser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="file to be moved")
+    argparser.add_argument("--subdir-format", dest="subdir_format", metavar="<format>", nargs=1, default=None, help="additional subdirectory, between output directory and category subdirectory. Optionally containing additional substitution strings. Available substitution strings: <week>. Examples: \"new\", \"bbc.<week>\"")
+    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, required=True, help="programme categories of the source file, comma-separated")
+    argparser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="source file to be moved")
     #argparser.add_argument("filename", nargs=1)
     #argparser.add_argument("categories", nargs=1)
     global args
