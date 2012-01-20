@@ -104,6 +104,6 @@ or add a path in front of the command below. In, for example, ~/.get_iplayer/pre
 
     command get_iplayer_post_category.py --filename="<filename>" --categories="<categories>"
 
-There is also an additional output directory name substitution supported by get_iplayer_downloader: <week>. It generates the current week number in the get_iplayer --subdir-format command line option. It overrides the subdir and subdir-format options in the preset file. For example, in ~/.config/get_iplayer_downloader/config, put:
+There is also an additional output directory name substitution supported by get_iplayer_downloader: <week>. It generates the current week number and it overrides the get_iplayer subdir and subdir-format options in the preset file. For example, in ~/.config/get_iplayer_downloader/config, put:
 
     subdir-format = bbc.<week>
