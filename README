@@ -96,14 +96,10 @@ space or enter              Toggle programme selection in search result
 Extras
 ======
 
-File ./extra/get_iplayer_tv_post.py is a get_iplayer post-processing script. It moves the downloaded file to the output subdirectory with the most specific programme category name. Substitution <categories> in the get_iplayer output directory option does something similar, but that option combines all the categories, resulting in a "FactualArts_Culture_the_MediaHistory" subdirectory instead of a "History" subdirectory, which is the most specific category. The script filename can be assigned to the get_iplayer command option. Copy or link the script to a $PATH directory, for example:
+File ./extra/get_iplayer_post_subdir.py is a get_iplayer post-processing script. It moves the downloaded file one or more directories deep, under the output directory. The script supports several additional property substitutions (<category>, <week>, ...). The value of <category> is derived from --categories="<categories>" (see command below). Run ./extra/get_iplayer_post_subdir.py --help for more information. To install and configure the script, copy or link the script to a $PATH directory, for example:
 
-    ln -s <path to this directory>/src/extra/get_iplayer_post_category.py ~/bin/get_iplayer_post_category.py
+    ln -s <path to this directory>/src/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
 
 or add a path in front of the command below. In, for example, ~/.get_iplayer/presets/tv put:
 
-    command get_iplayer_post_category.py --categories="<categories>" --filename="<filename>"
-
-There is also an additional output directory name substitution supported by get_iplayer_downloader: <week>. It generates the current week number and it overrides the get_iplayer subdir and subdir-format options in the preset file. For example, in ~/.config/get_iplayer_downloader/config, put:
-
-    subdir-format = bbc.<week>
+    command get_iplayer_post_category.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"

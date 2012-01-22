@@ -139,14 +139,6 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fa
     elif preset == Preset.TV:
         output_path = TV_DOWNLOAD_PATH
 
-    subdir_format = settings.config().get(preset, "subdir-format").lower()
-    if subdir_format:
-        # Perform additional substitutions
-        #NOTE find substring
-        if "week" in subdir_format:
-            week_number = datetime.today().isocalendar()[1]
-            subdir_format = subdir_format.replace("<week>", "{0:02}".format(week_number))
-
     if string.str2bool(preset and settings.config().get(preset, "run-in-terminal")):
         terminal_prog = _TERMINAL_PROG 
     else:
@@ -167,21 +159,6 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fa
         if force_download:
             cmd += " --force"
         cmd += " --nocopyright --hash --output=\"" + output_path + "\""
-        if subdir_format:
-            #NOTE cannot do this because categories has been modified (sorted, categories added)
-            ## Perform additional substitutions
-            #categories = search_term_row[SearchTermColumn.CATEGORIES]
-            #category_list = categories.split(",")
-            ##ALTERNATIVE re or tokenize
-            #category = category_list[0]
-            #subdir_format = subdir_format.replace("<general-category>", category)
-            #category = category_list[len(category_list) - 1]
-            #subdir_format = subdir_format.replace("<specific-category>", category)
-
-            if pvr_queue:
-                cmd += " --subdir --subdir-format=\"" + subdir_format + "\""
-            else:
-                cmd += " --subdir --subdir-format=\\\"" + subdir_format + "\\\""
         if pvr_queue:
             if not preset:
                 return False

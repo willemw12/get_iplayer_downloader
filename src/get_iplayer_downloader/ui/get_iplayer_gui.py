@@ -368,11 +368,11 @@ class ToolBarBox(Gtk.Box):
         
         ####
         
-        hide_label = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
+        compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
 
         def _label(label):
             #NOTE conditional expression (inline if-then-else)
-            return None if hide_label else label
+            return None if compact_toolbar else label
         
         ####
         
@@ -592,6 +592,26 @@ class ToolBarBox(Gtk.Box):
 
         ####
 
+        grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        #NOTE: To achieve "end alignment" of grid child widget:
+        #      - grid fill argument set to True
+        #      - hexpand_set=True, hexpand=True, halign=Gtk.Align.END
+        self.pack_start(grid, False, True, 0)
+
+        #if not compact_toolbar:
+        #button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+        #button.set_label("")
+        #button.set_image(Gtk.Image(stock=Gtk.STOCK_HELP))
+        #
+        #margin_left=BORDER_WIDTH
+        #image.set_alignment(0, 0.2)
+        #grid.attach_next_to(image, self.progress_bar, Gtk.PositionType.RIGHT, 1, 1)
+        image = Gtk.Image(stock=Gtk.STOCK_HELP, hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
+        image.set_tooltip_text("Right-click below the toolbar to popup the menu")
+        grid.add(image)
+        
+        ####
+
         #self.spinner = Gtk.Spinner()
         ##self.spinner_stop()
         #self.pack_start(self.spinner, False, False, 0)
@@ -608,6 +628,7 @@ class ToolBarBox(Gtk.Box):
             else:
                 processes = 0
         except ValueError:
+            #NOTE variable processes remains initialized after the try-except compound statement
             processes = 0
 
         ##self.processes_label.set_label("D: " + str(processes))
@@ -888,7 +909,8 @@ class PropertiesWindow(Gtk.Window):
 
         #### Property table
         
-        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=BORDER_WIDTH)
+        #NOTE to expand the grid, expand one of its child widgets
+        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=BORDER_WIDTH, hexpand=True)
         self.grid.add(frame)
 
         ####
@@ -909,7 +931,7 @@ class PropertiesWindow(Gtk.Window):
                 label1 = Gtk.Label(prop_label, valign=Gtk.Align.START, halign=Gtk.Align.START)
                 label1.set_padding(BORDER_WIDTH, 0)
                 label1.set_line_wrap(True)
-                label1.set_selectable(True)
+                #label1.set_selectable(False)
                 prop_grid.attach(label1, 0, i, 1, 1)
 
                 label2 = Gtk.Label(markup.text2html(string.decode(prop_value)), margin_left=40,
@@ -922,7 +944,7 @@ class PropertiesWindow(Gtk.Window):
                 label2.set_alignment(0, 0)
                 prop_grid.attach(label2, 1, i, 1, 1)
 
-                if prop_label == "episode" or prop_label == "title":
+                if prop_label == "index" or prop_label == "title":
                     focused_label = label2
 
         if focused_label:
@@ -985,7 +1007,7 @@ class PropertiesWindow(Gtk.Window):
         label1.set_line_wrap(True)
         #WORD_CHAR
         label1.set_line_wrap_mode(Pango.WrapMode.CHAR)
-        label1.set_selectable(True)
+        #label1.set_selectable(False)
         frame.add(label1)
 
 class PreferencesDialogWrapper(object):
