@@ -379,17 +379,17 @@ class ToolBarBox(Gtk.Box):
         
         ####
         
+        button = Gtk.Button(stock=Gtk.STOCK_PROPERTIES, relief=Gtk.ReliefStyle.NONE,
+                            image_position=Gtk.PositionType.TOP)
+        button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
+        button.connect("clicked", self.main_window.main_controller.on_button_properties_clicked)
+        self.pack_start(button, False, False, 0)
+
         button = Gtk.Button(label="_Download", use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_GO_DOWN))
         button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
         button.connect("clicked", self.main_window.main_controller.on_button_download_clicked)
-        self.pack_start(button, False, False, 0)
-
-        button = Gtk.Button(stock=Gtk.STOCK_PROPERTIES, relief=Gtk.ReliefStyle.NONE,
-                            image_position=Gtk.PositionType.TOP)
-        button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
-        button.connect("clicked", self.main_window.main_controller.on_button_properties_clicked)
         self.pack_start(button, False, False, 0)
 
         button = Gtk.Button(stock=Gtk.STOCK_CLEAR, relief=Gtk.ReliefStyle.NONE,
