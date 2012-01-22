@@ -59,17 +59,14 @@ class MainWindow(Gtk.Window):
         # Set minimal size: self.set_size_request(...)
         self.set_default_size(-1, 720)
         self.set_border_width(BORDER_WIDTH)
-        if string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")):
+        start_maximized = string.str2bool(settings.config().get(config.NOSECTION, "start-maximized"))
+        if start_maximized:
             self.maximize()
-            # Avoid redraw to another position of the >>right-aligned<< help image on the top toolbar,
-            # by forcing the calculation of the main window (and therefore the top toolbar) width
-            self.show_all()
 
         self.main_controller = MainWindowController(self)
         
         self._init_ui_manager()
         self._init_builder()
-
         self._init_main_grid()
         #self._init_menu_bar()
         self._init_tool_bar_box()
@@ -77,6 +74,11 @@ class MainWindow(Gtk.Window):
 
         self.main_controller.init()
         self.main_tree_view.init_store()        
+
+        if start_maximized:
+            # Avoid redraw to another position of the >>right-aligned<< help image on the top toolbar,
+            # by forcing the calculation of the main window (and therefore the top toolbar) width
+            self.tool_bar_box.show_all()
 
     def _init_ui_manager(self):
         self.ui_manager = UIManager(self)
@@ -387,6 +389,7 @@ class ToolBarBox(Gtk.Box):
 
         button = Gtk.Button(label="_Download", use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
+        #Gtk.STOCK_GOTO_BOTTOM
         button.set_image(Gtk.Image(stock=Gtk.STOCK_GO_DOWN))
         button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
         button.connect("clicked", self.main_window.main_controller.on_button_download_clicked)
@@ -595,23 +598,37 @@ class ToolBarBox(Gtk.Box):
 
         ####
 
+        #if not compact_toolbar:
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         #NOTE: To achieve "end alignment" of grid child widget:
         #      - grid fill argument set to True
         #      - hexpand_set=True, hexpand=True, halign=Gtk.Align.END
         self.pack_start(grid, False, True, 0)
 
-        #if not compact_toolbar:
-        #button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-        #button.set_label("")
-        #button.set_image(Gtk.Image(stock=Gtk.STOCK_HELP))
-        #
+        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP,
+                            vexpand_set=True, vexpand=False, valign=Gtk.Align.START,
+                            hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
+        button.set_label("")
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_PREFERENCES))
+        #button.set_alignment(0, 0)
+        button.set_focus_on_click(False)
+        button.set_tooltip_text("Menu")
+        button.connect("button-press-event", self._on_menu_button_press_event)
+#        grid.add(button)
+
+        event_box = Gtk.EventBox()
+        #event_box.set_events(gtk.gdk.GDK_BUTTON_PRESS_MASK 
+        event_box.connect("button-press-event", self._on_menu_button_press_event)
+        grid.add(event_box)
+        
         #margin_left=BORDER_WIDTH
         #image.set_alignment(0, 0.2)
         #grid.attach_next_to(image, self.progress_bar, Gtk.PositionType.RIGHT, 1, 1)
-        image = Gtk.Image(stock=Gtk.STOCK_HELP, hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
-        image.set_tooltip_text("Right-click below the toolbar to popup the menu")
-        grid.add(image)
+        image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES, hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
+        image.set_tooltip_text("Menu. Click here or right-click below the toolbar")
+#        image.connect("button-press-event", self._on_menu_button_press_event)
+#        grid.add(image)
+        event_box.add(image)
         
         ####
 
@@ -645,6 +662,10 @@ class ToolBarBox(Gtk.Box):
         #self.progress_bar.set_sensitive(processes != 0 or command_queue.size() != 0)
 
         return True
+
+    def _on_menu_button_press_event(self, widget, event):
+        self.main_window.main_controller.ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
+        #return True
 
     ##### Spinner
 
@@ -770,7 +791,7 @@ class MainTreeView(Gtk.TreeView):
             #return True
         elif event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
             # Right mouse button pressed
-            self.main_window.ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
+            self.main_window.main_controller.ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
             #return True
         #return False
     
@@ -1168,6 +1189,7 @@ class MainWindowController:
     # Convenience method
     def init(self):
         """ Complete initialization, after the main window has completed its initialization """
+        self.ui_manager = self.main_window.ui_manager
         self.tool_bar_box = self.main_window.tool_bar_box
         self.main_tree_view = self.main_window.main_tree_view
 
