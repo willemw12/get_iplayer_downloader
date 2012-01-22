@@ -61,7 +61,10 @@ class MainWindow(Gtk.Window):
         self.set_border_width(BORDER_WIDTH)
         if string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")):
             self.maximize()
-        
+            # Avoid redraw to another position of the >>right-aligned<< help image on the top toolbar,
+            # by forcing the calculation of the main window (and therefore the top toolbar) width
+            self.show_all()
+
         self.main_controller = MainWindowController(self)
         
         self._init_ui_manager()
