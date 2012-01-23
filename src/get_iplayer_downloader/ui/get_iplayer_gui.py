@@ -644,10 +644,11 @@ class ToolBarBox(Gtk.Box):
     def _on_progress_bar_update(self, user_data):
         try:
             if os.name == "posix":
-                processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) || 0 ; exit 0", quiet=True))
+                processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True))
             else:
                 processes = 0
         except ValueError:
+            # On occasion, processes is not a valid int (empty string?)
             #NOTE Variable "processes" remains initialized after the try-except compound statement
             processes = 0
 
