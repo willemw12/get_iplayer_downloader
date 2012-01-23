@@ -229,7 +229,8 @@ class UIManager():
     def _add_tools_menu_actions(self, action_group):
         action_group.add_actions([
             ("ToolsMenu", None, "Tools"),
-            ("ToolsDownload", Gtk.STOCK_GO_DOWN, "_Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
+            #Gtk.STOCK_GO_DOWN
+            ("ToolsDownload", Gtk.STOCK_GOTO_BOTTOM, "_Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
             ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", TOOLTIP_TOOLS_PVR_QUEUE, self._on_menu_others),
             ("ToolsClear", Gtk.STOCK_CLEAR, "_Clear", "<control>C", TOOLTIP_TOOLS_CLEAR, self._on_menu_others),
             ("ToolsRefresh", Gtk.STOCK_REFRESH, "_Refresh", "<control>R", TOOLTIP_TOOLS_REFRESH, self._on_menu_others)
@@ -341,17 +342,16 @@ class UIManager():
         dialog.set_version(get_iplayer_downloader.common.__version__)
         dialog.set_website(get_iplayer_downloader.common.__url__)
         dialog.set_website_label(get_iplayer_downloader.common.__url__)
-        #NOTE '[""]' means 'char**' in C
+        #NOTE [""] means char** in C
         dialog.set_authors([get_iplayer_downloader.common.__authors__])
 
         dialog.connect("response", lambda dialog, response: dialog.destroy())
         dialog.run()
         dialog.destroy()
 
-#NOTE on Glade
-# Glade generates the following deprecated Grid property: 
-#     <property name="n_rows">1</property>
-# It causes a Gtk warning. This property can be removed from the generated .ui file.
+#NOTE Glade generates the following deprecated Grid property: 
+#         <property name="n_rows">1</property>
+#     It causes a Gtk warning. This property can be removed from the generated .ui file.
 
 #class Builder(Gtk.Builder):
 class Builder(object):
@@ -376,7 +376,7 @@ class ToolBarBox(Gtk.Box):
         compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
 
         def _label(label):
-            #NOTE conditional expression (inline if-then-else)
+            #NOTE Conditional expression (one line if-then-else)
             return None if compact_toolbar else label
         
         ####
@@ -389,8 +389,8 @@ class ToolBarBox(Gtk.Box):
 
         button = Gtk.Button(label="_Download", use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
-        #Gtk.STOCK_GOTO_BOTTOM
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_GO_DOWN))
+        #Gtk.STOCK_GO_DOWN
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_GOTO_BOTTOM))
         button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
         button.connect("clicked", self.main_window.main_controller.on_button_download_clicked)
         self.pack_start(button, False, False, 0)
@@ -436,7 +436,7 @@ class ToolBarBox(Gtk.Box):
         label = Gtk.Label(_label(" Type:"))
         self.pack_start(label, False, False, 0)
         
-        #NOTE Reusing radio channels in podcast preset
+        # Reusing radio channels in podcast preset
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO,
                     get_iplayer.Channel.RADIO, "Radio"],
                    [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST,
@@ -600,9 +600,9 @@ class ToolBarBox(Gtk.Box):
 
         #if not compact_toolbar:
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        #NOTE: To achieve "end alignment" of grid child widget:
-        #      - grid fill argument set to True
-        #      - hexpand_set=True, hexpand=True, halign=Gtk.Align.END
+        #NOTE: To have end-alignment of grid child widget:
+        #      - grid: fill argument set to True
+        #      - grid child: hexpand_set=True, hexpand=True, halign=Gtk.Align.END
         self.pack_start(grid, False, True, 0)
 
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP,
@@ -648,13 +648,13 @@ class ToolBarBox(Gtk.Box):
             else:
                 processes = 0
         except ValueError:
-            #NOTE variable processes remains initialized after the try-except compound statement
+            #NOTE Variable "processes" remains initialized after the try-except compound statement
             processes = 0
 
         ##self.processes_label.set_label("D: " + str(processes))
         ##self.queue_size_label.set_label("Q: " + str(command_queue.size()))
 
-        #NOTE string formatting: right-aligned (default for int), 4 characters wide:  str.format("D:{0:4}  Q:{1:4}", ...)
+        #NOTE String formatting: right-aligned (default for int), 4 characters wide:  str.format("D:{0:4}  Q:{1:4}", ...)
         #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
         self.progress_bar.set_text(str(processes))
         self.progress_bar.set_fraction(processes / 6.0 % 1)
@@ -933,7 +933,7 @@ class PropertiesWindow(Gtk.Window):
 
         #### Property table
         
-        #NOTE to expand the grid, expand one of its child widgets
+        #NOTE To expand the grid, expand one of its child widgets
         frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=BORDER_WIDTH, hexpand=True)
         self.grid.add(frame)
 

@@ -96,7 +96,7 @@ def _move_file(categories, dirname, filename, subdir_format):
     src_dirname = os.path.dirname(filename)
 
     # Perform additional substitution
-    #NOTE find substring
+    #NOTE Find substring
     if "<week>" in subdir_format:
         week_number = datetime.today().isocalendar()[1]
         subdir_format = subdir_format.replace("<week>", "{0:02}".format(week_number))
@@ -122,8 +122,7 @@ def _move_file(categories, dirname, filename, subdir_format):
 
             # Handle <category> and <categorymain> being divided by sanitized separators or other valid separator characters (-)
             #NOTE p.sub replaces that whole search string, not just the group in the search string
-            #p = re.compile(r"<category>([_-]+)<categorymain>|<categorymain>([_-]+)<category>")
-            #NOTE non-consuming, fixed-length lookaheads (?=...) and lookbehinds (?<=...)
+            #     --> use non-consuming, fixed-length lookaheads (?=...) and lookbehinds (?<=...)
             p = re.compile(r"(?<=<category>)([_-]+)(?=<categorymain>)|(?<=(?<=<categorymain>))([_-]+)(?=<category>)")
             subdir_format = p.sub(r"_", subdir_format)
             #ALTERNATIVE use only one group (the start/end pos won't be correct after the first substitution)
@@ -147,7 +146,7 @@ def _move_file(categories, dirname, filename, subdir_format):
             os.makedirs(dest_dirname)
         shutil.move(filename, dest_dirname)
         logger.info("Moved \"{0}\" to \"{1}\"".format(filename, dest_dirname))
-    #NOTE combined exception handling
+    #NOTE Combined exception handling
     except (IOError, os.error, shutil.Error), why:
         logger.warning("Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         logger.debug(str(why))
@@ -162,7 +161,7 @@ def main():
     _init_argparser()
     _init_loggers()
     
-    #NOTE if arg not required, then check e.g. args.filename is not None
+    #NOTE If arg not required, then check e.g. args.filename is not None
     _move_file(args.categories[0], args.dir[0], args.filename[0], args.subdir_format[0])
 
 if __name__ == "__main__":

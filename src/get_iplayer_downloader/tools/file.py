@@ -10,7 +10,7 @@ def load_url(url, pathname):
     if not os.path.isfile(filename):
         stream = urllib2.urlopen(url)
     
-        #NOTE do not add "os." at the beginning of these I/O methods
+        #NOTE Do not add "os." at the beginning of these I/O methods
         fp = open(filename, "w")
         fp.write(stream.read())
         fp.close()

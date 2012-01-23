@@ -58,7 +58,7 @@ class PropertiesConfigParser(ConfigParser):
 #
 ##ALTERNATIVE without subclassing ConfigParser: allow properties not being inside a header
 #
-#NOTE File my.props:
+#File my.props:
 #item1 = new_value1
 #item2 = value2
 #
