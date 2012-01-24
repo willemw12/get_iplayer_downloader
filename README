@@ -1,21 +1,21 @@
 get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
-This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays all the found programmes in a large treeview with two main columns: serie title and episode title plus description.
+This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays programmes in a large treeview with two main columns: serie title and episode title plus description.
 
 It is a small utility program for me to try and find out what standard Python and GTK+ 3 can do, after creating a version of the downloader with zenity in bash, which was far too slow.
 
 This program works best with a screen resolution of 1024x768 or higher.
 
-I let the downloads run in one or more terminal windows, so I can see when and which download fails or hangs.
+I let the downloads run in one or more terminal windows, so I can see when a download fails or hangs.
 
 Some screenshots:
 
     https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot1.png
     https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot2.png
 
-For the latest version see https://github.com/willemw12/get_iplayer_downloader.
+For the latest version go to https://github.com/willemw12/get_iplayer_downloader.
 
-This program is licensed under GPLv3 (see file COPYING).
+This program is licensed under GPLv3 (see included file COPYING).
 
 Disclaimer: this program doesn't do any downloading itself. It relies on the get_iplayer program to do the actual downloading.
 
@@ -26,9 +26,9 @@ Dependencies
 
 get_iplayer and its dependencies (http://www.infradead.org/get_iplayer/html/get_iplayer.html).
 
-Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3 and associated libraries Gdk, GObject, Gio and Pango).
+Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3, ...).
 
-Linux (only to run get_iplayer in a terminal window and to display the number of running get_iplayer processes). This program may work on other platforms as well, but that has not been tested.
+Linux (only to run get_iplayer in a terminal window and to display the number of running get_iplayer processes). This program may work on other platforms, however that has not been tested.
 
 
 
@@ -37,19 +37,13 @@ Configuration
 
 1) get_iplayer
 
-Configure get_iplayer presets "tv" and "radio" for tv, radio and podcasts (files ~/.get_iplayer/presets/tv and ~/.get_iplayer/presets/radio). Settings should preferable include:
+Create and configure get_iplayer presets files ~/.get_iplayer/presets/tv and ~/.get_iplayer/presets/radio for tv, radio and podcasts (tvmode, radiomode, ...). Now "get_iplayer --preset=radio ..." and "get_iplayer --preset=tv" should work properly from the command line. The preset file names are configurable.
 
-    "tvmode=..." and "radiomode=...": the default download modes
-
-Now "get_iplayer --preset=radio ..." and "get_iplayer --preset=tv" should work properly from the command line.
-
-Optionally, setup a get_iplayer pvr scheduler (cronjob).
-
-Note: get_iplayer has a fixed download list size (info_limit = 40).
+Optionally, setup a get_iplayer pvr scheduler (cronjob) to download queued programmes.
 
 2) get_iplayer_downloader
 
-Most configuration settings can be managed from the GUI (right-click, Preferences). Other settings can be found in the configuration file (~/get_iplayer_downloader/config, which will be created after running the program for the first time). Before downloading, check the download paths and terminal emulator program name in the GUI or in the configuration file. The default BBC programme settings (channel lists and category lists) are configured according to my preference and don't contain all possible values.
+Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config), which will be created after running the program for the first time. Before downloading programmes, check the download paths and terminal emulator program name in the GUI or in the configuration file. The configured channels and categories are set according to my preference and don't contain all possible values.
 
 
 
@@ -86,20 +80,22 @@ ctrl + f        Find        Go to search entry field on the tool bar
 ctrl + t        Toggle      Rotate between programme types (radio, podcast, tv)
 ctrl + c        Clear       Clear programme download selection
 ctrl + r        Refresh     Refresh programme cache
-f1				Help		View shortcut key list
+f1              Help        View shortcut key list
 
 down-arrow                  Go from tool bar to search result
 space or enter              Toggle programme selection in search result
 
 
 
-Extras
-======
+Extra
+=====
 
-File ./extra/get_iplayer_post_subdir.py is a get_iplayer post-processing script. It moves the downloaded file one or more directories deep, under the output directory. The script supports several additional property substitutions (<category>, <week>, ...). The value of <category> is derived from --categories="<categories>" (see command below). Run ./extra/get_iplayer_post_subdir.py --help for more information. To install and configure the script, copy or link the script to a $PATH directory, for example:
+File ./src/extra/get_iplayer_post_subdir.py is a get_iplayer post-processing script. It is an extension to the get_iplayer subdir output option. The script supports additional property substitutions (<category>, <week>, ...). Run ./extra/get_iplayer_post_subdir.py --help for more information.
+
+To install and configure the script, copy or link the script to a directory in $PATH, for example:
 
     ln -s <path to this directory>/src/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
 
-or add a path in front of the command below. In, for example, ~/.get_iplayer/presets/tv put:
+or add a path in front of the command below. Put for example in ~/.get_iplayer/presets/tv:
 
     command get_iplayer_post_category.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"

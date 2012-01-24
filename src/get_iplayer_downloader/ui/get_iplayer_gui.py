@@ -43,7 +43,7 @@ TOOLTIP_FILTER_SINCE = "Limit search to recently available programmes"
 
 TOOLTIP_OPTION_FORCE_DOWNLOAD = "Force download"
 TOOLTIP_OPTION_HD_TV = "HD TV recording mode. Overrides the default TV mode"
-TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to the retrieval of programme properties. Useful outside the UK. When enabled, properties will include the available tv download sizes"
+TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme properties. Useful outside the UK. When enabled, properties will include the available tv download sizes"
 TOOLTIP_OPTION_FIND_ALL = "Search in all programme types and channels. Either all radio and podcast channels or all tv channels"
 
 TOOLTIP_HELP_HELP = "Help for this program"

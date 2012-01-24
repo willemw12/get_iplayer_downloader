@@ -38,22 +38,22 @@ args = None
 
 def _init_argparser():
     argparser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                        description="""This is a get_iplayer post-processing script. It moves the downloaded file
-one or more directories deep, under the output directory.
+                                        description="""This is a get_iplayer post-processing script. It is an extension to the
+get_iplayer subdir output option. In addition to the substitution of the
+standard properties listed by "get_iplayer --info ...", this script supports:
 
-Property substitution strings, in addition to the standard ones listed 
-by "get_iplayer --info ..." are:
-  <category>            last and most specific category of --categories
-  <categorymain>        first and most general category
+  <category>            last and most specific category from --categories
+  <categorymain>        first and most general category from --categories
   <week>                current week number
 
-The script filename and its arguments can be assigned to the get_iplayer command
-option, for example, in ~/.get_iplayer/presets/tv put all on one line:
+get_iplayer command option example (one line):
+
   command get_iplayer_post_subdir.py 
                         --categories="<categories>"
                         --dir="<dir>" 
                         --filename="<filename>" 
-                        --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+                        --subdir-format=
+                            "bbc.<week>/<categorymain>_<category>/<longname>"
 """)
     #AlTERNATIVE retrieve category name from subdir
     #        subdir 1
