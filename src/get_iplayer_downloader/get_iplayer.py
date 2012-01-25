@@ -6,6 +6,7 @@ from datetime import datetime
 
 from get_iplayer_downloader import common, settings
 from get_iplayer_downloader.tools import command, command_queue, config, string
+import get_iplayer_downloader
 
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
@@ -32,22 +33,22 @@ class ProgType:
     PODCAST = "podcast"
     TV = "tv"
     
+# List of key-value pairs
 class Channel:
     RADIO = settings.config().get("radio", "channels")
     TV = settings.config().get("tv", "channels")
 
+# List of key-value pairs
+#NOTE doesn't work: RADIO = [[None, "Genre"]].extend(...)
+#WORKAROUND see get_iplayer_gui.py
+#RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
 class Category:
-    # List of key-value pairs
-    
-    #NOTE doesn't work: RADIO = [[None, "Genre"]].extend(...)
-
-    #WORKAROUND see get_iplayer_gui.py
-    #RADIO = [[None, "Genre"]]
     RADIO = [["", "Genre"]]
-    RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories")))
-    
-    #WORKAROUND see get_iplayer_gui.py
-    #TV = [[None, "Genre"]]
+    RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories-radio")))
+
+    PODCAST = [["", "Genre"]]
+    PODCAST.extend(ast.literal_eval(settings.config().get("radio", "categories-podcast")))
+
     TV = [["", "Genre"]]
     TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
 
@@ -62,6 +63,62 @@ class SearchResultColumn:
     SERIE = 3
     EPISODE = 4
     CATEGORIES = 5
+
+def categories(search_text, preset=None, prog_type=None):
+    """ Run get_iplayer --list=categories.
+        Return table with columns: category, category (key-value pair).
+    """
+    cmd = _GET_IPLAYER_PROG
+    if preset:
+        cmd += " --preset=" + preset
+    if prog_type:
+        cmd += " --type=" + prog_type
+    cmd += " --list=categories"
+    if search_text:
+        cmd += " \"" + search_text + "\""
+    
+    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
+
+    lines = process_output.splitlines()
+    output_lines = []
+    for line in lines:
+        # Skip empty or message lines
+        if line and line[0] and not line.startswith("INFO:") and not line.startswith("Matches:"):
+            #category_key = line.split(" ", 1)[0]
+            category_key = line.rsplit(" ", 1)[0].rstrip()
+            category_value = line.split(" ", 1)[0].rstrip()
+            output_lines.append([category_key, category_value])
+
+    return output_lines
+
+def channels(search_text, preset=None, prog_type=None):
+    """ Run get_iplayer --list=channel.
+        Return comma-separated list of channels.
+    """
+    cmd = _GET_IPLAYER_PROG
+    if preset:
+        cmd += " --preset=" + preset
+    if prog_type:
+        cmd += " --type=" + prog_type
+    cmd += " --list=channel"
+    if search_text:
+        cmd += " \"" + search_text + "\""
+    
+    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
+
+    lines = process_output.splitlines()
+    first_value = True
+    output_line = ""
+    for i, line in enumerate(lines):
+        # Skip empty or message lines
+        if line and line[0] and not line.startswith("INFO:") and not line.startswith("Matches:"):
+            if first_value:
+                first_value = False
+            else:
+                output_line += ","
+            output_line += line.rsplit(" ", 1)[0].rstrip()
+
+    return output_line
 
 def search(search_text, preset=None, prog_type=None, channel=None, category=None, since=0, search_all=False):
     """ Run get_iplayer (--search).
@@ -214,7 +271,7 @@ def info(search_term, preset=None, proxy_enabled=False):
     lines = process_output.splitlines()
     output_lines = []
     for line in lines:
-        # Skip empty lines
+        # Skip empty or message lines
         if line and line[0] and not line.startswith("INFO:") and not line.startswith("Matches:"):
             l = line.split(":", 1)
             # Match key-value pairs

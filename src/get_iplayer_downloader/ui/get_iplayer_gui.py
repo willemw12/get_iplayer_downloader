@@ -436,7 +436,6 @@ class ToolBarBox(Gtk.Box):
         label = Gtk.Label(_label(" Type:"))
         self.pack_start(label, False, False, 0)
         
-        # Reusing radio channels in podcast preset
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO,
                     get_iplayer.Channel.RADIO, "Radio"],
                    [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST,
@@ -468,6 +467,10 @@ class ToolBarBox(Gtk.Box):
         self.cat_radio_store = Gtk.ListStore(str, str)
         for category in get_iplayer.Category.RADIO:
             self.cat_radio_store.append(category)
+
+        self.cat_podcast_store = Gtk.ListStore(str, str)
+        for category in get_iplayer.Category.PODCAST:
+            self.cat_podcast_store.append(category)
 
         self.cat_tv_store = Gtk.ListStore(str, str)
         for category in get_iplayer.Category.TV:
@@ -1402,13 +1405,16 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][PresetComboModelColumn.PRESET]
+            #preset = model[tree_iter][PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
             
-            if preset == get_iplayer.Preset.RADIO:
+            if prog_type == get_iplayer.ProgType.RADIO:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_radio_store)
                 self.tool_bar_box.category_combo.set_active(0)
-            elif preset == get_iplayer.Preset.TV:
+            elif prog_type == get_iplayer.ProgType.PODCAST:
+                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_podcast_store)
+                self.tool_bar_box.category_combo.set_active(0)
+            elif prog_type == get_iplayer.ProgType.TV:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
                 self.tool_bar_box.category_combo.set_active(0)
 
