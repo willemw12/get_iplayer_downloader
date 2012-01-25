@@ -56,8 +56,9 @@ def _save_config(config, config_filename):
 def _create_args():
     #NOTE argparse does an implicit auto-complete: --print-ch --> --print-channels
     argparser = argparse.ArgumentParser(description=common.__long_description__)
-    argparser.add_argument("--print-categories", dest="print_categories", action="store_const", const=True, default=False, help="list all available categories in")
-    argparser.add_argument("--print-channels", dest="print_channels", action="store_const", const=True, default=False, help="list all available channels")
+    argparser.add_argument("--print-categories", dest="print_categories", action="store_const", const=True, default=False, help="list all available categories (label-value pairs)")
+    argparser.add_argument("--print-channels", dest="print_channels", action="store_const", const=True, default=False, help="list all available channels (label-value pairs)")
+    argparser.add_argument("--print-long-labels", dest="print_long_labels", action="store_const", const=True, default=False, help="used in conjunction with --print-categories")
     argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")    
     argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
