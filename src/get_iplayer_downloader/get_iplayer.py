@@ -130,14 +130,16 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
     cmd = _GET_IPLAYER_PROG
-    if preset:
-        cmd += " --preset=" + preset
     if search_all:
         cmd += " --type=all"
-    elif prog_type:
-        cmd += " --type=" + prog_type
-    if not search_all and channel:
-        cmd += " --channel=\"" + channel + "\""
+    else:
+        if preset:
+            # If type=all then preset is ignored
+            cmd += " --preset=" + preset
+        if prog_type:
+            cmd += " --type=" + prog_type
+        if channel:
+            cmd += " --channel=\"" + channel + "\""
     if category:
         cmd += " --category=\"" + category + "\""
     if since:
