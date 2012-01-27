@@ -132,9 +132,9 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
     cmd = _GET_IPLAYER_PROG
     if search_all:
         cmd += " --type=all"
+        # If type=all then preset is ignored
     else:
         if preset:
-            # If type=all then preset is ignored
             cmd += " --preset=" + preset
         if prog_type:
             cmd += " --type=" + prog_type
