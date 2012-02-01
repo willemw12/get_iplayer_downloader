@@ -49,9 +49,9 @@ Before downloading programmes, check the download paths and terminal emulator pr
 
 The configured channels and categories are a reduced set and don't contain all available values. To start off with category lists containing all available categories, run:
 
-    <path to this directory>/src/get_iplayer_downloader.py --print-categories
+    <path to this directory>/src/get_iplayer_downloader.py --list-categories
 
-and put the printed output in the configuration file. The same can be done for channels (--print-channels) or leave the channel lists empty to search all channels.
+and put the printed output in the configuration file. The same can be done for channels (--list-channels) or leave the channel lists empty to search all channels.
 
 
 
