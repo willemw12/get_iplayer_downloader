@@ -8,8 +8,8 @@ from get_iplayer_downloader import common, settings
 from get_iplayer_downloader.tools import command, command_queue, config, string
 import get_iplayer_downloader
 
-RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
-TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
+RADIO_DOWNLOAD_PATH = settings.get_download_path("radio")
+TV_DOWNLOAD_PATH = settings.get_download_path("tv")
 
 # Index of a key-value pair
 KEY_INDEX = 0

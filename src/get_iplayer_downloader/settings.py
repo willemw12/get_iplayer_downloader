@@ -104,6 +104,16 @@ def get_log_level():
 
 # Convenience config methods
 
+def get_download_path(section):
+    # @section is ignored
+    download_path = config().get(section, "download-path")
+    if not download_path:
+        # None or empty string path
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        if not os.path.exists(download_path):
+            download_path = os.path.expanduser("~")
+    return download_path
+
 def revert_option(section, option):
     default_value = default_config().get(section, option)
     config().set(section, option, default_value)
