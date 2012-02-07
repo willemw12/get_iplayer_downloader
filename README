@@ -2,11 +2,11 @@ get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
 This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays programmes in a large treeview with two main columns: serie title and episode title plus description.
 
-It is a small utility program for me to try and find out what standard Python and GTK+ 3 can do, after creating a version of the downloader with zenity in bash, which was far too slow.
+It is a small utility program for me to try and find out what standard Python and GTK+ 3 can do. That was after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
 This program works best with a screen resolution of 1024x768 or higher.
 
-I let the downloads run in one or more terminal windows, so I can see when a download fails or hangs.
+You can continue using the program, while get_iplayer is downloading in the background. I let the downloads run in one or more terminal windows, so I can see when a download hangs or fails.
 
 Some screenshots:
 
@@ -28,7 +28,7 @@ get_iplayer and its dependencies (http://www.infradead.org/get_iplayer/html/get_
 
 Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3, ...).
 
-Linux (only to run get_iplayer in a terminal window and to display the number of running get_iplayer processes). This program may work on other platforms, however that has not been tested.
+Linux (only to run get_iplayer in a terminal window and to display the number of running get_iplayer threads). This program may work on other platforms, however that has not been tested.
 
 
 
@@ -90,20 +90,23 @@ ctrl + c        Clear       Clear programme download selection
 ctrl + r        Refresh     Refresh programme cache
 f1              Help        View shortcut key list
 
-down-arrow                  Go from tool bar to search result
-space or enter              Toggle programme selection in search result
+down-arrow                  Go from tool bar to the search result
+space or enter              Toggle programme selection in the search result
 
 
 
 Extra
 =====
 
-File ./src/extra/get_iplayer_post_subdir.py is a get_iplayer post-processing script. It is an extension to the get_iplayer subdir output option. The script supports additional property substitutions (<category>, <week>, ...). Run ./extra/get_iplayer_post_subdir.py --help for more information.
+File ./src/extra/get_iplayer_post_subdir.py is a get_iplayer post-processing script. It is an extension to the get_iplayer subdir output option. The script supports additional property substitutions (<category>, <week>, ...) in the output subdirectory names. For more information, run:
 
-To install and configure the script, copy or link the script to a directory in $PATH, for example:
+    ./extra/get_iplayer_post_subdir.py --help 
 
-    ln -s <path to this directory>/src/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
+To install and configure, copy or link the script to a directory in $PATH, for example:
 
-or add a path in front of the command below. Put for example in ~/.get_iplayer/presets/tv:
+    ln -s <absolute path to this directory>/src/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
+
+or add a path in front of the command below. Then put, for example, in ~/.get_iplayer/presets/tv:
 
     command get_iplayer_post_category.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+

@@ -1088,13 +1088,21 @@ class PreferencesDialogWrapper(object):
         self.general_start_maximized_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
-        self.radio_download_path_entry.set_text(settings.config().get("radio", "download-path"))
-        self.radio_download_file_chooser_button.set_filename(settings.config().get("radio", "download-path"))
+        download_path = settings.config().get("radio", "download-path")
+        if not download_path:
+            # None or empty string path. The file chooser widget removes non-existing folders
+            download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        self.radio_download_path_entry.set_text(download_path)
+        self.radio_download_file_chooser_button.set_filename(download_path)
         self.radio_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("radio", "run-in-terminal")))
         
         self.tv_channels_entry.set_text(settings.config().get("tv", "channels"))
-        self.tv_download_path_entry.set_text(settings.config().get("tv", "download-path"))
-        self.tv_download_file_chooser_button.set_filename(settings.config().get("tv", "download-path"))
+        download_path = settings.config().get("tv", "download-path")
+        if not download_path:
+            # None or empty string path. The file chooser widget removes non-existing folders
+            download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        self.tv_download_path_entry.set_text(download_path)
+        self.tv_download_file_chooser_button.set_filename(download_path)
         self.tv_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
     def _capture_settings(self):
