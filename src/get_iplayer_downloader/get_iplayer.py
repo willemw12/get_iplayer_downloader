@@ -8,8 +8,8 @@ from get_iplayer_downloader import common, settings
 from get_iplayer_downloader.tools import command, command_queue, config, string
 import get_iplayer_downloader
 
-RADIO_DOWNLOAD_PATH = settings.get_download_path("radio")
-TV_DOWNLOAD_PATH = settings.get_download_path("tv")
+RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
+TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
 
 # Index of a key-value pair
 KEY_INDEX = 0
@@ -222,7 +222,9 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fa
                 cmd += " --tvmode=\"" + settings.config().get(preset, "hd-mode") + "\""
         if force_download:
             cmd += " --force"
-        cmd += " --nocopyright --hash --output=\"" + output_path + "\""
+        cmd += " --nocopyright --hash"
+        if output_path:
+            cmd += " --output=\"" + output_path + "\""
         if pvr_queue:
             if not preset:
                 return False

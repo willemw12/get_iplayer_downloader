@@ -1088,15 +1088,23 @@ class PreferencesDialogWrapper(object):
         self.general_start_maximized_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
-        download_path = settings.get_download_path("radio")
+        download_path = settings.config().get("radio", "download-path")
         self.radio_download_path_entry.set_text(download_path)
-        self.radio_download_file_chooser_button.set_filename(download_path)
+        if download_path:
+            self.radio_download_file_chooser_button.set_filename(download_path)
+        else:
+            # Set to root path
+            self.radio_download_file_chooser_button.set_filename(os.sep)
         self.radio_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("radio", "run-in-terminal")))
         
         self.tv_channels_entry.set_text(settings.config().get("tv", "channels"))
-        download_path = settings.get_download_path("tv")
+        download_path = settings.config().get("tv", "download-path")
         self.tv_download_path_entry.set_text(download_path)
-        self.tv_download_file_chooser_button.set_filename(download_path)
+        if download_path:
+            self.tv_download_file_chooser_button.set_filename(download_path)
+        else:
+            # Set to root path
+            self.tv_download_file_chooser_button.set_filename(os.sep)
         self.tv_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
     def _capture_settings(self):
@@ -1147,12 +1155,16 @@ class PreferencesDialogWrapper(object):
     def _on_radio_download_file_chooser_file_set(self, entry_widget):
         filename = self.radio_download_file_chooser_button.get_filename()
         #entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
-        entry_widget.set_text(filename)
+        if filename != os.sep:
+            # Not root path
+            entry_widget.set_text(filename)
         
     def _on_tv_download_file_chooser_file_set(self, entry_widget):
         filename = self.tv_download_file_chooser_button.get_filename()
         #entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
-        entry_widget.set_text(filename)
+        if filename != os.sep:
+            # Not root path
+            entry_widget.set_text(filename)
 
     def _response(self, dialog, response_id):
         if response_id != Gtk.ResponseType.NONE:    # -1

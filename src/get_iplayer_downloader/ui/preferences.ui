@@ -289,7 +289,7 @@
                       <object class="GtkLabel" id="label5">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Download file path</property>
+                        <property name="tooltip_text" translatable="yes">Download file path. Get_iplayer default path if left empty</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -485,7 +485,7 @@
                       <object class="GtkLabel" id="label8">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Download file path</property>
+                        <property name="tooltip_text" translatable="yes">Download file path. Get_iplayer default path if left empty</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
