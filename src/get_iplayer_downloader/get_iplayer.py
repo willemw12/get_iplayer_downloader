@@ -192,7 +192,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
 
     return output_lines
 
-def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_mode=False, force_download=False, output_path=None, categories=None):
+def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=False, force_download=False, output_path=None, categories=None):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
         @search_term_table has columns listed in SearchTermColumn.
         If @pid is true, then the first column of @search_term_table contains pids.
@@ -218,8 +218,8 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_mode=Fa
         
         if preset:
             cmd += " --preset=" + preset
-            if hd_tv_mode and preset == Preset.TV:
-                cmd += " --tvmode=\"" + settings.config().get(preset, "hd-mode") + "\""
+            if hd_tv_modes and preset == Preset.TV:
+                cmd += " --tvmode=\"" + settings.config().get(preset, "hd-modes") + "\""
         if force_download:
             cmd += " --force"
         cmd += " --nocopyright --hash"

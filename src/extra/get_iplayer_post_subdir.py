@@ -9,6 +9,11 @@ import shutil
 import tempfile
 from datetime import datetime
 
+# Regex pattern without substitution markers < and >. \s means whitespace
+SANITIZE_PATTERN =     r"([\s,;:\*\|&\$!#\?\(\)\[\]\{\}'\"]+)"
+# Regex pattern with substitution markers < and >. \s means whitespace
+SANITIZE_PATTERN_ALL = r"([\s,;:\*\|&\$!#\?\(\)\[\]\{\}'\"<>]+)"
+
 progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
 logger = logging.getLogger(progname)
 
@@ -113,14 +118,20 @@ def _move_file(categories, dirname, filename, subdir_format):
             
         # Perform additional substitutions
         if main_category == specific_category:
-            # Sanitize directory path, except <> characters. \s means whitespace
-            p = re.compile(r"([\s;\*\|&\$!#\(\)\[\]\{\}:'\"]+)")
-            subdir_format = p.sub("_", subdir_format)
-        
+            # Merge duplicate string values
             subdir_format = subdir_format.replace("<category><categorymain>", main_category)
             subdir_format = subdir_format.replace("<categorymain><category>", main_category)
 
-            # Handle <category> and <categorymain> being divided by sanitized separators or other valid separator characters (-)
+            ####
+
+            # Merge duplicate string values separated by sanitized separators or
+            # other valid separator characters (-)
+
+            # Sanitize directory path, except substition marker characters < and >,
+            # i.e. collapse adjacent invalid characters into a single _ character
+            p = re.compile(SANITIZE_PATTERN)
+            subdir_format = p.sub("_", subdir_format)
+        
             #NOTE p.sub replaces that whole search string, not just the group in the search string
             #     --> use non-consuming, fixed-length lookaheads (?=...) and lookbehinds (?<=...)
             p = re.compile(r"(?<=<category>)([_-]+)(?=<categorymain>)|(?<=(?<=<categorymain>))([_-]+)(?=<category>)")
@@ -134,9 +145,10 @@ def _move_file(categories, dirname, filename, subdir_format):
         subdir_format = subdir_format.replace("<category>", specific_category)
         subdir_format = subdir_format.replace("<categorymain>", main_category)
 
-    # Sanitize directory path (now including <> characters). \s means whitespace
-    # Sanitize everything again here, to sanitize the substituted values
-    p = re.compile(r"([\s;<>\*\|&\$!#\(\)\[\]\{\}:'\"]+)")
+    # Sanitize everything again, to sanitize the substituted values
+    # Sanitize directory path, including substitution marker characters < and >,
+    # i.e. collapse adjacent invalid characters into a single _ character
+    p = re.compile(SANITIZE_PATTERN_ALL)
     subdir_format = p.sub("_", subdir_format)
 
     # Move the file

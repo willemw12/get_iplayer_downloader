@@ -43,7 +43,7 @@ TOOLTIP_FILTER_SINCE = "Limit search to recently available programmes"
 
 TOOLTIP_OPTION_FORCE_DOWNLOAD = "Force download"
 TOOLTIP_OPTION_HD_TV = "HD TV recording mode. Overrides the default TV mode"
-TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme properties. Useful outside the UK. When enabled, properties will include the available tv download sizes"
+TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme properties. Useful outside the UK. When enabled, displayed properties will include the available tv mode and tv mode size values"
 TOOLTIP_OPTION_FIND_ALL = "Search in all programme types and channels"
 
 TOOLTIP_HELP_HELP = "Help for this program"
@@ -1259,14 +1259,14 @@ class MainWindowController:
 
     def on_button_download_clicked(self, button, pvr_queue=False):
         # button can be None
-        hd_tv_mode = False
+        hd_tv_modes = False
         combo = self.tool_bar_box.preset_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
             preset = model[tree_iter][PresetComboModelColumn.PRESET]
             if preset == get_iplayer.Preset.TV:
-                hd_tv_mode = self.tool_bar_box.hd_tv_check_button.get_active()
+                hd_tv_modes = self.tool_bar_box.hd_tv_check_button.get_active()
 
         force_download = self.tool_bar_box.force_download_check_button.get_active()
         if button is not None and not pvr_queue:
@@ -1298,7 +1298,7 @@ class MainWindowController:
         #if indices:
         if len(pid_list) > 0:
             launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset, 
-                                                       hd_tv_mode=hd_tv_mode, force_download=force_download)
+                                                       hd_tv_modes=hd_tv_modes, force_download=force_download)
             if not launched:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
