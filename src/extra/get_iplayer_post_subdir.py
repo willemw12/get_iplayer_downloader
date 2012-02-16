@@ -9,11 +9,6 @@ import shutil
 import tempfile
 from datetime import datetime
 
-# Regex pattern without substitution markers < and >. \s means whitespace
-SANITIZE_PATTERN =     r"([\s,;:\*\|&\$!#\?\(\)\[\]\{\}'\"]+)"
-# Regex pattern with substitution markers < and >. \s means whitespace
-SANITIZE_PATTERN_ALL = r"([\s,;:\*\|&\$!#\?\(\)\[\]\{\}'\"<>]+)"
-
 progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
 logger = logging.getLogger(progname)
 
@@ -95,6 +90,63 @@ def _init_loggers():
     elif args.quiet:
         logger.setLevel(logging.FATAL)
 
+def _sanitize_path(path, include_substition_markers):
+    # Sanitize directory path, optionally including substition marker 
+    # characters < and >, i.e. collapse adjacent invalid characters into a 
+    # single _ character or remove invalid characters
+
+    # Match ! and perhaps other characters, which as program arguments have
+    # been translated by Python or get_iplayer into \! and this would otherwise
+    # result in an _ in the sanitized path
+    p = re.compile(r"(\\\!+)")
+    path = p.sub("", path)
+
+    #PERL get_iplayer
+    #sub StringUtils::sanitize_path {
+    # Remove fwd slash if reqd
+    #$string =~ s/\//_/g if ! $allow_fwd_slash;
+    # Replace backslashes with _ regardless
+    #$string =~ s/\\/_/g;
+    # Sanitize by default
+    #$string =~ s/\s+/_/g if (! $opt->{whitespace}) && (! $allow_fwd_slash);
+    #
+    # Similar as Perl code, however exclude matching forward slash
+    # \s means whitespace
+    if os.name == "posix":
+        p = re.compile(r"([\\\s]+)")
+    else:
+        p = re.compile(r"([\s]+)")
+    path = p.sub("_", path)
+
+    #PERL get_iplayer
+    #$string =~ s/[^\w_\-\.\/\s]//gi if ! $opt->{whitespace};
+    #
+    # Similar as Perl code, however also exclude matching substition marker
+    # characters < and >
+    p = re.compile(r"([^\w_\-\.\/\s<>]+)")
+    path = p.sub("", path)
+
+    #PERL get_iplayer
+    #$string =~ s/[\|\\\?\*\<\"\:\>\+\[\]\/]//gi if $opt->{fatfilename};
+    #
+    # Similar as Perl code, however exclude matching forward slash and 
+    # substition marker characters < and >
+    p = re.compile(r"([\|\\\?\*\"\:\+\[\]]+)")
+    path = p.sub("", path)
+
+    # Replace substitution marker characters < and >
+    if include_substition_markers:
+        p = re.compile(r"([<>]+)")
+        path = p.sub("_", path)
+
+    #PERL get_iplayer
+    # Truncate multiple '_'
+    #$string =~ s/_+/_/g;
+    p = re.compile(r"([_]+)")
+    path = p.sub("_", path)
+
+    return path
+
 def _move_file(categories, dirname, filename, subdir_format):
     logger.debug("Move \"{0}\" (categories = \"{1}\", dirname = \"{2}\", subdir_format = \"{3}\"".format(filename, categories, dirname, subdir_format))
 
@@ -115,22 +167,17 @@ def _move_file(categories, dirname, filename, subdir_format):
         # lstrip(): trim leading whitespaces
         specific_category = category_list[len(category_list) - 1].lstrip()
         main_category = category_list[0].lstrip()
-            
+ 
         # Perform additional substitutions
         if main_category == specific_category:
             # Merge duplicate string values
             subdir_format = subdir_format.replace("<category><categorymain>", main_category)
             subdir_format = subdir_format.replace("<categorymain><category>", main_category)
 
-            ####
-
             # Merge duplicate string values separated by sanitized separators or
             # other valid separator characters (-)
-
-            # Sanitize directory path, except substition marker characters < and >,
-            # i.e. collapse adjacent invalid characters into a single _ character
-            p = re.compile(SANITIZE_PATTERN)
-            subdir_format = p.sub("_", subdir_format)
+ 
+            subdir_format = _sanitize_path(subdir_format, False)
         
             #NOTE p.sub replaces that whole search string, not just the group in the search string
             #     --> use non-consuming, fixed-length lookaheads (?=...) and lookbehinds (?<=...)
@@ -145,11 +192,8 @@ def _move_file(categories, dirname, filename, subdir_format):
         subdir_format = subdir_format.replace("<category>", specific_category)
         subdir_format = subdir_format.replace("<categorymain>", main_category)
 
-    # Sanitize everything again, to sanitize the substituted values
-    # Sanitize directory path, including substitution marker characters < and >,
-    # i.e. collapse adjacent invalid characters into a single _ character
-    p = re.compile(SANITIZE_PATTERN_ALL)
-    subdir_format = p.sub("_", subdir_format)
+    # Sanitize everything again, to sanitize the substituted values and unrecognized substitutions
+    subdir_format = _sanitize_path(subdir_format, True)
 
     # Move the file
     try:
