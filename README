@@ -64,17 +64,23 @@ To execute without installing, run:
 
 Or to install, run from this directory:
 
-    sudo python setup.py install
-    sudo rm -rf build
+    ./install.sh
 
 Then to execute, run:
 
     get_iplayer_downloader
 
-If python 2 (2.7 or higher) and python 3 are both installed and the name of the python 2 executable is python2, then replace the first two commands above by:
+or run it from the desktop menu.
+
+To uninstall, run from this directory:
+
+    ./uninstall.sh
+
+If python 2 (2.7 or higher) and python 3 are both installed and the name of the python 2 executable is python2, then replace the first command above by:
 
     python2 <path to this directory>/src/get_iplayer_downloader.py
-    sudo python2 setup.py install
+
+and update the install.sh and uninstall.sh scripts.
 
 
 

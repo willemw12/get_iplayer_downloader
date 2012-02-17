@@ -15,7 +15,6 @@ if os.path.exists(os.path.join(os.getcwd(), "MANIFEST")):
 # Linux specific
 if os.geteuid() == 0:
     # Root user
-    #TODO (un)install in /usr/local/share/applications instead of /usr/share/applications
     # Install desktop menu item
     subprocess.call(["xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop"], shell=True)
 
