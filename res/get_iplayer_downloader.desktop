@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=BBC Get-iPlayer Downloader
+Comment=A download utility for get_iplayer
+Categories=Network;FileTransfer
+Exec=get_iplayer_downloader
+Icon=emblem-downloads
+Terminal=false
+Type=Application
+StartupNotify=false
+

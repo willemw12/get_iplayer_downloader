@@ -11,4 +11,5 @@ __authors__ = "willemw12"
 __emails__ = "willemw12@gmail.com"
 __url__ = "https://github.com/willemw12/get_iplayer_downloader"
 __license__ = "GPLv3"
-__platforms__ = "Linux, (BSD, MacOS, Windows untested)"
+# BSD, MacOS, Windows untested
+__platforms__ = "Linux"
