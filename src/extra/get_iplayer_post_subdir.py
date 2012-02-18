@@ -110,7 +110,7 @@ def _sanitize_path(path, include_substition_markers):
     # Sanitize by default
     #$string =~ s/\s+/_/g if (! $opt->{whitespace}) && (! $allow_fwd_slash);
     #
-    # Similar as Perl code, however exclude matching forward slash
+    # Similar to Perl code, however exclude matching forward slash
     # \s means whitespace
     if os.name == "posix":
         p = re.compile(r"([\\\s]+)")
@@ -121,7 +121,7 @@ def _sanitize_path(path, include_substition_markers):
     #PERL get_iplayer
     #$string =~ s/[^\w_\-\.\/\s]//gi if ! $opt->{whitespace};
     #
-    # Similar as Perl code, however also exclude matching substition marker
+    # Similar to Perl code, however also exclude matching substition marker
     # characters < and >
     p = re.compile(r"([^\w_\-\.\/\s<>]+)")
     path = p.sub("", path)
@@ -129,7 +129,7 @@ def _sanitize_path(path, include_substition_markers):
     #PERL get_iplayer
     #$string =~ s/[\|\\\?\*\<\"\:\>\+\[\]\/]//gi if $opt->{fatfilename};
     #
-    # Similar as Perl code, however exclude matching forward slash and 
+    # Similar to Perl code, however exclude matching forward slash and 
     # substition marker characters < and >
     p = re.compile(r"([\|\\\?\*\"\:\+\[\]]+)")
     path = p.sub("", path)
