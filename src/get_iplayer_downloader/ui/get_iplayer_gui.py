@@ -163,6 +163,8 @@ class UIManager():
     <separator/>
     <menuitem action="HelpHelp"/>
     <menuitem action="HelpAbout"/>
+    <separator/>
+    <menuitem action="FileQuit"/>
   </popup>
   <popup name="Hidden">
     <menuitem action="SearchRotateProgrammeType"/>
