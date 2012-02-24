@@ -43,9 +43,9 @@ Optionally, setup a get_iplayer pvr scheduler (cronjob) to download queued progr
 
 2) get_iplayer_downloader
 
-Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config), which will be created after running the program for the first time.
+Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config), which will be created after running the program for the first time. Quit the program before editing the configuration file.
 
-Before downloading programmes, check the download paths and terminal emulator program name in the GUI or in the configuration file.
+Before downloading programmes, verify the download paths and terminal emulator program name in the GUI or in the configuration file.
 
 The configured channels and categories are a reduced set and don't contain all available values. To start off with category lists containing all available categories, run:
 
