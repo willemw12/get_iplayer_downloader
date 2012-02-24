@@ -1093,6 +1093,8 @@ class PreferencesDialogWrapper(object):
         download_path = settings.config().get("radio", "download-path")
         self.radio_download_path_entry.set_text(download_path)
         if download_path:
+            if not os.path.exists(download_path):
+                os.makedirs(download_path)
             self.radio_download_file_chooser_button.set_filename(download_path)
         else:
             # Set to root path
@@ -1103,6 +1105,8 @@ class PreferencesDialogWrapper(object):
         download_path = settings.config().get("tv", "download-path")
         self.tv_download_path_entry.set_text(download_path)
         if download_path:
+            if not os.path.exists(download_path):
+                os.makedirs(download_path)
             self.tv_download_file_chooser_button.set_filename(download_path)
         else:
             # Set to root path
