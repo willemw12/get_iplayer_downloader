@@ -27,6 +27,7 @@ def list_categories(long_labels):
     categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, 
                                         long_labels=long_labels)
     print "[radio]"
+    print
     print "categories-radio =", categories
     print
 
@@ -38,6 +39,7 @@ def list_categories(long_labels):
     categories = get_iplayer.categories("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV, 
                                         long_labels=long_labels)
     print "[tv]"
+    print
     print "categories =", categories
 
 def list_channels():

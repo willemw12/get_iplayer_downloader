@@ -246,8 +246,8 @@ class UIManager():
         ])
 
     #NOTE The underscore (alt-<character) mnemonic only works when the widget is shown
-    #NOTE An accelerator does not override the desktop accelerator (global shortcut)
-    #NOTE Use glade or desktop shortcut keys system configration tool to find "undocumented" keys (Return, ...)
+    #NOTE An accelerator does not override the desktop accelerator (global desktop keyboard shortcut)
+    #NOTE Use glade or the global desktop keyboard shortcuts configration tool to find "undocumented" keys (Return, ...)
     def _create_ui_manager(self):
         ui_manager = Gtk.UIManager()
 
@@ -299,29 +299,29 @@ class UIManager():
     def on_help(self):
         dialog = Gtk.MessageDialog(self.main_window, 0,
                                    Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                   "Shortcut keys")
+                                   "Keyboard shortcuts")
         dialog.set_default_response(Gtk.ResponseType.CLOSE)
         dialog.format_secondary_text(" ")
 
         content_area = dialog.get_content_area()
         #content_area.set_size_request(800, 400)
 
-        SHORTCUT_KEYS = [["alt + enter", "Properties", TOOLTIP_VIEW_PROPERTIES],
-                         ["ctrl + d", "Download", TOOLTIP_TOOLS_DOWNLOAD],
-                         ["ctrl + q", "Queue", TOOLTIP_TOOLS_PVR_QUEUE],
-                         ["ctrl + f", "Find", TOOLTIP_SEARCH_GO_TO_FIND],
-                         ["ctrl + t", "Toggle", TOOLTIP_SEARCH_ROTATE_PROG_TYPE],
-                         ["ctrl + c", "Clear", TOOLTIP_TOOLS_CLEAR],
-                         ["ctrl + r", "Refresh", TOOLTIP_TOOLS_REFRESH],
-                         [" ", None, None],
-                         ["down-arrow", None, "Go from tool bar to search result"],
-                         ["space or enter", None, "Toggle programme selection in search result"]]
+        KEYBOARD_SHORTCUTS = [["alt + enter", "Properties", TOOLTIP_VIEW_PROPERTIES],
+                              ["ctrl + d", "Download", TOOLTIP_TOOLS_DOWNLOAD],
+                              ["ctrl + q", "Queue", TOOLTIP_TOOLS_PVR_QUEUE],
+                              ["ctrl + f", "Find", TOOLTIP_SEARCH_GO_TO_FIND],
+                              ["ctrl + t", "Toggle", TOOLTIP_SEARCH_ROTATE_PROG_TYPE],
+                              ["ctrl + c", "Clear", TOOLTIP_TOOLS_CLEAR],
+                              ["ctrl + r", "Refresh", TOOLTIP_TOOLS_REFRESH],
+                              [" ", None, None],
+                              ["down-arrow", None, "Go from tool bar to search result"],
+                              ["space or enter", None, "Toggle programme selection in search result"]]
 
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
-        for i, shortcut_key in enumerate(SHORTCUT_KEYS):
-            for j, label in enumerate(shortcut_key):
-                if label:
-                    label = Gtk.Label(label, valign=Gtk.Align.START, halign=Gtk.Align.START,
+        for i, keyboard_shortcut in enumerate(KEYBOARD_SHORTCUTS):
+            for j, label_text in enumerate(keyboard_shortcut):
+                if label_text:
+                    label = Gtk.Label(label_text, valign=Gtk.Align.START, halign=Gtk.Align.START,
                                       margin_left=16, margin_right=16, 
                                       hexpand_set=True, hexpand=True)
                     #label.set_padding(BORDER_WIDTH, 0)
@@ -619,7 +619,6 @@ class ToolBarBox(Gtk.Box):
         button.set_focus_on_click(False)
         button.set_tooltip_text("Menu")
         button.connect("button-press-event", self._on_menu_button_press_event)
-#        grid.add(button)
 
         event_box = Gtk.EventBox()
         #event_box.set_events(gtk.gdk.GDK_BUTTON_PRESS_MASK 
@@ -630,9 +629,7 @@ class ToolBarBox(Gtk.Box):
         #image.set_alignment(0, 0.2)
         #grid.attach_next_to(image, self.progress_bar, Gtk.PositionType.RIGHT, 1, 1)
         image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES, hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
-        image.set_tooltip_text("Menu. Click here or right-click below the toolbar")
-#        image.connect("button-press-event", self._on_menu_button_press_event)
-#        grid.add(image)
+        image.set_tooltip_text("Menu. Click here or right-click elsewhere")
         event_box.add(image)
         
         ####
@@ -1276,7 +1273,7 @@ class MainWindowController:
 
         force_download = self.tool_bar_box.force_download_check_button.get_active()
         if button is not None and not pvr_queue:
-            # If event was raised from the tool bar download button and not from a shortcut key,
+            # If event was raised from the tool bar download button and not from a keyboard shortcut,
             # then the PVR check button determines the download/queue mode
             pvr_queue = self.tool_bar_box.pvr_queue_check_button.get_active()
         

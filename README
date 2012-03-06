@@ -2,9 +2,7 @@ get_iplayer_downloader is a download utility for the BBC get_iplayer program.
 
 This program is a graphical version of the command "get_iplayer --tree", followed by "get_iplayer --pid" or "get_iplayer --info". It displays programmes in a large treeview with two main columns: serie title and episode title plus description.
 
-It is a small utility program for me to try and find out what standard Python and GTK+ 3 can do. That was after I tried creating a version of the downloader with zenity in bash, which was far too slow.
-
-This program works best with a screen resolution of 1024x768 or higher.
+It is a small utility program for me to try and find out what can be done with standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
 You can continue using the program, while get_iplayer is downloading in the background. I let the downloads run in one or more terminal windows, so I can see when a download hangs or fails.
 
@@ -12,6 +10,8 @@ Some screenshots:
 
     https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot1.png
     https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot2.png
+
+This program works best with a screen resolution of 1024x768 or higher.
 
 For the latest version go to https://github.com/willemw12/get_iplayer_downloader. For other news go to https://github.com/willemw12/get_iplayer_downloader/wiki.
 
@@ -28,7 +28,7 @@ get_iplayer and its dependencies (http://www.infradead.org/get_iplayer/html/get_
 
 Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3, ...).
 
-Linux (only to run get_iplayer in a terminal window and to display the number of running get_iplayer threads). This program may work on other platforms, however that has not been tested.
+Linux (only required to run get_iplayer in a terminal window). This program may work on other platforms, however that has not been tested.
 
 
 
@@ -43,15 +43,17 @@ Optionally, setup a get_iplayer pvr scheduler (cronjob) to download queued progr
 
 2) get_iplayer_downloader
 
-Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/get_iplayer_downloader/config), which will be created after running the program for the first time. Quit the program before editing the configuration file.
+Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/.config/get_iplayer_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Before downloading programmes, verify the download paths and terminal emulator program name in the GUI or in the configuration file.
+Before starting to download programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file.
 
-The configured channels and categories are a reduced set and don't contain all available values. To start off with category lists containing all available categories, run:
+The preconfigured search channels and categories are a reduced set. To start off with category lists containing all available categories, run:
 
-    <path to this directory>/src/get_iplayer_downloader.py --list-categories
+    get_iplayer --preset=radio --flush
+    get_iplayer --preset=tv --flush
+    <path to this directory>/src/get_iplayer_downloader.py --list-categories --quiet
 
-and put the printed output in the configuration file. The same can be done for channels (--list-channels) or leave the channel lists empty to search all channels.
+and put the printed output in the configuration file. The same can be done for channels (get_iplayer_downloader.py --list-channels) or clear the configured channel lists to search in all channels.
 
 
 
@@ -84,8 +86,8 @@ and update the install.sh and uninstall.sh scripts.
 
 
 
-Shortcut keys
-=============
+Keyboard shortcuts
+==================
 
 alt + enter     Properties  View properties of highlighted programme (of programme in focus)
 ctrl + d        Download    Download or queue selected programmes
@@ -94,7 +96,7 @@ ctrl + f        Find        Go to search entry field on the tool bar
 ctrl + t        Toggle      Rotate between programme types (radio, podcast, tv)
 ctrl + c        Clear       Clear programme download selection
 ctrl + r        Refresh     Refresh programme cache
-f1              Help        View shortcut key list
+f1              Help        View keyboard shortcuts
 
 down-arrow                  Go from tool bar to the search result
 space or enter              Toggle programme selection in the search result
