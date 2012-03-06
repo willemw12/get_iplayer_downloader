@@ -2,6 +2,7 @@
 *.log
 *.pyc
 .*.swp
+installed-files.txt
 
 tmp/
 
