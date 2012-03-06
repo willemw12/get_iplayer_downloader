@@ -36,7 +36,7 @@ setup(name = get_iplayer_downloader.common.__program_name__,
     #            "get_iplayer_downloader.ui", "get_iplayer_downloader.ui.tools"],
 
     #"ui/*.ui", "ui/*.css"
-    package_data = {"get_iplayer_downloader": ["default.config", "ui/preferences.ui", "ui/style.css"]},
+    package_data = {"get_iplayer_downloader": ["default.conf", "ui/preferences.ui", "ui/style.css"]},
 
     #data_files = [("", [""])]
 

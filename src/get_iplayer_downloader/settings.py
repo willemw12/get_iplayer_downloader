@@ -13,9 +13,9 @@ from get_iplayer_downloader.tools import config as Config
 DEFAULT_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.conf")
 
 if os.name == "posix":
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, common.__program_name__ + "config")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, common.__program_name__ + ".conf")
 else:
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.__program_name__, common.__program_name__ + "config")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.__program_name__, common.__program_name__ + ".config")
     
 TEMP_PATHNAME = tempfile.gettempdir() + os.sep + common.__program_name__
 
