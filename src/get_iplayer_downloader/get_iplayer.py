@@ -17,8 +17,12 @@ KEY_INDEX = 0
 _GET_IPLAYER_PROG = "get_iplayer"
 _TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
 
+_compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
+_since_forever_label = "Since" if _compact_toolbar else ""
+_all_categories_label = "Genre" if _compact_toolbar else ""
+
 # List of key-value pairs
-SINCE_LIST = [[0, "Since"], [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
+SINCE_LIST = [[0, _since_forever_label], [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
               [24, "1 day"], [48, "2 days"], [72, "3 days"], [96, "4 days"],
               [120, "5 days"], [144, "6 days"], [168, "7 days"]]
 
@@ -39,17 +43,17 @@ class Channel:
     TV = settings.config().get("tv", "channels")
 
 # List of key-value pairs
-#NOTE doesn't work: RADIO = [[None, "Genre"]].extend(...)
+#NOTE cannot extend a constant list: RADIO = [[None, "Genre"]].extend(...)
 #WORKAROUND see get_iplayer_gui.py
-#RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
+#  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
 class Category:
-    RADIO = [["", "Genre"]]
+    RADIO = [["", _all_categories_label]]
     RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories-radio")))
 
-    PODCAST = [["", "Genre"]]
+    PODCAST = [["", _all_categories_label]]
     PODCAST.extend(ast.literal_eval(settings.config().get("radio", "categories-podcast")))
 
-    TV = [["", "Genre"]]
+    TV = [["", _all_categories_label]]
     TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
 
 class SearchTermColumn:
