@@ -28,7 +28,12 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, log_level=log
     if not quiet:
         logger.log(log_level, "run(cmd): cmd=%s", cmd)
 
-    process_output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    process_output = ""
+    try:
+        process_output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as exc:
+        #logger.warning("(return code " + str(exc.returncode) + ") " + exc.output)
+        logger.warning(exc.output)
 
     if not quiet:
         logger.log(log_level, "run(cmd): process_output=%s\n", process_output)
