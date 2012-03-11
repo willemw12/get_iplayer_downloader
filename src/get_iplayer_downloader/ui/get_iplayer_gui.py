@@ -992,7 +992,7 @@ class PropertiesWindow(Gtk.Window):
 
         ####
         
-        ##ALTERNATIVE however Gtk.Grid has better geometry management
+        ##ALTERNATIVE however, Gtk.Grid has better geometry management
         #prop_table = Gtk.Table(len(prop_list), len(prop_list[0]), False)
         #frame.add(prop_table)
         #

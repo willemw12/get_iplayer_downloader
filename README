@@ -28,7 +28,7 @@ get_iplayer and its dependencies (http://www.infradead.org/get_iplayer/html/get_
 
 Python (2.7). Python setuptools (to run setup.py). GNOME libraries for Python (GTK+ 3, ...).
 
-Linux (only required to run get_iplayer in a terminal window). This program may work on other platforms, however that has not been tested.
+Linux (only required to run get_iplayer in a terminal window). This program may work on other platforms, however, that has not been tested.
 
 
 
@@ -43,7 +43,7 @@ Optionally, setup a get_iplayer pvr scheduler (cronjob) to download queued progr
 
 2) get_iplayer_downloader
 
-Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/.config/get_iplayer_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
+Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/.config/get_iplayer_downloader/get_iplayer_downloader.conf), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
 Before starting to download programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file.
 

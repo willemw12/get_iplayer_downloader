@@ -12,7 +12,7 @@ from datetime import datetime
 progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
 logger = logging.getLogger(progname)
 
-#ALTERNATIVE global declaration: however it is less obvious in the code that the variable is global
+#ALTERNATIVE global declaration: however, it is less obvious in the code that the variable is global
 #global args
 args = None
 
@@ -95,9 +95,9 @@ def _sanitize_path(path, include_substition_markers):
     # characters < and >, i.e. collapse adjacent invalid characters into a 
     # single _ character or remove invalid characters
 
-    # Match ! and perhaps other characters, which as program arguments have
-    # been translated by Python or get_iplayer into \! and this would otherwise
-    # result in an _ in the sanitized path
+    # Match and replace ! and perhaps other characters, which as program
+    # arguments have been translated by Python or get_iplayer into \! and 
+    # this would otherwise result in an _ in the sanitized path
     p = re.compile(r"(\\\!+)")
     path = p.sub("", path)
 
@@ -110,7 +110,7 @@ def _sanitize_path(path, include_substition_markers):
     # Sanitize by default
     #$string =~ s/\s+/_/g if (! $opt->{whitespace}) && (! $allow_fwd_slash);
     #
-    # Similar to Perl code, however exclude matching forward slash
+    # Similar to Perl code, however, exclude matching forward slash
     # \s means whitespace
     if os.name == "posix":
         p = re.compile(r"([\\\s]+)")
@@ -121,7 +121,7 @@ def _sanitize_path(path, include_substition_markers):
     #PERL get_iplayer
     #$string =~ s/[^\w_\-\.\/\s]//gi if ! $opt->{whitespace};
     #
-    # Similar to Perl code, however also exclude matching substition marker
+    # Similar to Perl code, however, also exclude matching substition marker
     # characters < and >
     p = re.compile(r"([^\w_\-\.\/\s<>]+)")
     path = p.sub("", path)
@@ -129,7 +129,7 @@ def _sanitize_path(path, include_substition_markers):
     #PERL get_iplayer
     #$string =~ s/[\|\\\?\*\<\"\:\>\+\[\]\/]//gi if $opt->{fatfilename};
     #
-    # Similar to Perl code, however exclude matching forward slash and 
+    # Similar to Perl code, however, exclude matching forward slash and 
     # substition marker characters < and >
     p = re.compile(r"([\|\\\?\*\"\:\+\[\]]+)")
     path = p.sub("", path)
@@ -192,7 +192,7 @@ def _move_file(categories, dirname, filename, subdir_format):
         subdir_format = subdir_format.replace("<category>", specific_category)
         subdir_format = subdir_format.replace("<categorymain>", main_category)
 
-    # Sanitize everything again, to sanitize the substituted values and unrecognized substitutions
+    # Sanitize everything in subdir again, to sanitize the substituted values and unrecognized substitutions
     subdir_format = _sanitize_path(subdir_format, True)
 
     # Move the file
