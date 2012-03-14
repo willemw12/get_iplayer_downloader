@@ -64,7 +64,11 @@ To execute without installing, run:
 
     <path to this directory>/src/get_iplayer_downloader.py
 
-Or to install, run from this directory:
+There are several ways to install the program.
+
+1)
+
+Run from this directory:
 
     ./install.sh
 
@@ -84,7 +88,30 @@ If python 2 (2.7 or higher) and python 3 are both installed and the name of the 
 
 and update the install.sh and uninstall.sh scripts.
 
-For Arch Linux there are PKGBUILD files (https://github.com/willemw12/get_iplayer_downloader/raw/master/src/extra/abs/get_iplayer_downloader-git/PKGBUILD, ...)
+2)
+
+For Debian/Ubuntu, build and install a .deb file:
+
+    # Install build and package tools
+    sudo apt-get install python-stdeb
+
+    # Create a .deb file in directory deb_dist from Python setuptools (distutils) files
+    python setup.py --command-packages=stdeb.command bdist_deb
+
+    # Install one .deb file
+    sudo dpkg -i deb_dist/python-get-iplayer-downloader_*_all.deb
+    rm -rf deb_dist/
+
+3)
+
+For Arch Linux there are PKGBUILD files, for example:
+
+    mkdir -p ~/abs/get_iplayer_downloader-git
+    cd ~/abs/get_iplayer_downloader-git
+    wget https://github.com/willemw12/get_iplayer_downloader/raw/master/src/extra/abs/get_iplayer_downloader-git/PKGBUILD
+    #makepkg -s --skipchecksums
+    makepkg -s
+    sudo pacman -U get_iplayer_downloader-git-*-any.pkg.tar.xz
 
 
 
