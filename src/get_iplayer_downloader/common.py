@@ -4,7 +4,7 @@
 #else:
 __program_name__ = "get_iplayer_downloader"
 
-__description__ = "A download utility for the BBC get_iplayer program"
+__description__ = "Download utility for the BBC get_iplayer program"
 __long_description__ = "get_iplayer_downloader is a graphical version of the command \"get_iplayer --tree\", followed by \"get_iplayer --pid\" or \"get_iplayer --info\"."
 __version__ = "0.2"
 __authors__ = "willemw12"
