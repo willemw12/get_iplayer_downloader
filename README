@@ -84,6 +84,8 @@ If python 2 (2.7 or higher) and python 3 are both installed and the name of the 
 
 and update the install.sh and uninstall.sh scripts.
 
+For Arch Linux there are PKGBUILD files (https://github.com/willemw12/get_iplayer_downloader/raw/master/src/extra/abs/get_iplayer_downloader-git/PKGBUILD, ...)
+
 
 
 Keyboard shortcuts
