@@ -942,9 +942,11 @@ class PropertiesWindow(Gtk.Window):
 
         ####
         
-        PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir", "duration",
-                           "episode", "expiryrel", "index", "longname", "modes", "modesizes",
-                           "pid", "player", "senum", "timeadded", "title", "type", "versions", "web"]
+        PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir", 
+                           "duration", "episode", "expiry", "expiryrel", 
+                           "firstbcast", "firstbcastrel", "index", "longname",
+                           "modes", "modesizes", "pid", "player", "senum", 
+                           "timeadded", "title", "type", "versions", "web"]
 
         prop_grid = Gtk.Grid(column_homogeneous=False, row_homogeneous=False,
                              margin_top=BORDER_WIDTH, margin_bottom=BORDER_WIDTH)
