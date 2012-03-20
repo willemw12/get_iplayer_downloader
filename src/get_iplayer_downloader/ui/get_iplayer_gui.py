@@ -702,9 +702,8 @@ class MainTreeView(Gtk.TreeView):
         self.main_window = main_window
         self.button_pressed = False
         
+
         #selection = self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
-        #self.set_tooltip_column(3)
-        #self.get_tooltip_window().set_default_size(200, -1)
         ##self.set_style(allow_rules=True)
         #self.set_rules_hint(True)
         self.set_grid_lines(Gtk.TreeViewGridLines.VERTICAL)
@@ -713,6 +712,12 @@ class MainTreeView(Gtk.TreeView):
         self.connect("button-release-event", self._on_button_release_event)
         self.connect("popup-menu", self._on_popup_menu_event)
         self.connect("row-activated", self._on_row_activated)
+
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")):
+            #self.set_tooltip_column(3)
+            #self.get_tooltip_window().set_default_size(200, -1)
+            self.set_has_tooltip(True)
+            self.connect("query-tooltip", self._on_query_tooltip)
 
         # First column
         self.set_show_expanders(False)
@@ -741,9 +746,14 @@ class MainTreeView(Gtk.TreeView):
         renderer.set_alignment(0, 0.5)
         renderer.set_property("height", row_height)
         renderer.connect("toggled", self._on_cell_row_toggled)
+
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn(None, renderer, active=SearchResultColumn.DOWNLOAD)
         self.append_column(column)
+
+        ##tooltip = Gtk.Tooltip()
+        ##tooltip.set_text(tooltip_text)
+        ##self.set_tooltip_cell(tooltip, None, column, renderer)
 
         #### Second column
 
@@ -775,15 +785,22 @@ class MainTreeView(Gtk.TreeView):
         #column.set_max_width(600)
         #self.append_column(column)
 
-        ####
-        
-        #tooltip = Gtk.Tooltip()
-        #self.connect("query-tooltip", self._on_query_tooltip)
-        #self.set_tooltip_cell(tooltip, None, column, None)
-        
-    #def _on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):      #, user_data):
-    #    #tooltip.set_markup(widget.get_label())
-    #    tooltip.set_text(widget.get_label())
+    def _get_column_width(self, n):
+        return self.get_column(n).get_width()
+
+    def _on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):      #, user_data):
+        points_to_row, x, y, model, path, iter = widget.get_tooltip_context(x, y, keyboard_mode)
+        if not points_to_row or keyboard_mode or x > self._get_column_width(0):
+            # x mouse coordinate is outside the first column
+            return False
+
+        text = model.get_value(iter, SearchResultColumn.CATEGORIES)
+        if text is None:
+            return False
+
+        tooltip.set_text(text)
+        widget.set_tooltip_cell(tooltip, path, None, None)
+        return True
 
     def _on_button_press_event(self, widget, event):
         self.button_pressed = True

@@ -148,8 +148,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
         cmd += " --category=\"" + category + "\""
     if since:
         cmd += " --since=" + str(since)
-    #cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>\" --tree"
-    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>\" --tree"
+    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>\" --tree"
     if search_text:
         cmd += " \"" + search_text + "\""
     
@@ -162,7 +161,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
     level = 0
     copy = False
     for line in lines:
-        l = line.split("|", 4)
+        l = line.split("|", 5)
         # Skip empty lines
         if l[0]:
             # Match string containing only spaces
@@ -171,15 +170,17 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
             #2) CHECK_RE = re.compile('[ -]+$'); CHECK_RE.match(l)
             #3) re.match("^[ ]+$", l)
             if level == 0 and l[0].isspace():
-                # Going from root level (0, a serie) to level 1 (an episode)
+                # Going from root level (level 0, a serie) to level 1 (an episode)
                 level = 1
                 copy = True
                 if l_prev:
-                    # Add serie line. Serie title from the previous line, the parent of the current line
+                    # Add serie line.
+                    # Serie title is copied from the previous line (root level, level 0, a serie)
+                    # Categories is copied from the current line (level 1, an episode)
                     # No pid or index available for a serie from the output of get_iplayer --tree
-                    output_lines.append([False, None, None, l_prev[0], None, None])
+                    output_lines.append([False, None, None, l_prev[0], None, l[4]])
             if level == 1 and not l[0].isspace():
-                # Going from level 1 (an episode) to root level (0, a serie)
+                # Going from level 1 (an episode) to root level (level 0, a serie)
                 level = 0
                 copy = False
             #if level == 1 and copy:
@@ -187,11 +188,9 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                 # Add an episode line. Episode title and description from the current line
                 if l[3].startswith("- ~ "):
                     # No episode title
-                    #output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4]])
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), None])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4]])
                 else:
-                    #output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4]])
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), None])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4]])
             l_prev = l
 
     return output_lines
