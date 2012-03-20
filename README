@@ -109,7 +109,7 @@ For Arch Linux there are PKGBUILD files. For example, to build and install the l
     rm -rf ~/abs/get_iplayer_downloader-git
     mkdir -p ~/abs/get_iplayer_downloader-git
     cd ~/abs/get_iplayer_downloader-git
-    wget https://github.com/willemw12/get_iplayer_downloader/raw/master/src/extra/abs/get_iplayer_downloader-git/PKGBUILD
+    wget https://github.com/willemw12/get_iplayer_downloader/raw/master/extra/abs/get_iplayer_downloader-git/PKGBUILD
     #makepkg -s --skipchecksums
     makepkg -s
     sudo pacman -U get_iplayer_downloader-git-*-any.pkg.tar.xz
@@ -136,13 +136,13 @@ space or enter              Toggle programme selection in the search result
 Extra
 =====
 
-File ./src/extra/get_iplayer_post_subdir.py is a get_iplayer post-processing script. It is an extension to the get_iplayer subdir output option. The script supports additional property substitutions (<category>, <week>, ...) in the output subdirectory names. For more information, run:
+File ./extra/get_iplayer_post_subdir.py is a get_iplayer post-processing script. It is an extension to the get_iplayer subdir output option. The script supports additional property substitutions (<category>, <week>, ...) in the output subdirectory names. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 
 To install and configure, copy or link the script to a directory in $PATH, for example:
 
-    ln -s <absolute path to this directory>/src/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
+    ln -s <absolute path to this directory>/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
 
 or add a path in front of the command below. Then put, for example, in ~/.get_iplayer/presets/tv:
 
