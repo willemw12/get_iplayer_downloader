@@ -106,6 +106,7 @@ For Debian/Ubuntu, build and install a .deb file:
 
 For Arch Linux there are PKGBUILD files. For example, to build and install the latest version:
 
+    rm -rf ~/abs/get_iplayer_downloader-git
     mkdir -p ~/abs/get_iplayer_downloader-git
     cd ~/abs/get_iplayer_downloader-git
     wget https://github.com/willemw12/get_iplayer_downloader/raw/master/src/extra/abs/get_iplayer_downloader-git/PKGBUILD
