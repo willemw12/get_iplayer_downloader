@@ -28,9 +28,13 @@ def text2html(text, tabstop=4):
             if last in ['\n', '\r', '\r\n']:
                 last = '<br>'
             return '%s<a href="%s">%s</a>%s' % (prefix, url, url, last)
+
+    if text is None:
+        return ""
     return re.sub(_re_string, do_sub, text)
 
 def html2text(markup_text):
+    # markup is None allowed
     return re.sub("<[^<]+?>", "", markup_text)
 
     #ALTERNATIVE

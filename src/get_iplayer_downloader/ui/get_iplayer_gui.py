@@ -794,11 +794,13 @@ class MainTreeView(Gtk.TreeView):
             # x mouse coordinate is outside the first column
             return False
 
-        text = model.get_value(iter, SearchResultColumn.CATEGORIES)
-        if text is None:
-            return False
+        categories = model.get_value(iter, SearchResultColumn.CATEGORIES)
+        channel = model.get_value(iter, SearchResultColumn.CHANNEL)
+        image_url = model.get_value(iter, SearchResultColumn.THUMBNAIL_SMALL)
 
-        tooltip.set_text(text)
+        tooltip.set_markup(markup.text2html(channel) + "\n" + markup.text2html(categories))
+        if image_url is not None:
+            tooltip.set_icon(_image(image_url).get_pixbuf())
         widget.set_tooltip_cell(tooltip, path, None, None)
         return True
 
@@ -871,7 +873,7 @@ class MainTreeView(Gtk.TreeView):
 
     def set_store(self, tree_rows):
         # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
-        store = Gtk.TreeStore(bool, str, str, str, str, str)
+        store = Gtk.TreeStore(bool, str, str, str, str, str, str, str)
         
         #NOTE Could use "for i, row in enumerate(tree_rows):"
         #     except that "i += 1" to skip a list item has no effect
@@ -889,6 +891,8 @@ class MainTreeView(Gtk.TreeView):
                     row[SearchResultColumn.INDEX] = tree_rows[i + 1][SearchResultColumn.INDEX]
                     row[SearchResultColumn.EPISODE] = tree_rows[i + 1][SearchResultColumn.EPISODE]
                     row[SearchResultColumn.CATEGORIES] = tree_rows[i + 1][SearchResultColumn.CATEGORIES]
+                    row[SearchResultColumn.CHANNEL] = tree_rows[i + 1][SearchResultColumn.CHANNEL]
+                    row[SearchResultColumn.THUMBNAIL_SMALL] = tree_rows[i + 1][SearchResultColumn.THUMBNAIL_SMALL]
                     # Skip merged row (an episode)
                     i += 1
                 root_iter = store.append(None, row)            
@@ -944,12 +948,7 @@ class PropertiesWindow(Gtk.Window):
         #    image_url = prop_table[i][InfoResultColumn.PROP_VALUE /* 1 */]
 
         if image_url is not None:
-            #TODO g_markup_escape_text() or g_markup_printf_escaped()
-            image_url = markup.html2text(image_url)
-            image_pathname = settings.TEMP_PATHNAME + os.sep + "images"
-            image_filename = file.load_url(image_url, image_pathname)
-            image = Gtk.Image.new_from_file(image_filename)
-            self.grid.add(image)
+            self.grid.add(_image(image_url))
 
         #### Property table
         
@@ -959,11 +958,12 @@ class PropertiesWindow(Gtk.Window):
 
         ####
         
-        PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir", 
+        PROP_LABEL_LIST = ["categories", "channel", "desc", "dir", 
                            "duration", "episode", "expiry", "expiryrel", 
-                           "firstbcast", "firstbcastrel", "index", "longname",
-                           "modes", "modesizes", "pid", "player", "senum", 
-                           "timeadded", "title", "type", "versions", "web"]
+                           "firstbcast", "firstbcastrel", "index", "lastbcast",
+                           "lastbcastrel", "longname", "modes", "modesizes", 
+                           "pid", "player", "senum", "timeadded", "title", 
+                           "type", "versions", "web"]
 
         prop_grid = Gtk.Grid(column_homogeneous=False, row_homogeneous=False,
                              margin_top=BORDER_WIDTH, margin_bottom=BORDER_WIDTH)
@@ -1513,6 +1513,13 @@ class MainWindowController:
             self.on_set_programme_type(prog_type)
 
 ####
+
+def _image(url):
+    #TODO url: g_markup_escape_text() or g_markup_printf_escaped()
+    url = markup.html2text(url)
+    pathname = settings.TEMP_PATHNAME + os.sep + "images"
+    filename = file.load_url(url, pathname)
+    return Gtk.Image.new_from_file(filename)
 
 def _files2urls(filepath):
     """ Return a string containing a url to the folder @filepath and the files inside @filepath (one level deep), sorted by file name """

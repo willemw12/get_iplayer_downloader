@@ -67,6 +67,8 @@ class SearchResultColumn:
     SERIE = 3
     EPISODE = 4
     CATEGORIES = 5
+    CHANNEL = 6
+    THUMBNAIL_SMALL = 7
 
 def categories(search_text, preset=None, prog_type=None, long_labels=True):
     """ Run get_iplayer --list=categories.
@@ -148,7 +150,8 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
         cmd += " --category=\"" + category + "\""
     if since:
         cmd += " --since=" + str(since)
-    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>\" --tree"
+#WWO
+    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>\" --tree"
     if search_text:
         cmd += " \"" + search_text + "\""
     
@@ -161,7 +164,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
     level = 0
     copy = False
     for line in lines:
-        l = line.split("|", 5)
+        l = line.split("|", 7)
         # Skip empty lines
         if l[0]:
             # Match string containing only spaces
@@ -176,9 +179,9 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                 if l_prev:
                     # Add serie line.
                     # Serie title is copied from the previous line (root level, level 0, a serie)
-                    # Categories is copied from the current line (level 1, an episode)
+                    # Categories, channel and thumbnail url are copied from the current line (level 1, an episode)
                     # No pid or index available for a serie from the output of get_iplayer --tree
-                    output_lines.append([False, None, None, l_prev[0], None, l[4]])
+                    output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6]])
             if level == 1 and not l[0].isspace():
                 # Going from level 1 (an episode) to root level (level 0, a serie)
                 level = 0
@@ -188,9 +191,9 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                 # Add an episode line. Episode title and description from the current line
                 if l[3].startswith("- ~ "):
                     # No episode title
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4]])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4], l[5], l[6]])
                 else:
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4]])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4], l[5], l[6]])
             l_prev = l
 
     return output_lines
