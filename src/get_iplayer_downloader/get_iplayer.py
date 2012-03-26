@@ -11,9 +11,6 @@ import get_iplayer_downloader
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
 
-# Index of a key-value pair
-KEY_INDEX = 0
-
 _GET_IPLAYER_PROG = "get_iplayer"
 _TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
 
@@ -21,11 +18,15 @@ _SINCE_HOUR_MARGIN = 6
 
 _COMPACT_TOOLBAR = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
 _SINCE_FOREVER_LABEL = "Since" if _COMPACT_TOOLBAR else ""
-# "Genre" instead of "Categories", so the compact toolbar will fit on a 1024 pixels wide screen
-_ALL_CATEGORIES_LABEL = "Genre" if _COMPACT_TOOLBAR else ""
+#_SINCE_FUTURE_LABEL = "Future"
+_ALL_CATEGORIES_LABEL = "Categories" if _COMPACT_TOOLBAR else ""
+
+####
 
 # List of key-value pairs
-SINCE_LIST = [[0, _SINCE_FOREVER_LABEL], [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
+#SINCE_LIST = [[0, _SINCE_FOREVER_LABEL], [1, _SINCE_FUTURE_LABEL],
+SINCE_LIST = [[0, _SINCE_FOREVER_LABEL],
+              [4, "4 hours"], [8, "8 hours"], [12, "12 hours"], 
               [24 + _SINCE_HOUR_MARGIN, "1 day"], [48 + _SINCE_HOUR_MARGIN, "2 days"],
               [72 + _SINCE_HOUR_MARGIN, "3 days"], [96 + _SINCE_HOUR_MARGIN, "4 days"],
               [120 + _SINCE_HOUR_MARGIN, "5 days"], [144 + _SINCE_HOUR_MARGIN, "6 days"],
@@ -61,6 +62,15 @@ class Category:
     TV = [["", _ALL_CATEGORIES_LABEL]]
     TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
 
+####
+
+# Index of a key-value pair
+KEY_INDEX = 0
+
+class SinceListIndex:
+    FOREVER = 0
+    #FUTURE = 1
+
 class SearchTermColumn:
     PID_OR_INDEX = 0
     CATEGORIES = 1
@@ -74,6 +84,10 @@ class SearchResultColumn:
     CATEGORIES = 5
     CHANNEL = 6
     THUMBNAIL_SMALL = 7
+    AVAILABLE = 8
+    DURATION = 9
+
+####
 
 def categories(search_text, preset=None, prog_type=None, long_labels=True):
     """ Run get_iplayer --list=categories.
@@ -136,7 +150,7 @@ def channels(search_text, preset=None, prog_type=None):
 
     return output_line
 
-def search(search_text, preset=None, prog_type=None, channel=None, category=None, since=0, search_all=False):
+def search(search_text, preset=None, prog_type=None, channel=None, category=None, since=0, search_all=False, future=False):
     """ Run get_iplayer (--search).
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
@@ -155,7 +169,9 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
         cmd += " --category=\"" + category + "\""
     if since:
         cmd += " --since=" + str(since)
-    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>\" --tree"
+    if future:
+        cmd += " --future"
+    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\" --tree"
     if search_text:
         cmd += " \"" + search_text + "\""
     
@@ -168,7 +184,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
     level = 0
     copy = False
     for line in lines:
-        l = line.split("|", 7)
+        l = line.split("|", 9)
         # Skip empty lines
         if l[0]:
             # Match string containing only spaces
@@ -183,9 +199,9 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                 if l_prev:
                     # Add serie line.
                     # Serie title is copied from the previous line (root level, level 0, a serie)
-                    # Categories, channel and thumbnail url are copied from the current line (level 1, an episode)
+                    # Categories, channel and thumbnail url, etc. are copied from the current line (level 1, an episode)
                     # No pid or index available for a serie from the output of get_iplayer --tree
-                    output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6]])
+                    output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
             if level == 1 and not l[0].isspace():
                 # Going from level 1 (an episode) to root level (level 0, a serie)
                 level = 0
@@ -195,14 +211,14 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
                 # Add an episode line. Episode title and description from the current line
                 if l[3].startswith("- ~ "):
                     # No episode title
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4], l[5], l[6]])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4], l[5], l[6], l[7], l[8]])
                 else:
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4], l[5], l[6]])
+                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4], l[5], l[6], l[7], l[8]])
             l_prev = l
 
     return output_lines
 
-def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=False, force_download=False, output_path=None, categories=None):
+def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=False, force_download=False, output_path=None, categories=None, future=False):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
         @search_term_table has columns listed in SearchTermColumn.
         If @pid is true, then the first column of @search_term_table contains pids.
@@ -235,6 +251,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=F
         cmd += " --nocopyright --hash"
         if output_path:
             cmd += " --output=\"" + output_path + "\""
+        #if pvr_queue or future:
         if pvr_queue:
             if not preset:
                 return False
@@ -268,7 +285,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=F
 
     return (launched, process_output)
 
-def info(search_term, preset=None, proxy_enabled=False):
+def info(search_term, preset=None, proxy_enabled=False, future=False):
     """ Run get_iplayer --info.
         Return table with columns: serie title, episode title plus description.
     """
@@ -282,6 +299,8 @@ def info(search_term, preset=None, proxy_enabled=False):
     if not proxy_enabled:
         # Disable proxy setting
         cmd += " --proxy=0"
+    if future:
+        cmd += " --future"
     if search_term:
         cmd += " \"" + search_term + "\""
 
@@ -299,11 +318,20 @@ def info(search_term, preset=None, proxy_enabled=False):
 
     return output_lines
 
-def refresh(preset=None):
+def refresh(preset=None, channel=None, future=False):
     """ Run get_iplayer --refresh. """
     if not preset:
         #preset = Preset.RADIO + "," + Preset.TV
         preset = "all"
-    cmd = _GET_IPLAYER_PROG + " --refresh --preset=" + preset    
+
+    cmd = _GET_IPLAYER_PROG + " --preset=" + preset + " --refresh"
+    if future:
+        #cmd += " --refresh-future --force"
+        cmd += " --refresh-future"
+
+    if channel:
+        #cmd += " --channel=\"" + channel + "\""
+        cmd += " --refresh-include=\"" + channel + "\""
+
     return command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
 

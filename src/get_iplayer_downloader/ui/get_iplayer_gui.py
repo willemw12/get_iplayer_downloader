@@ -8,7 +8,7 @@ from gi.repository import Gdk, Gio, GObject, Gtk, Pango
 import get_iplayer_downloader.common
 
 from get_iplayer_downloader import get_iplayer, settings
-from get_iplayer_downloader.get_iplayer import SearchResultColumn, KEY_INDEX
+from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX
 from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
@@ -28,7 +28,6 @@ TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme (of programm
 
 TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes or queue programmes if PVR checked"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
-TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer pvr"
 TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
 TOOLTIP_TOOLS_REFRESH = "Refresh programme cache"
 
@@ -45,6 +44,9 @@ TOOLTIP_OPTION_FORCE_DOWNLOAD = "Force download"
 TOOLTIP_OPTION_HD_TV = "HD TV recording mode. Overrides the default TV mode"
 TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme properties. Useful outside the UK. When enabled, displayed properties will include the available tv mode and tv mode size values"
 TOOLTIP_OPTION_FIND_ALL = "Search in all programme types and channels"
+
+TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer pvr"
+TOOLTIP_TOOLS_FUTURE = "Include future programme search. Press 'Refresh' to update the search programme cache"
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
@@ -505,7 +507,7 @@ class ToolBarBox(Gtk.Box):
             store.append(since)
 
         self.since_combo = Gtk.ComboBox.new_with_model(store)
-        self.since_combo.set_active(0)
+        self.since_combo.set_active(SinceListIndex.FOREVER)
 
         self.since_combo.set_valign(Gtk.Align.CENTER)
         self.since_combo.set_tooltip_text(TOOLTIP_FILTER_SINCE)
@@ -556,6 +558,19 @@ class ToolBarBox(Gtk.Box):
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(grid, False, False, 0)
 
+        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
+        self.pvr_queue_check_button.set_tooltip_text(TOOLTIP_TOOLS_PVR_QUEUE)
+        self.pvr_queue_check_button.set_focus_on_click(False)
+        grid.add(self.pvr_queue_check_button)
+
+        self.future_checkbox = Gtk.CheckButton("Future")
+        self.future_checkbox.set_tooltip_text(TOOLTIP_TOOLS_FUTURE)
+        self.future_checkbox.set_focus_on_click(False)
+        self.future_checkbox.connect("clicked", self.main_window.main_controller.on_checkbox_future_clicked)
+        grid.attach_next_to(self.future_checkbox, self.pvr_queue_check_button, Gtk.PositionType.BOTTOM, 1, 1)
+
+        ##
+        
         #self.processes_label = Gtk.Label("D: 0")
         #self.processes_label.set_tooltip_text("Downloading")
         #grid.add(self.processes_label)
@@ -573,7 +588,7 @@ class ToolBarBox(Gtk.Box):
         self.progress_bar.set_fraction(0.0)
         #self.progress_bar.set_tooltip_text("D (downloading), Q (waiting to download)")
         self.progress_bar.set_tooltip_text("Downloading")
-        grid.add(self.progress_bar)
+        grid.attach_next_to(self.progress_bar, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
 
         ##
 
@@ -593,13 +608,6 @@ class ToolBarBox(Gtk.Box):
         
         # Initialize label text
         self._on_progress_bar_update(None)
-
-        ####
-        
-        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
-        self.pvr_queue_check_button.set_tooltip_text(TOOLTIP_TOOLS_PVR_QUEUE)
-        self.pvr_queue_check_button.set_focus_on_click(False)
-        grid.add(self.pvr_queue_check_button)
 
         ####
 
@@ -794,13 +802,45 @@ class MainTreeView(Gtk.TreeView):
             # x mouse coordinate is outside the first column
             return False
 
-        categories = model.get_value(iter, SearchResultColumn.CATEGORIES)
         channel = model.get_value(iter, SearchResultColumn.CHANNEL)
         image_url = model.get_value(iter, SearchResultColumn.THUMBNAIL_SMALL)
 
-        tooltip.set_markup(markup.text2html(channel) + "\n" + markup.text2html(categories))
+        categories = model.get_value(iter, SearchResultColumn.CATEGORIES)
+        if not categories or categories == "Unknown":
+            categories = None
+
+        available = model.get_value(iter, SearchResultColumn.AVAILABLE)
+        if not available or available == "Unknown":
+            available = None
+        else:
+            # Reformat time string
+            pass
+
+        duration = model.get_value(iter, SearchResultColumn.DURATION)
+        if not duration or duration == "Unknown" or duration == "<duration>":
+            duration = None
+        else:
+            try:
+                duration = str(int(duration) / 60) + ":00"
+            except ValueError:
+                #NOTE duration still has its original value
+                pass
+
+        #
+
+        tooltip_text = "" + markup.text2html(channel)
+        if categories is not None:
+            tooltip_text += "\n" + markup.text2html(categories)
+        if available is not None:
+            tooltip_text += "\navailable: " + available
+        if duration is not None:
+            tooltip_text += "\nduration: " + duration
+
+        tooltip.set_markup(tooltip_text)
+
         if image_url is not None:
             tooltip.set_icon(_image(image_url).get_pixbuf())
+
         widget.set_tooltip_cell(tooltip, path, None, None)
         return True
 
@@ -873,7 +913,7 @@ class MainTreeView(Gtk.TreeView):
 
     def set_store(self, tree_rows):
         # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
-        store = Gtk.TreeStore(bool, str, str, str, str, str, str, str)
+        store = Gtk.TreeStore(bool, str, str, str, str, str, str, str, str, str)
         
         #NOTE Could use "for i, row in enumerate(tree_rows):"
         #     except that "i += 1" to skip a list item has no effect
@@ -887,12 +927,19 @@ class MainTreeView(Gtk.TreeView):
                 #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
                 if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and \
                    (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
+                    #TODO
+                    # [1:] means skip the first tree row value: SearchResultColumn.DOWNLOAD
+                    #for j, prop_value in enumerate(tree_rows[i + 1][1:]):
+                    #    print "j = ", j, prop_value
+                    #    row[j + 1] = prop_value
                     row[SearchResultColumn.PID] = tree_rows[i + 1][SearchResultColumn.PID]
                     row[SearchResultColumn.INDEX] = tree_rows[i + 1][SearchResultColumn.INDEX]
                     row[SearchResultColumn.EPISODE] = tree_rows[i + 1][SearchResultColumn.EPISODE]
                     row[SearchResultColumn.CATEGORIES] = tree_rows[i + 1][SearchResultColumn.CATEGORIES]
                     row[SearchResultColumn.CHANNEL] = tree_rows[i + 1][SearchResultColumn.CHANNEL]
                     row[SearchResultColumn.THUMBNAIL_SMALL] = tree_rows[i + 1][SearchResultColumn.THUMBNAIL_SMALL]
+                    row[SearchResultColumn.AVAILABLE] = tree_rows[i + 1][SearchResultColumn.AVAILABLE]
+                    row[SearchResultColumn.DURATION] = tree_rows[i + 1][SearchResultColumn.DURATION]
                     # Skip merged row (an episode)
                     i += 1
                 root_iter = store.append(None, row)            
@@ -958,7 +1005,7 @@ class PropertiesWindow(Gtk.Window):
 
         ####
         
-        PROP_LABEL_LIST = ["categories", "channel", "desc", "dir", 
+        PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir", 
                            "duration", "episode", "expiry", "expiryrel", 
                            "firstbcast", "firstbcastrel", "index", "lastbcast",
                            "lastbcastrel", "longname", "modes", "modesizes", 
@@ -1239,6 +1286,7 @@ class MainWindowController:
 
         preset = None
         prog_type = None
+        channel = None
         combo = self.tool_bar_box.preset_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
@@ -1267,9 +1315,11 @@ class MainWindowController:
 
         search_all = self.tool_bar_box.search_all_check_button.get_active()
 
+        future = self.tool_bar_box.future_checkbox.get_active()
+
         get_iplayer_output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
                                                       channel=channel, category=category, since=since,
-                                                      search_all=search_all)
+                                                      search_all=search_all, future=future)
         self.main_tree_view.set_store(get_iplayer_output_lines)
         # Scroll up
         adjustment = self.main_window.main_tree_view_scrollbar.get_vadjustment()
@@ -1316,11 +1366,14 @@ class MainWindowController:
                     pid_list.append([row[SearchResultColumn.PID], row[SearchResultColumn.CATEGORIES]])
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
-        
+
+        future = self.tool_bar_box.future_checkbox.get_active()
+
         #if indices:
         if len(pid_list) > 0:
             launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset, 
-                                                       hd_tv_modes=hd_tv_modes, force_download=force_download)
+                                                       hd_tv_modes=hd_tv_modes, force_download=force_download,
+                                                       future=future)
             if not launched:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
@@ -1366,11 +1419,14 @@ class MainWindowController:
 
         proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
         
+        future = self.tool_bar_box.future_checkbox.get_active()
+
         model, tree_iter = self.main_tree_view.get_selection().get_selected()
         if tree_iter is not None:
             index = model[tree_iter][SearchResultColumn.INDEX]
             if index:
-                get_iplayer_output_lines = get_iplayer.info(index, preset=preset, proxy_enabled=proxy_enabled)
+                get_iplayer_output_lines = get_iplayer.info(index, preset=preset,
+                                            proxy_enabled=proxy_enabled, future=future)
                 window = PropertiesWindow(get_iplayer_output_lines)
                 window.show_all()
             #else:
@@ -1424,16 +1480,32 @@ class MainWindowController:
     def on_button_refresh_clicked(self, button):
         # button can be None
         
-        # Refresh programme cache
+        ### Refresh programme cache
+
+        preset = None
+        combo = self.tool_bar_box.preset_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            preset = model[tree_iter][PresetComboModelColumn.PRESET]
+
         #preset = None
-        #combo = self.tool_bar_box.preset_combo
-        #tree_iter = combo.get_active_iter()
-        #if tree_iter is not None:
-        #    model = combo.get_model()
-        #    preset = model[tree_iter][PresetComboModelColumn.PRESET]
-        get_iplayer.refresh(preset=None)
+        #prog_type = None
+        channel = None
+        combo = self.tool_bar_box.preset_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            #preset = model[tree_iter][PresetComboModelColumn.PRESET]
+            #prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+            channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
+
+        future = self.tool_bar_box.future_checkbox.get_active()
+
+        get_iplayer.refresh(preset=preset, channel=channel, future=future)
         
-        # Refresh programme list
+        ### Refresh programme list
+
         self.on_button_find_clicked(None)
 
     def on_combo_preset_changed(self, combo):
@@ -1466,7 +1538,7 @@ class MainWindowController:
                         combo.set_active(len(get_iplayer.SINCE_LIST) - 1)
             elif combo.get_active() == len(get_iplayer.SINCE_LIST) - 1:
                 # Disable since filter
-                combo.set_active(0)
+                combo.set_active(SinceListIndex.FOREVER)
 
     def on_set_programme_type(self, prog_type):
         # Lookup prog_type
@@ -1484,6 +1556,25 @@ class MainWindowController:
             tree_iter = model.iter_next(tree_iter)
             i += 1
 
+    def on_checkbox_future_clicked(self, checkbox):
+        if checkbox.get_active():
+            self.tool_bar_box.pvr_queue_check_button.set_active(True)
+
+            ## Limit the initial search result to future programmes
+            #combo = self.tool_bar_box.since_combo
+            #combo.set_active(SinceListIndex.FUTURE)
+
+        else:
+            self.tool_bar_box.pvr_queue_check_button.set_active(False)
+
+            #combo = self.tool_bar_box.since_combo
+            #tree_iter = combo.get_active_iter()
+            #if tree_iter is not None:
+            #    model = combo.get_model()
+            #    since = model[tree_iter][KEY_INDEX]
+            #    if since == SinceListIndex.FUTURE:
+            #        combo.set_active(SinceListIndex.FOREVER)
+
     ####
     
     def session_save(self):
@@ -1491,6 +1582,7 @@ class MainWindowController:
         if restore_session:
             #preset = None
             prog_type = None
+            #channel = None
             combo = self.tool_bar_box.preset_combo
             tree_iter = combo.get_active_iter()
             if tree_iter is not None:
