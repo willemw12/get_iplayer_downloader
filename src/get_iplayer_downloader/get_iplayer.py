@@ -17,14 +17,19 @@ KEY_INDEX = 0
 _GET_IPLAYER_PROG = "get_iplayer"
 _TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
 
-_compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
-_since_forever_label = "Since" if _compact_toolbar else ""
-_all_categories_label = "Genre" if _compact_toolbar else ""
+_SINCE_HOUR_MARGIN = 6
+
+_COMPACT_TOOLBAR = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
+_SINCE_FOREVER_LABEL = "Since" if _COMPACT_TOOLBAR else ""
+# "Genre" instead of "Categories", so the compact toolbar will fit on a 1024 pixels wide screen
+_ALL_CATEGORIES_LABEL = "Genre" if _COMPACT_TOOLBAR else ""
 
 # List of key-value pairs
-SINCE_LIST = [[0, _since_forever_label], [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
-              [24, "1 day"], [48, "2 days"], [72, "3 days"], [96, "4 days"],
-              [120, "5 days"], [144, "6 days"], [168, "7 days"]]
+SINCE_LIST = [[0, _SINCE_FOREVER_LABEL], [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
+              [24 + _SINCE_HOUR_MARGIN, "1 day"], [48 + _SINCE_HOUR_MARGIN, "2 days"],
+              [72 + _SINCE_HOUR_MARGIN, "3 days"], [96 + _SINCE_HOUR_MARGIN, "4 days"],
+              [120 + _SINCE_HOUR_MARGIN, "5 days"], [144 + _SINCE_HOUR_MARGIN, "6 days"],
+              [168 + _SINCE_HOUR_MARGIN, "7 days"]]
 
 class Preset:
     # preset-file: filename in folder ~/.get_iplayer/presets
@@ -47,13 +52,13 @@ class Channel:
 #WORKAROUND see get_iplayer_gui.py
 #  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
 class Category:
-    RADIO = [["", _all_categories_label]]
+    RADIO = [["", _ALL_CATEGORIES_LABEL]]
     RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories-radio")))
 
-    PODCAST = [["", _all_categories_label]]
+    PODCAST = [["", _ALL_CATEGORIES_LABEL]]
     PODCAST.extend(ast.literal_eval(settings.config().get("radio", "categories-podcast")))
 
-    TV = [["", _all_categories_label]]
+    TV = [["", _ALL_CATEGORIES_LABEL]]
     TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
 
 class SearchTermColumn:
@@ -150,7 +155,6 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
         cmd += " --category=\"" + category + "\""
     if since:
         cmd += " --since=" + str(since)
-#WWO
     cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>\" --tree"
     if search_text:
         cmd += " \"" + search_text + "\""
