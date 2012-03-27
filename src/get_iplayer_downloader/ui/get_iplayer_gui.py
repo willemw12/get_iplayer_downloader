@@ -709,7 +709,6 @@ class MainTreeView(Gtk.TreeView):
         #self.set_property("fixed-height-mode", True)
         self.main_window = main_window
         self.button_pressed = False
-        
 
         #selection = self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         ##self.set_style(allow_rules=True)
@@ -725,6 +724,8 @@ class MainTreeView(Gtk.TreeView):
             #self.set_tooltip_column(3)
             #self.get_tooltip_window().set_default_size(200, -1)
             self.set_has_tooltip(True)
+
+            #self._on_query_tooltip_path = None
             self.connect("query-tooltip", self._on_query_tooltip)
 
         # First column
@@ -802,6 +803,10 @@ class MainTreeView(Gtk.TreeView):
             # x mouse coordinate is outside the first column
             return False
 
+        #if self._on_query_tooltip_path == path:
+        #    return False
+        #self._on_query_tooltip_path = path
+
         channel = model.get_value(iter, SearchResultColumn.CHANNEL)
         image_url = model.get_value(iter, SearchResultColumn.THUMBNAIL_SMALL)
 
@@ -812,9 +817,6 @@ class MainTreeView(Gtk.TreeView):
         available = model.get_value(iter, SearchResultColumn.AVAILABLE)
         if not available or available == "Unknown":
             available = None
-        else:
-            # Reformat time string
-            pass
 
         duration = model.get_value(iter, SearchResultColumn.DURATION)
         if not duration or duration == "Unknown" or duration == "<duration>":
