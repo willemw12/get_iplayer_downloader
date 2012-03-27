@@ -55,6 +55,8 @@ The preconfigured search channels and categories are a reduced set. To start off
 
 and put the printed output in the configuration file. The same can be done for channels (get_iplayer_downloader.py --list-channels) or clear the configured channel lists to search in all channels.
 
+If the program crashes when the mouse cursor moves over the first column in the treeview (the column with the checkboxes), then disable "show-tooltip" in the configuration file or update the GNOME libraries (in particular GTK+ 3).
+
 
 
 Installation
