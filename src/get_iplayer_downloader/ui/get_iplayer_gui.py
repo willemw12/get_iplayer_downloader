@@ -29,7 +29,7 @@ TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme (of programm
 TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes or queue programmes if PVR checked"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
 TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
-TOOLTIP_TOOLS_REFRESH = "Refresh programme cache"
+TOOLTIP_TOOLS_REFRESH = "Refresh programme search cache"
 
 TOOLTIP_SEARCH_FIND = "Find programmes"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
@@ -46,7 +46,7 @@ TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme pr
 TOOLTIP_OPTION_FIND_ALL = "Search in all programme types and channels"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer pvr"
-TOOLTIP_TOOLS_FUTURE = "Include future programme search. Press 'Refresh' to update the search programme cache"
+TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Press 'Refresh' to update the list of future programmes in the programme search cache"
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
