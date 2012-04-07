@@ -2,7 +2,7 @@
 
 _name=get_iplayer_downloader
 pkgname=$_name-git
-pkgver=20120326
+pkgver=20120407
 pkgrel=1
 pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')
@@ -23,20 +23,25 @@ _gitname=$pkgname
 
 build() {
   cd "$srcdir"
-  msg "Connecting to GIT server..."
+  msg "Connecting to GIT server...."
 
-  if [[ -d "$_gitname" ]] ; then
+  if [[ -d "$_gitname" ]]; then
     cd "$_gitname" && git pull origin
     msg "The local files are updated."
   else
-    git clone "$_gitroot" "$_gitname" --depth=1
+    git clone "$_gitroot" "$_gitname"
   fi
 
   msg "GIT checkout done or server timeout"
+  msg "Starting build..."
+
+  rm -rf "$srcdir/$_gitname-build"
+  git clone "$srcdir/$_gitname" "$srcdir/$_gitname-build"
+  cd "$srcdir/$_gitname-build"
 }
 
 package() {
-  cd "$srcdir/$pkgname"
+  cd "$srcdir/$_gitname-build"
 
   sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python2|' extra/get_iplayer_post_subdir.py
 
