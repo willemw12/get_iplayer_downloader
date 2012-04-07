@@ -19,9 +19,14 @@ package() {
   #cd "$srcdir/$pkgname-$_pkgver"
   cd "$srcdir/willemw12-get_iplayer_downloader-"*
 
+  sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python2|' extra/get_iplayer_post_subdir.py
+
   python2 setup.py install --root="$pkgdir/" --optimize=1
   python2 setup.py clean
   rm -rf build
+
+  ##install -m644 res/get_iplayer_downloader.desktop -t ${pkgdir}/usr/share/applications/
+  ##install -m755 extra/get_iplayer_post_subdir.py -t ${pkgdir}/usr/share/get_iplayer_downloader/scripts/
 }
 
 # vim:set ts=2 sw=2 et:

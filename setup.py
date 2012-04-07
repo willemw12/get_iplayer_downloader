@@ -39,8 +39,9 @@ setup(name = get_iplayer_downloader.common.__program_name__,
     #"ui/*.ui", "ui/*.css"
     package_data = {"get_iplayer_downloader": ["default.conf", "ui/preferences.ui", "ui/style.css"]},
 
-    # For Debian/Ubuntu and Arch Linux packaging
-    data_files = [("share/applications", ["res/get_iplayer_downloader.desktop"])],
+    # Moving .desktop file: for Debian/Ubuntu and Arch Linux packaging
+    data_files = [("share/applications", ["res/get_iplayer_downloader.desktop"]),
+                  ("share/get_iplayer_downloader/scripts", ["extra/get_iplayer_post_subdir.py"])],
 
     scripts = ["bin/get_iplayer_downloader"]
     )
