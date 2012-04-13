@@ -53,6 +53,9 @@ class Channel:
 #WORKAROUND see get_iplayer_gui.py
 #  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
 class Category:
+    # No filter
+    DISABLED = [["", _ALL_CATEGORIES_LABEL]]
+
     RADIO = [["", _ALL_CATEGORIES_LABEL]]
     RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories-radio")))
 

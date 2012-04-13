@@ -46,7 +46,7 @@ TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme pr
 TOOLTIP_OPTION_FIND_ALL = "Search in all programme types and channels"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer pvr"
-TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Press 'Refresh' to update the list of future programmes in the programme search cache"
+TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Press 'Refresh' to update the list of future programmes in the programme search cache. The categories filter is disabled in 'future' mode."
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
@@ -467,6 +467,10 @@ class ToolBarBox(Gtk.Box):
         
         label = Gtk.Label(_label(" Category:"))
         self.pack_start(label, False, False, 0)
+
+        self.cat_disabled_store = Gtk.ListStore(str, str)
+        for category in get_iplayer.Category.DISABLED:
+            self.cat_disabled_store.append(category)
 
         self.cat_radio_store = Gtk.ListStore(str, str)
         for category in get_iplayer.Category.RADIO:
@@ -1518,6 +1522,7 @@ class MainWindowController:
             #preset = model[tree_iter][PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
             
+            # Synchronize category filter
             if prog_type == get_iplayer.ProgType.RADIO:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_radio_store)
                 self.tool_bar_box.category_combo.set_active(0)
@@ -1566,6 +1571,10 @@ class MainWindowController:
             #combo = self.tool_bar_box.since_combo
             #combo.set_active(SinceListIndex.FUTURE)
 
+            # Disable the category filter. Get_iplayer doesn't support it 
+            # and future programme data sometimes lacks the categories property
+            self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_disabled_store)
+            self.tool_bar_box.category_combo.set_active(0)
         else:
             self.tool_bar_box.pvr_queue_check_button.set_active(False)
 
@@ -1576,6 +1585,9 @@ class MainWindowController:
             #    since = model[tree_iter][KEY_INDEX]
             #    if since == SinceListIndex.FUTURE:
             #        combo.set_active(SinceListIndex.FOREVER)
+
+            # Restore categories filter
+            self.on_combo_preset_changed(self.tool_bar_box.preset_combo)
 
     ####
     
