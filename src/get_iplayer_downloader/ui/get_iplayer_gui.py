@@ -38,7 +38,7 @@ TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Rotate between programme types (radio, podcas
 TOOLTIP_FILTER_SEARCH_ENTRY = "Filter programme name and description"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Programme type"
 TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Programme categories"
-TOOLTIP_FILTER_SINCE = "Limit search to recently available programmes"
+TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the programme search cache"
 
 TOOLTIP_OPTION_FORCE_DOWNLOAD = "Force download"
 TOOLTIP_OPTION_HD_TV = "HD TV recording mode. Overrides the default TV mode"
@@ -50,6 +50,8 @@ TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Press 'Refresh'
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
+
+TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click anywhere"
 
 ####
 
@@ -324,7 +326,7 @@ class UIManager():
             for j, label_text in enumerate(keyboard_shortcut):
                 if label_text:
                     label = Gtk.Label(label_text, valign=Gtk.Align.START, halign=Gtk.Align.START,
-                                      margin_left=16, margin_right=16, 
+                                      margin_left=16, margin_right=16,
                                       hexpand_set=True, hexpand=True)
                     #label.set_padding(BORDER_WIDTH, 0)
                     grid.attach(label, j, i, 1, 1)
@@ -419,10 +421,6 @@ class ToolBarBox(Gtk.Box):
         separator = Gtk.VSeparator()
         self.pack_start(separator, False, False, 0)
 
-        #button = Gtk.Button(label="_Update", use_underline=True, relief=Gtk.ReliefStyle.NONE,
-        #                    image_position=Gtk.PositionType.TOP)
-        #button.set_image(Gtk.Image(stock=Gtk.STOCK_GO_UP))
-        #button.set_tooltip_text("Update programmes list")
         button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
@@ -622,16 +620,6 @@ class ToolBarBox(Gtk.Box):
         #      - grid child: hexpand_set=True, hexpand=True, halign=Gtk.Align.END
         self.pack_start(grid, False, True, 0)
 
-        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP,
-                            vexpand_set=True, vexpand=False, valign=Gtk.Align.START,
-                            hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
-        button.set_label("")
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_PREFERENCES))
-        #button.set_alignment(0, 0)
-        button.set_focus_on_click(False)
-        button.set_tooltip_text("Menu")
-        button.connect("button-press-event", self._on_menu_button_press_event)
-
         event_box = Gtk.EventBox()
         #event_box.set_events(gtk.gdk.GDK_BUTTON_PRESS_MASK 
         event_box.connect("button-press-event", self._on_menu_button_press_event)
@@ -641,7 +629,7 @@ class ToolBarBox(Gtk.Box):
         #image.set_alignment(0, 0.2)
         #grid.attach_next_to(image, self.progress_bar, Gtk.PositionType.RIGHT, 1, 1)
         image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES, hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
-        image.set_tooltip_text("Menu. Click here or right-click elsewhere")
+        image.set_tooltip_text(TOOLTIP_MENU_BUTTON)
         event_box.add(image)
         
         ####
@@ -1011,11 +999,11 @@ class PropertiesWindow(Gtk.Window):
 
         ####
         
-        PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir", 
-                           "duration", "episode", "expiry", "expiryrel", 
+        PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir",
+                           "duration", "episode", "expiry", "expiryrel",
                            "firstbcast", "firstbcastrel", "index", "lastbcast",
-                           "lastbcastrel", "longname", "modes", "modesizes", 
-                           "pid", "player", "senum", "timeadded", "title", 
+                           "lastbcastrel", "longname", "modes", "modesizes",
+                           "pid", "player", "senum", "timeadded", "title",
                            "type", "versions", "web"]
 
         prop_grid = Gtk.Grid(column_homogeneous=False, row_homogeneous=False,
@@ -1343,6 +1331,8 @@ class MainWindowController:
         if tree_iter is not None:
             model = combo.get_model()
             preset = model[tree_iter][PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+            #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
             if preset == get_iplayer.Preset.TV:
                 hd_tv_modes = self.tool_bar_box.hd_tv_check_button.get_active()
 
@@ -1377,9 +1367,9 @@ class MainWindowController:
 
         #if indices:
         if len(pid_list) > 0:
-            launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset, 
-                                                       hd_tv_modes=hd_tv_modes, force_download=force_download,
-                                                       future=future)
+            launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset,
+                                                       prog_type=prog_type, hd_tv_modes=hd_tv_modes,
+													   force_download=force_download, future=future)
             if not launched:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
@@ -1422,7 +1412,9 @@ class MainWindowController:
         if tree_iter is not None:
             model = combo.get_model()
             preset = model[tree_iter][PresetComboModelColumn.PRESET]
-
+            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+            #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
+ 
         proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
         
         future = self.tool_bar_box.future_checkbox.get_active()
@@ -1431,8 +1423,9 @@ class MainWindowController:
         if tree_iter is not None:
             index = model[tree_iter][SearchResultColumn.INDEX]
             if index:
-                get_iplayer_output_lines = get_iplayer.info(index, preset=preset,
-                                            proxy_enabled=proxy_enabled, future=future)
+                get_iplayer_output_lines = get_iplayer.info(index,
+				                             preset=preset, prog_type=prog_type,
+                                             proxy_enabled=proxy_enabled, future=future)
                 window = PropertiesWindow(get_iplayer_output_lines)
                 window.show_all()
             #else:

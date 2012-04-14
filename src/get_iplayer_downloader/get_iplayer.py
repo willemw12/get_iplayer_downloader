@@ -30,7 +30,7 @@ _ALL_CATEGORIES_LABEL = ALL_CATEGORIES_LABEL if _COMPACT_TOOLBAR else ""
 # List of key-value pairs
 #SINCE_LIST = [[0, _SINCE_FOREVER_LABEL], [1, _SINCE_FUTURE_LABEL],
 SINCE_LIST = [[0, _SINCE_FOREVER_LABEL],
-              [4, "4 hours"], [8, "8 hours"], [12, "12 hours"], 
+              [4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
               [24 + _SINCE_HOUR_MARGIN, "1 day"], [48 + _SINCE_HOUR_MARGIN, "2 days"],
               [72 + _SINCE_HOUR_MARGIN, "3 days"], [96 + _SINCE_HOUR_MARGIN, "4 days"],
               [120 + _SINCE_HOUR_MARGIN, "5 days"], [144 + _SINCE_HOUR_MARGIN, "6 days"],
@@ -158,7 +158,8 @@ def channels(search_text, preset=None, prog_type=None):
 
     return output_line
 
-def search(search_text, preset=None, prog_type=None, channel=None, categories=None, since=0, search_all=False, future=False):
+def search(search_text, preset=None, prog_type=None, channel=None, categories=None,
+           since=0, search_all=False, future=False):
     """ Run get_iplayer (--search).
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
@@ -226,7 +227,8 @@ def search(search_text, preset=None, prog_type=None, channel=None, categories=No
 
     return output_lines
 
-def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=False, force_download=False, output_path=None, categories=None, future=False):
+def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=None,
+        hd_tv_modes=False, force_download=False, output_path=None, categories=None, future=False):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
         @search_term_table has columns listed in SearchTermColumn.
         If @pid is true, then the first column of @search_term_table contains pids.
@@ -254,6 +256,8 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=F
             cmd += " --preset=" + preset
             if hd_tv_modes and preset == Preset.TV:
                 cmd += " --tvmode=\"" + settings.config().get(preset, "hd-modes") + "\""
+        if prog_type:
+		    cmd += " --type=" + prog_type
         if force_download:
             cmd += " --force"
         cmd += " --nocopyright --hash"
@@ -293,7 +297,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, hd_tv_modes=F
 
     return (launched, process_output)
 
-def info(search_term, preset=None, proxy_enabled=False, future=False):
+def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=False):
     """ Run get_iplayer --info.
         Return table with columns: serie title, episode title plus description.
     """
@@ -304,6 +308,8 @@ def info(search_term, preset=None, proxy_enabled=False, future=False):
     cmd = _GET_IPLAYER_PROG + " --info --nocopyright" 
     if preset:
         cmd += " --preset=" + preset
+    if prog_type:
+	    cmd += " --type=" + prog_type
     if not proxy_enabled:
         # Disable proxy setting
         cmd += " --proxy=0"
