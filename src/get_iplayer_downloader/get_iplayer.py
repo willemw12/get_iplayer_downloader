@@ -11,15 +11,19 @@ import get_iplayer_downloader
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
 
+# Labels for filter off
+SINCE_FOREVER_LABEL = "Since"
+ALL_CATEGORIES_LABEL = "Categories"
+
 _GET_IPLAYER_PROG = "get_iplayer"
 _TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
 
 _SINCE_HOUR_MARGIN = 6
 
 _COMPACT_TOOLBAR = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
-_SINCE_FOREVER_LABEL = "Since" if _COMPACT_TOOLBAR else ""
+_SINCE_FOREVER_LABEL = SINCE_FOREVER_LABEL if _COMPACT_TOOLBAR else ""
 #_SINCE_FUTURE_LABEL = "Future"
-_ALL_CATEGORIES_LABEL = "Categories" if _COMPACT_TOOLBAR else ""
+_ALL_CATEGORIES_LABEL = ALL_CATEGORIES_LABEL if _COMPACT_TOOLBAR else ""
 
 ####
 
@@ -52,9 +56,9 @@ class Channel:
 #NOTE cannot extend a constant list: RADIO = [[None, "Genre"]].extend(...)
 #WORKAROUND see get_iplayer_gui.py
 #  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
-class Category:
+class Categories:
     # No filter
-    DISABLED = [["", _ALL_CATEGORIES_LABEL]]
+    ALL = [["", _ALL_CATEGORIES_LABEL]]
 
     RADIO = [["", _ALL_CATEGORIES_LABEL]]
     RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories-radio")))
@@ -67,8 +71,9 @@ class Category:
 
 ####
 
-# Index of a key-value pair
+# Indices of a key-value pair
 KEY_INDEX = 0
+VALUE_INDEX = 1
 
 class SinceListIndex:
     FOREVER = 0
@@ -94,7 +99,7 @@ class SearchResultColumn:
 
 def categories(search_text, preset=None, prog_type=None, long_labels=True):
     """ Run get_iplayer --list=categories.
-        Return table with columns: category, category (key-value pair).
+        Return table with columns: categories, categories (key-value pair).
     """
     cmd = _GET_IPLAYER_PROG
     if preset:
@@ -112,14 +117,14 @@ def categories(search_text, preset=None, prog_type=None, long_labels=True):
     for line in lines:
         # Skip empty or message lines
         if line and line[0] and not line.startswith("INFO:") and not line.startswith("Matches:"):
-            # Strip the count number from the category name
-            category_key = line.rsplit(" ", 1)[0].rstrip()
+            # Strip the count number from the categories name
+            categories_key = line.rsplit(" ", 1)[0].rstrip()
             if long_labels:
-                category_value = category_key
+                categories_value = categories_key
             else:
                 # Copy the first word
-                category_value = line.split(" ", 1)[0].rstrip()
-            output_lines.append([category_key, category_value])
+                categories_value = line.split(" ", 1)[0].rstrip()
+            output_lines.append([categories_key, categories_value])
 
     return output_lines
 
@@ -153,7 +158,7 @@ def channels(search_text, preset=None, prog_type=None):
 
     return output_line
 
-def search(search_text, preset=None, prog_type=None, channel=None, category=None, since=0, search_all=False, future=False):
+def search(search_text, preset=None, prog_type=None, channel=None, categories=None, since=0, search_all=False, future=False):
     """ Run get_iplayer (--search).
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
@@ -168,8 +173,8 @@ def search(search_text, preset=None, prog_type=None, channel=None, category=None
             cmd += " --type=" + prog_type
         if channel:
             cmd += " --channel=\"" + channel + "\""
-    if category:
-        cmd += " --category=\"" + category + "\""
+    if categories:
+        cmd += " --category=\"" + categories + "\""
     if since:
         cmd += " --since=" + str(since)
     if future:

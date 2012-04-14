@@ -8,7 +8,7 @@ from gi.repository import Gdk, Gio, GObject, Gtk, Pango
 import get_iplayer_downloader.common
 
 from get_iplayer_downloader import get_iplayer, settings
-from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX
+from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX, VALUE_INDEX
 from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
@@ -37,7 +37,7 @@ TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Rotate between programme types (radio, podcas
 
 TOOLTIP_FILTER_SEARCH_ENTRY = "Filter programme name and description"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Programme type"
-TOOLTIP_FILTER_PROGRAMME_CATEGORY = "Programme category"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Programme categories"
 TOOLTIP_FILTER_SINCE = "Limit search to recently available programmes"
 
 TOOLTIP_OPTION_FORCE_DOWNLOAD = "Force download"
@@ -465,41 +465,41 @@ class ToolBarBox(Gtk.Box):
         
         ####
         
-        label = Gtk.Label(_label(" Category:"))
+        label = Gtk.Label(_label(" Categories:"))
         self.pack_start(label, False, False, 0)
 
         self.cat_disabled_store = Gtk.ListStore(str, str)
-        for category in get_iplayer.Category.DISABLED:
-            self.cat_disabled_store.append(category)
+        for categories in get_iplayer.Categories.ALL:
+            self.cat_disabled_store.append(categories)
 
         self.cat_radio_store = Gtk.ListStore(str, str)
-        for category in get_iplayer.Category.RADIO:
-            self.cat_radio_store.append(category)
+        for categories in get_iplayer.Categories.RADIO:
+            self.cat_radio_store.append(categories)
 
         self.cat_podcast_store = Gtk.ListStore(str, str)
-        for category in get_iplayer.Category.PODCAST:
-            self.cat_podcast_store.append(category)
+        for categories in get_iplayer.Categories.PODCAST:
+            self.cat_podcast_store.append(categories)
 
         self.cat_tv_store = Gtk.ListStore(str, str)
-        for category in get_iplayer.Category.TV:
-            self.cat_tv_store.append(category)
+        for categories in get_iplayer.Categories.TV:
+            self.cat_tv_store.append(categories)
 
-        #self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
-        self.category_combo = Gtk.ComboBox()
+        #self.categories_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
+        self.categories_combo = Gtk.ComboBox()
         # Mark as unselected, to allow it to be set automatically (by session restore) 
         #WORKAROUND set to 99 (out of bounds) instead of -1 to avoid this error message:
         #    Gtk-CRITICAL **: gtk_cell_view_set_displayed_row: assertion `GTK_IS_TREE_MODEL (cell_view->priv->model)' failed
-        #self.category_combo.set_active(-1)
-        self.category_combo.set_active(99)
+        #self.categories_combo.set_active(-1)
+        self.categories_combo.set_active(99)
         
-        self.category_combo.set_valign(Gtk.Align.CENTER)
-        self.category_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CATEGORY)
-        self.category_combo.set_focus_on_click(False)
+        self.categories_combo.set_valign(Gtk.Align.CENTER)
+        self.categories_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CATEGORIES)
+        self.categories_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
-        self.category_combo.pack_start(renderer_text, True)
+        self.categories_combo.pack_start(renderer_text, True)
         # Render second store column 
-        self.category_combo.add_attribute(renderer_text, "text", 1)
-        self.pack_start(self.category_combo, False, False, 0)
+        self.categories_combo.add_attribute(renderer_text, "text", 1)
+        self.pack_start(self.categories_combo, False, False, 0)
 
         ####
 
@@ -1301,8 +1301,8 @@ class MainWindowController:
             prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
             channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
 
-        category = None
-        combo = self.tool_bar_box.category_combo
+        categories = None
+        combo = self.tool_bar_box.categories_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
@@ -1310,7 +1310,7 @@ class MainWindowController:
             #    On some systems, when model[tree_iter][KEY_INDEX] == None, the following exception is raised:
             #    AttributeError: 'NoneType' object has no attribute 'decode'
             #    In the debugger, model[tree_iter][KEY_INDEX] is displayed as a unicode string.
-            category = model[tree_iter][KEY_INDEX]
+            categories = model[tree_iter][KEY_INDEX]
 
         since = 0
         combo = self.tool_bar_box.since_combo
@@ -1324,7 +1324,7 @@ class MainWindowController:
         future = self.tool_bar_box.future_checkbox.get_active()
 
         get_iplayer_output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
-                                                      channel=channel, category=category, since=since,
+                                                      channel=channel, categories=categories, since=since,
                                                       search_all=search_all, future=future)
         self.main_tree_view.set_store(get_iplayer_output_lines)
         # Scroll up
@@ -1522,16 +1522,16 @@ class MainWindowController:
             #preset = model[tree_iter][PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
             
-            # Synchronize category filter
+            # Synchronize categories filter
             if prog_type == get_iplayer.ProgType.RADIO:
-                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_radio_store)
-                self.tool_bar_box.category_combo.set_active(0)
+                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_radio_store)
+                self.tool_bar_box.categories_combo.set_active(0)
             elif prog_type == get_iplayer.ProgType.PODCAST:
-                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_podcast_store)
-                self.tool_bar_box.category_combo.set_active(0)
+                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_podcast_store)
+                self.tool_bar_box.categories_combo.set_active(0)
             elif prog_type == get_iplayer.ProgType.TV:
-                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
-                self.tool_bar_box.category_combo.set_active(0)
+                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_tv_store)
+                self.tool_bar_box.categories_combo.set_active(0)
 
             # Limit the initial podcast search result by enabling the since filter
             combo = self.tool_bar_box.since_combo
@@ -1547,22 +1547,6 @@ class MainWindowController:
                 # Disable since filter
                 combo.set_active(SinceListIndex.FOREVER)
 
-    def on_set_programme_type(self, prog_type):
-        # Lookup prog_type
-        combo = self.tool_bar_box.preset_combo
-        model = combo.get_model()
-        tree_iter = model.get_iter_first()
-        i = 0
-        while tree_iter is not None:
-            value = model.get_value(tree_iter, 1)
-            if value == prog_type:
-                combo.set_active(i)
-                #NOTE combo.set_active() already causes the invocation of on_combo_preset_changed()
-                #self.on_combo_preset_changed(combo)
-                break
-            tree_iter = model.iter_next(tree_iter)
-            i += 1
-
     def on_checkbox_future_clicked(self, checkbox):
         if checkbox.get_active():
             self.tool_bar_box.pvr_queue_check_button.set_active(True)
@@ -1571,13 +1555,14 @@ class MainWindowController:
             #combo = self.tool_bar_box.since_combo
             #combo.set_active(SinceListIndex.FUTURE)
 
-            # Disable the category filter. Get_iplayer doesn't support it 
+            # Disable the categories filter. Get_iplayer doesn't support it 
             # and future programme data sometimes lacks the categories property
-            self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_disabled_store)
-            self.tool_bar_box.category_combo.set_active(0)
+            self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_disabled_store)
+            self.tool_bar_box.categories_combo.set_active(0)
         else:
             self.tool_bar_box.pvr_queue_check_button.set_active(False)
 
+            # Set since filter to now or as close as possible (since 1 hour)
             #combo = self.tool_bar_box.since_combo
             #tree_iter = combo.get_active_iter()
             #if tree_iter is not None:
@@ -1604,19 +1589,100 @@ class MainWindowController:
                 #preset = model[tree_iter][PresetComboModelColumn.PRESET]
                 prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
                 #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
-            if prog_type:
-                # Programme type is not an empty string
+
+            categories = None
+            combo = self.tool_bar_box.categories_combo
+            tree_iter = combo.get_active_iter()
+            if tree_iter is not None:
+                model = combo.get_model()
+                # Going to save the categories label, except for the "all categories" filter
+                categories = model[tree_iter][VALUE_INDEX]
+                if categories is None or categories == get_iplayer.ALL_CATEGORIES_LABEL:
+                    categories = ""
+
+            since = 0
+            combo = self.tool_bar_box.since_combo
+            tree_iter = combo.get_active_iter()
+            if tree_iter is not None:
+                model = combo.get_model()
+                since = model[tree_iter][KEY_INDEX]
+
+            # Save values
+            
+            if prog_type is not None:
+                # Programme type is not an empty string (and not None)
                 settings.config().set("session", "programme-type", prog_type)
-                settings.save()
+            if categories is not None:
+                # Categories is not an empty string (and not None)
+                settings.config().set("session", "categories", categories)
+            settings.config().set("session", "since", since)
+            
+            settings.save()
     
     def session_restore(self):
         restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
         if restore_session:
             prog_type = settings.config().get("session", "programme-type")
+            categories = settings.config().get("session", "categories")
+            since = settings.config().get("session", "since")
+
             if not prog_type:
-                # Programme type is an empty string (or None)
+                # Programme type is an empty string or None
                 prog_type = get_iplayer.ProgType.RADIO
-            self.on_set_programme_type(prog_type)
+            if not categories:
+                # Categories is an empty string or None
+                categories = ""
+
+            # Restore values
+            
+            #ALTERNATIVE way of looping (see categories and since looping below)
+            combo = self.tool_bar_box.preset_combo
+            model = combo.get_model()
+            if model is not None:
+                tree_iter = model.get_iter_first()
+                i = 0
+                while tree_iter is not None:
+                    value = model.get_value(tree_iter, 1)
+                    if value == prog_type:
+                        combo.set_active(i)
+                        #NOTE combo.set_active() already causes the invocation of on_combo_preset_changed()
+                        #self.on_combo_preset_changed(combo)
+                        break
+                    tree_iter = model.iter_next(tree_iter)
+                    i += 1
+                self.on_combo_preset_changed(combo)
+
+            #
+            
+            if categories:
+                combo = self.tool_bar_box.categories_combo
+                model = combo.get_model()
+                if model is not None:
+                    # Default
+                    #combo.set_active(0)
+                    tree_iter = model.get_iter_first()
+                    while tree_iter is not None:
+                        model = combo.get_model()
+                        # Look for the categories label
+                        if model[tree_iter][VALUE_INDEX] == categories:
+                            combo.set_active_iter(tree_iter)
+                            break
+                        tree_iter = model.iter_next(tree_iter)
+
+            #
+            
+            combo = self.tool_bar_box.since_combo
+            model = combo.get_model()
+            if model is not None:
+                # Default
+                #combo.set_active(SinceListIndex.FOREVER)
+                tree_iter = model.get_iter_first()
+                while tree_iter is not None:
+                    model = combo.get_model()
+                    if model[tree_iter][KEY_INDEX] == int(since):
+                        combo.set_active_iter(tree_iter)
+                        break
+                    tree_iter = model.iter_next(tree_iter)
 
 ####
 
@@ -1666,6 +1732,7 @@ def main():
 
     window = MainWindow()
     window.connect("delete-event", _main_quit)
+
     window.show_all()
 
     # Force images on buttons
