@@ -51,7 +51,6 @@ File ~/.get_iplayer/presets/radio:
     #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
-    listformat <index>     <episode> ~ <desc>
     output /var/tmp/get_iplayer_downloader/Music
     radiomode flashaudio,realaudio,flashaac,wma
 
@@ -60,7 +59,6 @@ File ~/.get_iplayer/presets/tv:
     #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
-    listformat <index>     <episode> | <desc>
     output /var/tmp/get_iplayer_downloader/Videos
     tvmode flashhigh,flashstd,flashnormal
 
