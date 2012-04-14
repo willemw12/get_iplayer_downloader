@@ -17,7 +17,7 @@ For the latest version go to https://github.com/willemw12/get_iplayer_downloader
 
 This program is licensed under GPLv3 (see included file COPYING).
 
-Disclaimer: this program doesn't do any downloading itself. It relies on the get_iplayer program to do the actual downloading.
+Disclaimer: this program doesn't perform any downloading itself. It relies on the get_iplayer program to do the actual downloading.
 
 
 
@@ -37,15 +37,42 @@ Configuration
 
 1) get_iplayer
 
-Create and configure get_iplayer presets files ~/.get_iplayer/presets/tv and ~/.get_iplayer/presets/radio for tv, radio and podcasts (tvmode, radiomode, ...). Now "get_iplayer --preset=radio ..." and "get_iplayer --preset=tv" should work properly from the command line. The preset file names are configurable.
+Currently, get_iplayer_downloader uses two get_iplayer presets: one for radio and podcasts and one for television.
 
-Optionally, setup a get_iplayer pvr scheduler (cronjob) to download queued programmes.
+The default preset names used by get_iplayer_downloader are: radio and tv. The preset file names are configurable in get_iplayer_downloader.
+
+Reuse existing preset files or create new presets files. To create new preset files, either run "get_iplayer --preset=radio --prefs-add ...", etc. or edit the preset files ~/.get_iplayer/presets/radio and ~/.get_iplayer/presets/tv directly. 
+
+Here are two preset file examples. Lines starting with # are commented out.
+
+File ~/.get_iplayer/presets/radio:
+
+    aactomp3 1
+    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
+    fileprefix <name>-<episode>-<lastbcast>
+    isodate 1
+    listformat <index>     <episode> ~ <desc>
+    output /var/tmp/get_iplayer_downloader/Music
+    radiomode flashaudio,realaudio,flashaac,wma
+
+File ~/.get_iplayer/presets/tv:
+
+    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
+    fileprefix <name>-<episode>-<lastbcast>
+    isodate 1
+    listformat <index>     <episode> | <desc>
+    output /var/tmp/get_iplayer_downloader/Videos
+    tvmode flashhigh,flashstd,flashnormal
+
+Now "get_iplayer --preset=radio ..." and "get_iplayer --preset=tv" should work properly from the command line.
+
+Optionally, setup a get_iplayer pvr scheduler (cron job) to download queued programmes.
 
 2) get_iplayer_downloader
 
 Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/.config/get_iplayer_downloader/get_iplayer_downloader.conf), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Before starting to download programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file.
+Before downloading programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file.
 
 The preconfigured search channels and categories are a reduced set. To start off with category lists containing all available categories, run:
 
@@ -152,5 +179,5 @@ or add a path in front of the command below. Then put, for example, in ~/.get_ip
 
 If the python 2 (2.7 or higher) executable name is python2, then start the command with: command python2 get_iplayer_post_category.py.
 
-The script is also installed in /usr/share/get_iplayer_downloader/scripts or /usr/local/share/get_iplayer_downloader/scripts.
+The script is also installed in /usr/share/get_iplayer_downloader/scripts or in /usr/local/share/get_iplayer_downloader/scripts.
 
