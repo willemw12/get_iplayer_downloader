@@ -8,14 +8,14 @@ import common
 # "as Config": to avoid conflict with package method config() (and local variable config)
 from get_iplayer_downloader.tools import config as Config
 
-# The default config file serves as a, per property, factory setting lookup fallback
+# The default config file serves as a, per property, factory setting fallback
 #NOTE __file__ is not defined when run from the interpreter
 DEFAULT_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.conf")
 
 if os.name == "posix":
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, common.__program_name__ + ".conf")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, "config")
 else:
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.__program_name__, common.__program_name__ + ".config")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.__program_name__, "config")
     
 TEMP_PATHNAME = tempfile.gettempdir() + os.sep + common.__program_name__
 
