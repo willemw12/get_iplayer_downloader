@@ -47,7 +47,7 @@ class CommandQueue:
         try:
             # Timeout (in seconds)
             self._queue.put((cmd, keywords), True, 2)
-            logger.debug("run(self, cmd): _queue size=" + str(self._queue.qsize()) + " empty=" + str(self._queue.empty()) + " full=" + str(self._queue.full()))
+            logger.debug("run(): _queue size=" + str(self._queue.qsize()) + ", empty=" + str(self._queue.empty()) + ", full=" + str(self._queue.full()))
         except Full:
             return False
         return True

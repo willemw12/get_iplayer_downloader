@@ -148,7 +148,7 @@ def _sanitize_path(path, include_substition_markers):
     return path
 
 def _move_file(categories, dirname, filename, subdir_format):
-    logger.debug("Move \"{0}\" (categories = \"{1}\", dirname = \"{2}\", subdir_format = \"{3}\"".format(filename, categories, dirname, subdir_format))
+    logger.debug("move_file(): Move \"{0}\" (categories = \"{1}\", dirname = \"{2}\", subdir_format = \"{3}\"".format(filename, categories, dirname, subdir_format))
 
     src_dirname = os.path.dirname(filename)
 
@@ -201,10 +201,10 @@ def _move_file(categories, dirname, filename, subdir_format):
         if not os.path.exists(dest_dirname):
             os.makedirs(dest_dirname)
         shutil.move(filename, dest_dirname)
-        logger.info("Moved \"{0}\" to \"{1}\"".format(filename, dest_dirname))
+        logger.info("move_file(): Moved \"{0}\" to \"{1}\"".format(filename, dest_dirname))
     #NOTE Combined exception handling
     except (IOError, os.error, shutil.Error), why:
-        logger.warning("Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
+        logger.warning("move_file(): Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         logger.debug(str(why))
 
     # Remove empty directory

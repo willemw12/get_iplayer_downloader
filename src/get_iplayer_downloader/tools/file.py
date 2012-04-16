@@ -17,7 +17,7 @@ def load_url(url, pathname):
         #ALTERNATIVE
         #with open(filename, "w") as fp:
         #    fp.write(stream.read())
-        #fp.closed()
+        #b = fp.closed()
         
         stream.close()
     return filename

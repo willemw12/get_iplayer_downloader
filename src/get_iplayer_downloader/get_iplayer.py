@@ -1,7 +1,6 @@
 """ Perform get_iplayer operations. """
 
 import ast
-import logging
 from datetime import datetime
 
 from get_iplayer_downloader import common, settings
@@ -288,11 +287,10 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
 
     if pvr_queue:
         launched = True
-        process_output = command.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME)
+        process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
     else:    
         #CommandQueue.CommandQueue().run(...)
-        launched = command_queue.run(cmd, log_level=logging.DEBUG, temp_pathname=settings.TEMP_PATHNAME,
-                                     terminal_prog=terminal_prog)
+        launched = command_queue.run(cmd, temp_pathname=settings.TEMP_PATHNAME, terminal_prog=terminal_prog, terminal_title="get_iplayer get")
         process_output = None
 
     return (launched, process_output)
