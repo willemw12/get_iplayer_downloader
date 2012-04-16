@@ -1617,7 +1617,10 @@ class MainWindowController:
         if restore_session:
             prog_type = settings.config().get("session", "programme-type")
             categories = settings.config().get("session", "categories")
-            since = settings.config().get("session", "since")
+            try:
+                since = int(settings.config().get("session", "since"))
+            except ValueError:
+                since = 0
 
             if not prog_type:
                 # Programme type is an empty string or None
