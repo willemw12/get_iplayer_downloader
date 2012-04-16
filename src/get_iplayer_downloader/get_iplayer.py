@@ -109,7 +109,7 @@ def categories(search_text, preset=None, prog_type=None, long_labels=True):
     if search_text:
         cmd += " \"" + search_text + "\""
     
-    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
+    process_output = command.run(cmd, quiet=True, temp_pathname=settings.TEMP_PATHNAME)
 
     lines = process_output.splitlines()
     output_lines = []
@@ -140,7 +140,7 @@ def channels(search_text, preset=None, prog_type=None):
     if search_text:
         cmd += " \"" + search_text + "\""
     
-    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
+    process_output = command.run(cmd, quiet=True, temp_pathname=settings.TEMP_PATHNAME)
 
     lines = process_output.splitlines()
     first_value = True
