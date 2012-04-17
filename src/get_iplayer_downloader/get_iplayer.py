@@ -10,9 +10,10 @@ import get_iplayer_downloader
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
 
-# Labels for filter off
-SINCE_FOREVER_LABEL = "Since"
+# Labels for disabled filters
 ALL_CATEGORIES_LABEL = "Categories"
+ALL_CHANNELS_LABEL = "Channels"
+SINCE_FOREVER_LABEL = "Since"
 
 _GET_IPLAYER_PROG = "get_iplayer"
 _TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
@@ -20,9 +21,11 @@ _TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
 _SINCE_HOUR_MARGIN = 6
 
 _COMPACT_TOOLBAR = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
+
+_ALL_CATEGORIES_LABEL = ALL_CATEGORIES_LABEL if _COMPACT_TOOLBAR else ""
+_ALL_CHANNELS_LABEL = ALL_CHANNELS_LABEL if _COMPACT_TOOLBAR else ""
 _SINCE_FOREVER_LABEL = SINCE_FOREVER_LABEL if _COMPACT_TOOLBAR else ""
 #_SINCE_FUTURE_LABEL = "Future"
-_ALL_CATEGORIES_LABEL = ALL_CATEGORIES_LABEL if _COMPACT_TOOLBAR else ""
 
 ####
 
@@ -45,16 +48,18 @@ class ProgType:
     RADIO = "radio"
     PODCAST = "podcast"
     TV = "tv"
-    
-# List of key-value pairs
-class Channel:
-    RADIO = settings.config().get("radio", "channels")
-    TV = settings.config().get("tv", "channels")
+
+####
 
 # List of key-value pairs
 #NOTE cannot extend a constant list: RADIO = [[None, "Genre"]].extend(...)
 #WORKAROUND see get_iplayer_gui.py
 #  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
+
+class Channels:
+    RADIO = _ALL_CHANNELS_LABEL + "," + settings.config().get("radio", "channels")
+    TV = _ALL_CHANNELS_LABEL + "," + settings.config().get("tv", "channels")
+
 class Categories:
     # No filter
     ALL = [["", _ALL_CATEGORIES_LABEL]]
@@ -89,7 +94,7 @@ class SearchResultColumn:
     SERIE = 3
     EPISODE = 4
     CATEGORIES = 5
-    CHANNEL = 6
+    CHANNELS = 6
     THUMBNAIL_SMALL = 7
     AVAILABLE = 8
     DURATION = 9
@@ -157,7 +162,7 @@ def channels(search_text, preset=None, prog_type=None):
 
     return output_line
 
-def search(search_text, preset=None, prog_type=None, channel=None, categories=None,
+def search(search_text, preset=None, prog_type=None, channels=None, categories=None,
            since=0, search_all=False, future=False):
     """ Run get_iplayer (--search).
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
@@ -171,8 +176,8 @@ def search(search_text, preset=None, prog_type=None, channel=None, categories=No
             cmd += " --preset=" + preset
         if prog_type:
             cmd += " --type=" + prog_type
-        if channel:
-            cmd += " --channel=\"" + channel + "\""
+        if channels:
+            cmd += " --channel=\"" + channels + "\""
     if categories:
         cmd += " --category=\"" + categories + "\""
     if since:
@@ -207,7 +212,7 @@ def search(search_text, preset=None, prog_type=None, channel=None, categories=No
                 if l_prev:
                     # Add serie line.
                     # Serie title is copied from the previous line (root level, level 0, a serie)
-                    # Categories, channel and thumbnail url, etc. are copied from the current line (level 1, an episode)
+                    # Categories, channels and thumbnail url, etc. are copied from the current line (level 1, an episode)
                     # No pid or index available for a serie from the output of get_iplayer --tree
                     output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
             if level == 1 and not l[0].isspace():
@@ -330,7 +335,7 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
 
     return output_lines
 
-def refresh(preset=None, channel=None, future=False):
+def refresh(preset=None, channels=None, future=False):
     """ Run get_iplayer --refresh. """
     if not preset:
         #preset = Preset.RADIO + "," + Preset.TV
@@ -341,9 +346,8 @@ def refresh(preset=None, channel=None, future=False):
         #cmd += " --refresh-future --force"
         cmd += " --refresh-future"
 
-    if channel:
+    if channels:
         #cmd += " --channel=\"" + channel + "\""
-        cmd += " --refresh-include=\"" + channel + "\""
+        cmd += " --refresh-include=\"" + channels + "\""
 
     return command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
-

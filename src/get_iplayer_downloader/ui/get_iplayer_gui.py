@@ -36,9 +36,10 @@ TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
 TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Rotate between programme types (radio, podcast, tv)"
 
 TOOLTIP_FILTER_SEARCH_ENTRY = "Filter programme name and description"
-TOOLTIP_FILTER_PROGRAMME_TYPE = "Programme type"
-TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Programme categories"
-TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the programme search cache"
+TOOLTIP_FILTER_PROGRAMME_TYPE = "Programme type filter"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Programme categories filter. Disabled when label is \"Categories\" or empty"
+TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Programme channels filter. Disabled when label is \"Channels\" or empty"
+TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the programme search cache. Disabled when label is \"Since\" or empty"
 
 TOOLTIP_OPTION_FORCE_DOWNLOAD = "Force download"
 TOOLTIP_OPTION_HD_TV = "HD TV recording mode. Overrides the default TV mode"
@@ -46,7 +47,7 @@ TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme pr
 TOOLTIP_OPTION_FIND_ALL = "Search in all programme types and channels"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer pvr"
-TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Press 'Refresh' to update the list of future programmes in the programme search cache. The categories filter is disabled in 'future' mode."
+TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Press 'Refresh' to update the list of future programmes in the programme search cache. The categories filter is disabled in future mode."
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
@@ -438,13 +439,10 @@ class ToolBarBox(Gtk.Box):
         label = Gtk.Label(_label(" Type:"))
         self.pack_start(label, False, False, 0)
         
-        presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO,
-                    get_iplayer.Channel.RADIO, "Radio"],
-                   [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST,
-                    get_iplayer.Channel.RADIO, "Podcast"],
-                   [get_iplayer.Preset.TV, get_iplayer.ProgType.TV,
-                    get_iplayer.Channel.TV, "TV"]]
-        store = Gtk.ListStore(str, str, str, str)
+        presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, "Radio"],
+                   [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, "Podcast"],
+                   [get_iplayer.Preset.TV, get_iplayer.ProgType.TV, "TV"]]
+        store = Gtk.ListStore(str, str, str)
         for preset in presets:
             store.append(preset)
 
@@ -456,8 +454,8 @@ class ToolBarBox(Gtk.Box):
         self.preset_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
         self.preset_combo.pack_start(renderer_text, True)
-        # Render fourth store column 
-        self.preset_combo.add_attribute(renderer_text, "text", 3)
+        # Render third store column 
+        self.preset_combo.add_attribute(renderer_text, "text", 2)
         self.preset_combo.connect("changed", self.main_window.main_controller.on_combo_preset_changed)
         self.pack_start(self.preset_combo, False, False, 0)
         
@@ -498,6 +496,56 @@ class ToolBarBox(Gtk.Box):
         # Render second store column 
         self.categories_combo.add_attribute(renderer_text, "text", 1)
         self.pack_start(self.categories_combo, False, False, 0)
+
+        ####
+
+        label = Gtk.Label(_label(" Channels:"))
+        self.pack_start(label, False, False, 0)
+
+        # First in the list the label for all listed channels, the rest are keys
+        channels = (get_iplayer.Channels.RADIO).split(",")
+        self.chan_radio_store = Gtk.ListStore(str, str)
+        first = True
+        for channel in channels:
+            key = label = channel.strip()
+            if first:
+                #key = settings.config().get("radio", "channels")
+                key = ",".join(channels[1:])
+                first = False
+            else:
+                if label.startswith("BBC "):
+                    label = label[len("BBC "):]
+            self.chan_radio_store.append([key, label])
+        
+        # First in the list the label for all listed channels, the rest are keys
+        channels = (get_iplayer.Channels.TV).split(",")
+        self.chan_tv_store = Gtk.ListStore(str, str)
+        first = True
+        for channel in channels:
+            key = label = channel.strip()
+            if first:
+                #key = settings.config().get("tv", "channels")
+                key = ",".join(channels[1:])
+                first = False
+            else:
+                if label.startswith("BBC "):
+                    label = label[len("BBC "):]
+            self.chan_tv_store.append([key, label])
+
+        #self.channels_combo = Gtk.ComboBox.new_with_model(self.chan_radio_store)
+        self.channels_combo = Gtk.ComboBox()
+        # Mark as unselected, to allow it to be set automatically (by session restore) 
+        #self.categories_combo.set_active(-1)
+        self.channels_combo.set_active(99)
+
+        self.channels_combo.set_valign(Gtk.Align.CENTER)
+        self.channels_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CHANNELS)
+        self.channels_combo.set_focus_on_click(False)
+        renderer_text = Gtk.CellRendererText()
+        self.channels_combo.pack_start(renderer_text, True)
+        # Render second store column 
+        self.channels_combo.add_attribute(renderer_text, "text", 1)
+        self.pack_start(self.channels_combo, False, False, 0)
 
         ####
 
@@ -799,7 +847,7 @@ class MainTreeView(Gtk.TreeView):
         #    return False
         #self._on_query_tooltip_path = path
 
-        channel = model.get_value(iter, SearchResultColumn.CHANNEL)
+        channel = model.get_value(iter, SearchResultColumn.CHANNELS)
         image_url = model.get_value(iter, SearchResultColumn.THUMBNAIL_SMALL)
 
         categories = model.get_value(iter, SearchResultColumn.CATEGORIES)
@@ -930,7 +978,7 @@ class MainTreeView(Gtk.TreeView):
                     row[SearchResultColumn.INDEX] = tree_rows[i + 1][SearchResultColumn.INDEX]
                     row[SearchResultColumn.EPISODE] = tree_rows[i + 1][SearchResultColumn.EPISODE]
                     row[SearchResultColumn.CATEGORIES] = tree_rows[i + 1][SearchResultColumn.CATEGORIES]
-                    row[SearchResultColumn.CHANNEL] = tree_rows[i + 1][SearchResultColumn.CHANNEL]
+                    row[SearchResultColumn.CHANNELS] = tree_rows[i + 1][SearchResultColumn.CHANNELS]
                     row[SearchResultColumn.THUMBNAIL_SMALL] = tree_rows[i + 1][SearchResultColumn.THUMBNAIL_SMALL]
                     row[SearchResultColumn.AVAILABLE] = tree_rows[i + 1][SearchResultColumn.AVAILABLE]
                     row[SearchResultColumn.DURATION] = tree_rows[i + 1][SearchResultColumn.DURATION]
@@ -1257,7 +1305,6 @@ class SearchEntry(Gtk.Entry):
 class PresetComboModelColumn:
     PRESET = 0
     PROG_TYPE = 1
-    CHANNEL = 2
 
 class MainWindowController:
     """ Handle the active part of the main window related widgets. Activity between main widgets and 
@@ -1287,7 +1334,6 @@ class MainWindowController:
             model = combo.get_model()
             preset = model[tree_iter][PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
-            channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
 
         categories = None
         combo = self.tool_bar_box.categories_combo
@@ -1300,6 +1346,13 @@ class MainWindowController:
             #    In the debugger, model[tree_iter][KEY_INDEX] is displayed as a unicode string.
             categories = model[tree_iter][KEY_INDEX]
 
+        channels = None
+        combo = self.tool_bar_box.channels_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            model = combo.get_model()
+            channels = model[tree_iter][KEY_INDEX]
+        
         since = 0
         combo = self.tool_bar_box.since_combo
         tree_iter = combo.get_active_iter()
@@ -1312,7 +1365,7 @@ class MainWindowController:
         future = self.tool_bar_box.future_checkbox.get_active()
 
         get_iplayer_output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
-                                                      channel=channel, categories=categories, since=since,
+                                                      channels=channels, categories=categories, since=since,
                                                       search_all=search_all, future=future)
         self.main_tree_view.set_store(get_iplayer_output_lines)
         # Scroll up
@@ -1488,20 +1541,16 @@ class MainWindowController:
             model = combo.get_model()
             preset = model[tree_iter][PresetComboModelColumn.PRESET]
 
-        #preset = None
-        #prog_type = None
-        channel = None
-        combo = self.tool_bar_box.preset_combo
+        channels = None
+        combo = self.tool_bar_box.channels_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            #preset = model[tree_iter][PresetComboModelColumn.PRESET]
-            #prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
-            channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
+            channels = model[tree_iter][KEY_INDEX]
 
         future = self.tool_bar_box.future_checkbox.get_active()
 
-        get_iplayer.refresh(preset=preset, channel=channel, future=future)
+        get_iplayer.refresh(preset=preset, channels=channels, future=future)
         
         ### Refresh programme list
 
@@ -1512,19 +1561,24 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            #preset = model[tree_iter][PresetComboModelColumn.PRESET]
+            preset = model[tree_iter][PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
             
             # Synchronize categories filter
             if prog_type == get_iplayer.ProgType.RADIO:
                 self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_radio_store)
-                self.tool_bar_box.categories_combo.set_active(0)
             elif prog_type == get_iplayer.ProgType.PODCAST:
                 self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_podcast_store)
-                self.tool_bar_box.categories_combo.set_active(0)
             elif prog_type == get_iplayer.ProgType.TV:
                 self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_tv_store)
-                self.tool_bar_box.categories_combo.set_active(0)
+            self.tool_bar_box.categories_combo.set_active(0)
+
+            # Synchronize channels filter
+            if preset == get_iplayer.Preset.RADIO:
+                self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_radio_store)
+            elif preset == get_iplayer.Preset.TV:
+                self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_tv_store)
+            self.tool_bar_box.channels_combo.set_active(0)
 
             # Limit the initial podcast search result by enabling the since filter
             combo = self.tool_bar_box.since_combo
@@ -1588,10 +1642,14 @@ class MainWindowController:
             tree_iter = combo.get_active_iter()
             if tree_iter is not None:
                 model = combo.get_model()
-                # Going to save the categories label, except for the "all categories" filter
-                categories = model[tree_iter][VALUE_INDEX]
-                if categories is None or categories == get_iplayer.ALL_CATEGORIES_LABEL:
-                    categories = ""
+                categories = model[tree_iter][KEY_INDEX]
+
+            channels = None
+            combo = self.tool_bar_box.channels_combo
+            tree_iter = combo.get_active_iter()
+            if tree_iter is not None:
+                model = combo.get_model()
+                channels = model[tree_iter][KEY_INDEX]
 
             since = 0
             combo = self.tool_bar_box.since_combo
@@ -1601,13 +1659,14 @@ class MainWindowController:
                 since = model[tree_iter][KEY_INDEX]
 
             # Save values
-            
+
+            # If not an empty string (and not None)
             if prog_type is not None:
-                # Programme type is not an empty string (and not None)
                 settings.config().set("session", "programme-type", prog_type)
             if categories is not None:
-                # Categories is not an empty string (and not None)
                 settings.config().set("session", "categories", categories)
+            if channels is not None:
+                settings.config().set("session", "channels", channels)
             settings.config().set("session", "since", since)
             
             settings.save()
@@ -1617,17 +1676,19 @@ class MainWindowController:
         if restore_session:
             prog_type = settings.config().get("session", "programme-type")
             categories = settings.config().get("session", "categories")
+            channels = settings.config().get("session", "channels")
             try:
                 since = int(settings.config().get("session", "since"))
             except ValueError:
                 since = 0
 
+            # If empty string or None
             if not prog_type:
-                # Programme type is an empty string or None
                 prog_type = get_iplayer.ProgType.RADIO
             if not categories:
-                # Categories is an empty string or None
                 categories = ""
+            if not channels:
+                channels = ""
 
             # Restore values
             
@@ -1659,8 +1720,25 @@ class MainWindowController:
                     tree_iter = model.get_iter_first()
                     while tree_iter is not None:
                         model = combo.get_model()
-                        # Look for the categories label
-                        if model[tree_iter][VALUE_INDEX] == categories:
+                        # Find the categories key
+                        if model[tree_iter][KEY_INDEX] == categories:
+                            combo.set_active_iter(tree_iter)
+                            break
+                        tree_iter = model.iter_next(tree_iter)
+
+            #
+            
+            if channels:
+                combo = self.tool_bar_box.channels_combo
+                model = combo.get_model()
+                if model is not None:
+                    # Default
+                    #combo.set_active(0)
+                    tree_iter = model.get_iter_first()
+                    while tree_iter is not None:
+                        model = combo.get_model()
+                        # Find the channels key
+                        if model[tree_iter][KEY_INDEX] == channels:
                             combo.set_active_iter(tree_iter)
                             break
                         tree_iter = model.iter_next(tree_iter)
