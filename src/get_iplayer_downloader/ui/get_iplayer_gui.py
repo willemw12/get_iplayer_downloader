@@ -495,7 +495,9 @@ class ToolBarBox(Gtk.Box):
         self.categories_combo.pack_start(renderer_text, True)
         # Render second store column 
         self.categories_combo.add_attribute(renderer_text, "text", 1)
-        self.pack_start(self.categories_combo, False, False, 0)
+
+        if not string.str2bool(settings.config().get(config.NOSECTION, "disable-categories-filter")):
+            self.pack_start(self.categories_combo, False, False, 0)
 
         ####
 
@@ -513,7 +515,8 @@ class ToolBarBox(Gtk.Box):
                 key = ",".join(channels[1:])
                 first = False
             else:
-                if label.startswith("BBC "):
+                if compact_toolbar and label.startswith("BBC "):
+                    # Remove leading "BBC " string
                     label = label[len("BBC "):]
             self.chan_radio_store.append([key, label])
         
@@ -528,7 +531,8 @@ class ToolBarBox(Gtk.Box):
                 key = ",".join(channels[1:])
                 first = False
             else:
-                if label.startswith("BBC "):
+                if compact_toolbar and label.startswith("BBC "):
+                    # Remove leading "BBC " string
                     label = label[len("BBC "):]
             self.chan_tv_store.append([key, label])
 
@@ -545,7 +549,9 @@ class ToolBarBox(Gtk.Box):
         self.channels_combo.pack_start(renderer_text, True)
         # Render second store column 
         self.channels_combo.add_attribute(renderer_text, "text", 1)
-        self.pack_start(self.channels_combo, False, False, 0)
+
+        if not string.str2bool(settings.config().get(config.NOSECTION, "disable-channels-filter")):
+            self.pack_start(self.channels_combo, False, False, 0)
 
         ####
 
@@ -566,7 +572,9 @@ class ToolBarBox(Gtk.Box):
         self.since_combo.pack_start(renderer_text, True)
         # Render second store column 
         self.since_combo.add_attribute(renderer_text, "text", 1)
-        self.pack_start(self.since_combo, False, False, 0)
+
+        if not string.str2bool(settings.config().get(config.NOSECTION, "disable-since-filter")):
+            self.pack_start(self.since_combo, False, False, 0)
 
         ####
 
@@ -1638,25 +1646,31 @@ class MainWindowController:
                 #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
 
             categories = None
-            combo = self.tool_bar_box.categories_combo
-            tree_iter = combo.get_active_iter()
-            if tree_iter is not None:
-                model = combo.get_model()
-                categories = model[tree_iter][KEY_INDEX]
+            if not string.str2bool(settings.config().get(config.NOSECTION, "disable-categories-filter")):
+                categories = ""
+                combo = self.tool_bar_box.categories_combo
+                tree_iter = combo.get_active_iter()
+                if tree_iter is not None:
+                    model = combo.get_model()
+                    categories = model[tree_iter][KEY_INDEX]
 
             channels = None
-            combo = self.tool_bar_box.channels_combo
-            tree_iter = combo.get_active_iter()
-            if tree_iter is not None:
-                model = combo.get_model()
-                channels = model[tree_iter][KEY_INDEX]
+            if not string.str2bool(settings.config().get(config.NOSECTION, "disable-channels-filter")):
+                channels = ""
+                combo = self.tool_bar_box.channels_combo
+                tree_iter = combo.get_active_iter()
+                if tree_iter is not None:
+                    model = combo.get_model()
+                    channels = model[tree_iter][KEY_INDEX]
 
-            since = 0
-            combo = self.tool_bar_box.since_combo
-            tree_iter = combo.get_active_iter()
-            if tree_iter is not None:
-                model = combo.get_model()
-                since = model[tree_iter][KEY_INDEX]
+            since = -1
+            if not string.str2bool(settings.config().get(config.NOSECTION, "disable-since-filter")):
+                since = 0
+                combo = self.tool_bar_box.since_combo
+                tree_iter = combo.get_active_iter()
+                if tree_iter is not None:
+                    model = combo.get_model()
+                    since = model[tree_iter][KEY_INDEX]
 
             # Save values
 
@@ -1667,7 +1681,8 @@ class MainWindowController:
                 settings.config().set("session", "categories", categories)
             if channels is not None:
                 settings.config().set("session", "channels", channels)
-            settings.config().set("session", "since", since)
+            if since >= 0:
+                settings.config().set("session", "since", since)
             
             settings.save()
     
@@ -1682,13 +1697,21 @@ class MainWindowController:
             except ValueError:
                 since = 0
 
-            # If empty string or None
+            # If empty string or None (in case of an error), then set the default value
             if not prog_type:
                 prog_type = get_iplayer.ProgType.RADIO
             if not categories:
                 categories = ""
             if not channels:
                 channels = ""
+
+            # Don't restore when filter widget is disabled
+            if string.str2bool(settings.config().get(config.NOSECTION, "disable-categories-filter")):
+                categories = None
+            if string.str2bool(settings.config().get(config.NOSECTION, "disable-channels-filter")):
+                channels = None
+            if string.str2bool(settings.config().get(config.NOSECTION, "disable-since-filter")):
+                since = -1
 
             # Restore values
             
@@ -1745,18 +1768,19 @@ class MainWindowController:
 
             #
             
-            combo = self.tool_bar_box.since_combo
-            model = combo.get_model()
-            if model is not None:
-                # Default
-                #combo.set_active(SinceListIndex.FOREVER)
-                tree_iter = model.get_iter_first()
-                while tree_iter is not None:
-                    model = combo.get_model()
-                    if model[tree_iter][KEY_INDEX] == int(since):
-                        combo.set_active_iter(tree_iter)
-                        break
-                    tree_iter = model.iter_next(tree_iter)
+            if since >= 0:
+                combo = self.tool_bar_box.since_combo
+                model = combo.get_model()
+                if model is not None:
+                    # Default
+                    #combo.set_active(SinceListIndex.FOREVER)
+                    tree_iter = model.get_iter_first()
+                    while tree_iter is not None:
+                        model = combo.get_model()
+                        if model[tree_iter][KEY_INDEX] == int(since):
+                            combo.set_active_iter(tree_iter)
+                            break
+                        tree_iter = model.iter_next(tree_iter)
 
 ####
 
