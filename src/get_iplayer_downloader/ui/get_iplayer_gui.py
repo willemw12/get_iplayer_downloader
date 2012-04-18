@@ -35,11 +35,11 @@ TOOLTIP_SEARCH_FIND = "Find programmes"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
 TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Rotate between programme types (radio, podcast, tv)"
 
-TOOLTIP_FILTER_SEARCH_ENTRY = "Filter programme name and description"
+TOOLTIP_FILTER_SEARCH_ENTRY = "Filter programme name and description. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Programme type filter"
-TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Programme categories filter. Disabled when label is \"Categories\" or empty"
-TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Programme channels filter. Disabled when label is \"Channels\" or empty"
-TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the programme search cache. Disabled when label is \"Since\" or empty"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Programme categories filter. Disabled when label is 'Categories' or empty"
+TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Programme channels filter. Disabled when label is 'Channels' or empty"
+TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the programme search cache. Disabled when label is 'Since' or empty"
 
 TOOLTIP_OPTION_FORCE_DOWNLOAD = "Force download"
 TOOLTIP_OPTION_HD_TV = "HD TV recording mode. Overrides the default TV mode"
@@ -47,7 +47,7 @@ TOOLTIP_OPTION_FULL_PROXY = "Force full proxy mode. Only applies to programme pr
 TOOLTIP_OPTION_FIND_ALL = "Search in all programme types and channels"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer pvr"
-TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Press 'Refresh' to update the list of future programmes in the programme search cache. The categories filter is disabled in future mode."
+TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Click 'Refresh' to update the list of future programmes in the programme search cache. The categories filter is disabled in future mode"
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
@@ -381,6 +381,10 @@ class ToolBarBox(Gtk.Box):
         ####
         
         compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
+        if compact_toolbar:
+            hide_button_labels = True
+        else:
+            hide_button_labels = compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "hide-button-labels"))
 
         def _label(label):
             #NOTE Conditional expression (one line if-then-else)
@@ -388,29 +392,37 @@ class ToolBarBox(Gtk.Box):
         
         ####
         
-        button = Gtk.Button(stock=Gtk.STOCK_PROPERTIES, relief=Gtk.ReliefStyle.NONE,
-                            image_position=Gtk.PositionType.TOP)
+        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_PROPERTIES))
+        if not hide_button_labels:
+            button.set_label("Properties")
         button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
         button.connect("clicked", self.main_window.main_controller.on_button_properties_clicked)
         self.pack_start(button, False, False, 0)
 
-        button = Gtk.Button(label="_Download", use_underline=True, relief=Gtk.ReliefStyle.NONE,
+        button = Gtk.Button(use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         #Gtk.STOCK_GO_DOWN
         button.set_image(Gtk.Image(stock=Gtk.STOCK_GOTO_BOTTOM))
+        if not hide_button_labels:
+            button.set_label("_Download")
         button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
         button.connect("clicked", self.main_window.main_controller.on_button_download_clicked)
         self.pack_start(button, False, False, 0)
 
-        button = Gtk.Button(stock=Gtk.STOCK_CLEAR, relief=Gtk.ReliefStyle.NONE,
-                            image_position=Gtk.PositionType.TOP)
+        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_CLEAR))
+        if not hide_button_labels:
+            button.set_label("Clear")
         button.set_tooltip_text(TOOLTIP_TOOLS_CLEAR)
         button.set_focus_on_click(False)
         button.connect("clicked", self.main_window.main_controller.on_button_clear_clicked)
         self.pack_start(button, False, False, 0)
 
-        button = Gtk.Button(stock=Gtk.STOCK_REFRESH, relief=Gtk.ReliefStyle.NONE,
-                            image_position=Gtk.PositionType.TOP)
+        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
+        if not hide_button_labels:
+            button.set_label("Refresh")
         button.set_tooltip_text(TOOLTIP_TOOLS_REFRESH)
         button.set_focus_on_click(False)
         button.connect("clicked", self.main_window.main_controller.on_button_refresh_clicked)
@@ -422,11 +434,12 @@ class ToolBarBox(Gtk.Box):
         separator = Gtk.VSeparator()
         self.pack_start(separator, False, False, 0)
 
-        button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
-                            image_position=Gtk.PositionType.TOP)
-        button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
-        button.connect("clicked", self.main_window.main_controller.on_button_find_clicked)
-        self.pack_start(button, False, False, 0)
+        if not hide_button_labels:
+            button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
+                                image_position=Gtk.PositionType.TOP)
+            button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
+            button.connect("clicked", self.main_window.main_controller.on_button_find_clicked)
+            self.pack_start(button, False, False, 0)
 
         self.search_entry = SearchEntry()
         self.search_entry.set_tooltip_text(TOOLTIP_FILTER_SEARCH_ENTRY)
@@ -1299,13 +1312,13 @@ class SearchEntry(Gtk.Entry):
         
         self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, Gtk.STOCK_CLEAR)
         self.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, "Clear filter")
-        self.set_placeholder_text("filter programmes")
+        self.set_placeholder_text("Filter programmes")
         self.connect("icon-press", self._on_icon_press)
-        
+
     def _on_icon_press(self, entry, icon_pos, event):
         if (icon_pos == Gtk.EntryIconPosition.SECONDARY):
             entry.set_text("")
-            #entry.set_placeholder_text("filter programmes")
+            #entry.set_placeholder_text("Filter programmes")
 
 #### Main window controller
 
