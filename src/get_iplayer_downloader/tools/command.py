@@ -40,9 +40,9 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         if os.name == "posix":
             if log_level == logging.DEBUG:
                 #cmd_exec = "gnome-terminal --geometry=131x41 --title=\"" + str(terminal_title) + "\" --command=\"sh -c '" + cmd_exec + " ; cd ; sh'\" ; exit 0"
-                cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; cd ; $SHELL'\" ; exit 0"
+                cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
             else:
-                cmd_exec = terminal_prog + " -e \"$SHELL -c '( set -x ; " + cmd_exec + " ) ; cd ; $SHELL'\" ; exit 0"
+                cmd_exec = terminal_prog + " -e \"$SHELL -c '( set -x ; " + cmd_exec + " ) ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
                 
     if not quiet:
         if log_level == logging.DEBUG:
