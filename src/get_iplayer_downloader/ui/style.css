@@ -2,7 +2,7 @@
 
 * {
 	/* Smaller ProgressBar */
-	-GtkProgressBar-min-horizontal-bar-width: 70;
-	-GtkProgressBar-min-vertital-bar-height: 70;
+	-GtkProgressBar-min-horizontal-bar-width: 50;
+	-GtkProgressBar-min-vertital-bar-height: 50;
 	/* font-size: smaller; */
 }

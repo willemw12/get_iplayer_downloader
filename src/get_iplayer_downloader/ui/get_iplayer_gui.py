@@ -18,8 +18,6 @@ BORDER_WIDTH = 4
 
 ####
 
-#(TODO move inside MainWindow class)
-
 #TOOLTIP_FILE_QUIT
 
 TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme (of programme in focus)"
@@ -32,6 +30,7 @@ TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
 TOOLTIP_TOOLS_REFRESH = "Refresh programme search cache"
 
 TOOLTIP_SEARCH_FIND = "Find programmes"
+TOOLTIP_SEARCH_CLEAR = "Clear filter"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
 TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Rotate between programme types (radio, podcast, tv)"
 
@@ -52,6 +51,8 @@ TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Click 'Refresh'
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
 
+TOOLTIP_PROGRESS_DOWNLOADING = "Downloading"
+
 TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click anywhere"
 
 ####
@@ -68,8 +69,10 @@ class MainWindow(Gtk.Window):
         if start_maximized:
             self.maximize()
 
+        # Initialize the controller
         self.main_controller = MainWindowController(self)
         
+        # Initialize the view
         self._init_ui_manager()
         self._init_builder()
         self._init_main_grid()
@@ -77,12 +80,16 @@ class MainWindow(Gtk.Window):
         self._init_tool_bar_box()
         self._init_main_tree_view()
 
+        # Finalize initialization of the controller
         self.main_controller.init()
+
+        # Initialize the model
         self.main_tree_view.init_store()        
 
         if start_maximized:
-            # Avoid redraw to another position of the >>right-aligned<< help image on the top toolbar,
-            # by forcing the calculation of the main window (and therefore the top toolbar) width
+            # Avoid redraw of the right-aligned menu/configuration image/icon 
+            # to another position on the top tool bar, by forcing the calculation
+            # of the main window width and therefore also the top tool bar width
             self.tool_bar_box.show_all()
 
     def _init_ui_manager(self):
@@ -441,9 +448,10 @@ class ToolBarBox(Gtk.Box):
             button.connect("clicked", self.main_window.main_controller.on_button_find_clicked)
             self.pack_start(button, False, False, 0)
 
-        self.search_entry = SearchEntry()
+        self.search_entry = SearchEntry(compact_toolbar)
         self.search_entry.set_tooltip_text(TOOLTIP_FILTER_SEARCH_ENTRY)
         self.search_entry.connect("activate", self.main_window.main_controller.on_button_find_clicked)
+        self.search_entry.connect("icon-press", self._on_search_entry_find_icon_press)
         self.pack_start(self.search_entry, False, False, 0)
         self.search_entry.grab_focus()
 
@@ -658,7 +666,7 @@ class ToolBarBox(Gtk.Box):
         self.progress_bar.set_valign(Gtk.Align.START)
         self.progress_bar.set_fraction(0.0)
         #self.progress_bar.set_tooltip_text("D (downloading), Q (waiting to download)")
-        self.progress_bar.set_tooltip_text("Downloading")
+        self.progress_bar.set_tooltip_text(TOOLTIP_PROGRESS_DOWNLOADING)
         grid.attach_next_to(self.progress_bar, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
 
         ##
@@ -711,6 +719,10 @@ class ToolBarBox(Gtk.Box):
         #self.progress_bar.set_valign(Gtk.Align.CENTER)
         #self.progress_bar.set_pulse_step(0.01)
         #self.pack_start(self.progress_bar, False, False, 0)
+
+    def _on_search_entry_find_icon_press(self, entry, icon_pos, event):
+        if icon_pos == Gtk.EntryIconPosition.PRIMARY:
+            self.main_window.main_controller.on_button_find_clicked(None)
 
     def _on_progress_bar_update(self, user_data):
         try:
@@ -884,6 +896,7 @@ class MainTreeView(Gtk.TreeView):
             duration = None
         else:
             try:
+                # Convert into minutes
                 duration = str(int(duration) / 60) + ":00"
             except ValueError:
                 #NOTE duration still has its original value
@@ -1084,6 +1097,14 @@ class PropertiesWindow(Gtk.Window):
         #for i, prop_row in enumerate(prop_table):
         for i, (prop_label, prop_value) in enumerate(prop_table):
             if prop_label in PROP_LABEL_LIST:
+                if prop_label == "duration":
+                    try:
+                        # Convert into minutes
+                        prop_value = str(int(prop_value) / 60) + ":00"
+                    except ValueError:
+                        #NOTE prop_value still has its original value
+                        pass
+                
                 label1 = Gtk.Label(prop_label, valign=Gtk.Align.START, halign=Gtk.Align.START)
                 label1.set_padding(BORDER_WIDTH, 0)
                 label1.set_line_wrap(True)
@@ -1307,30 +1328,36 @@ class PreferencesDialogWrapper(object):
 
 class SearchEntry(Gtk.Entry):
 
-    def __init__(self):
+    def __init__(self, compact):
         Gtk.Entry.__init__(self)
         
+        if compact:
+            self.set_icon_from_stock(Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
+            self.set_icon_tooltip_text(Gtk.EntryIconPosition.PRIMARY, TOOLTIP_SEARCH_FIND)
         self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, Gtk.STOCK_CLEAR)
-        self.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, "Clear filter")
+        self.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, TOOLTIP_SEARCH_CLEAR)
         self.set_placeholder_text("Filter programmes")
         self.connect("icon-press", self._on_icon_press)
 
     def _on_icon_press(self, entry, icon_pos, event):
-        if (icon_pos == Gtk.EntryIconPosition.SECONDARY):
+        #if icon_pos == Gtk.EntryIconPosition.PRIMARY:
+        #    # Emit an "activate" signal
+        #    signal = GObject.signal_new(...)
+        #    signal.emity_by_name(...)
+        if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             entry.set_text("")
             #entry.set_placeholder_text("Filter programmes")
 
 #### Main window controller
 
-#(TODO move inside MainWindowController)
-class PresetComboModelColumn:
-    PRESET = 0
-    PROG_TYPE = 1
-
 class MainWindowController:
     """ Handle the active part of the main window related widgets. Activity between main widgets and 
         activity towards the (source of the gtk widget) model get_iplayer.py
     """
+    
+    class PresetComboModelColumn:
+        PRESET = 0
+        PROG_TYPE = 1
     
     def __init__(self, main_window):
         self.main_window = main_window
@@ -1353,8 +1380,8 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][PresetComboModelColumn.PRESET]
-            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
 
         categories = None
         combo = self.tool_bar_box.categories_combo
@@ -1373,7 +1400,9 @@ class MainWindowController:
         if tree_iter is not None:
             model = combo.get_model()
             channels = model[tree_iter][KEY_INDEX]
-        
+            #ALTERNATIVE
+            #channels = model.get_value(tree_iter, KEY_INDEX)
+
         since = 0
         combo = self.tool_bar_box.since_combo
         tree_iter = combo.get_active_iter()
@@ -1404,8 +1433,8 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][PresetComboModelColumn.PRESET]
-            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
             #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
             if preset == get_iplayer.Preset.TV:
                 hd_tv_modes = self.tool_bar_box.hd_tv_check_button.get_active()
@@ -1485,9 +1514,9 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][PresetComboModelColumn.PRESET]
-            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
-            #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
+            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
+            #channel = model[tree_iter][self.PresetComboModelColumn.CHANNEL]
  
         proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
         
@@ -1560,7 +1589,7 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][PresetComboModelColumn.PRESET]
+            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
 
         channels = None
         combo = self.tool_bar_box.channels_combo
@@ -1582,8 +1611,8 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][PresetComboModelColumn.PRESET]
-            prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
             
             # Synchronize categories filter
             if prog_type == get_iplayer.ProgType.RADIO:
@@ -1655,7 +1684,7 @@ class MainWindowController:
             if tree_iter is not None:
                 model = combo.get_model()
                 #preset = model[tree_iter][PresetComboModelColumn.PRESET]
-                prog_type = model[tree_iter][PresetComboModelColumn.PROG_TYPE]
+                prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
                 #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
 
             categories = None
