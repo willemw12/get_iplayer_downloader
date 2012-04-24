@@ -4,8 +4,7 @@ import logging
 import os
 
 from datetime import datetime
-
-from get_iplayer_downloader import get_iplayer, settings
+from get_iplayer_downloader import common, get_iplayer, settings
 
 def _init_loggers():
     level = settings.get_log_level()
@@ -62,11 +61,12 @@ def main():
 
     _init_loggers()
 
-    if settings.args().list_categories or settings.args().list_channels:
-        if settings.args().list_categories:
-            list_categories(settings.args().list_long_labels)
-        else:
-            list_channels()
+    if settings.args().list_categories:
+        list_categories(settings.args().list_long_labels)
+    elif settings.args().list_channels:
+        list_channels()
+    elif settings.args().version:
+        print common.__program_name__, common.__version__ 
     else:
         from get_iplayer_downloader.ui.get_iplayer_gui import main
         main()

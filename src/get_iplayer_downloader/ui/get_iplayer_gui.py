@@ -12,10 +12,6 @@ from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColum
 from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
-#### Main window
-
-BORDER_WIDTH = 4
-
 ####
 
 #TOOLTIP_FILE_QUIT
@@ -55,7 +51,9 @@ TOOLTIP_PROGRESS_DOWNLOADING = "Downloading"
 
 TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click anywhere"
 
-####
+#### Main window
+
+BORDER_WIDTH = 4
 
 class MainWindow(Gtk.Window):
 
@@ -69,8 +67,10 @@ class MainWindow(Gtk.Window):
         if start_maximized:
             self.maximize()
 
+        ####
+        
         # Initialize the controller
-        self.main_controller = MainWindowController(self)
+        self._main_controller = MainWindowController(self)
         
         # Initialize the view
         self._init_ui_manager()
@@ -81,8 +81,10 @@ class MainWindow(Gtk.Window):
         self._init_main_tree_view()
 
         # Finalize initialization of the controller
-        self.main_controller.init()
+        self._main_controller.init()
 
+        ####
+        
         # Initialize the model
         self.main_tree_view.init_store()        
 
@@ -92,6 +94,9 @@ class MainWindow(Gtk.Window):
             # of the main window width and therefore also the top tool bar width
             self.tool_bar_box.show_all()
 
+    def controller(self):
+        return self._main_controller
+    
     def _init_ui_manager(self):
         self.ui_manager = UIManager(self)
 
@@ -282,19 +287,19 @@ class UIManager():
         if name == "EditPreferences":
             self.on_preferences()
         elif name == "ViewProperties":
-            self.main_window.main_controller.on_button_properties_clicked(None)
+            self.main_window.controller().on_button_properties_clicked(None)
         elif name == "SearchGoToFind":
-            self.main_window.main_controller.on_accel_go_to_find()
+            self.main_window.controller().on_accel_go_to_find()
         elif name == "SearchRotateProgrammeType":
-            self.main_window.main_controller.on_accel_rotate_programme_type()
+            self.main_window.controller().on_accel_rotate_programme_type()
         elif name == "ToolsDownload":
-            self.main_window.main_controller.on_button_download_clicked(None)
+            self.main_window.controller().on_button_download_clicked(None)
         elif name == "ToolsPvrQueue":
-            self.main_window.main_controller.on_button_pvr_queue_clicked()
+            self.main_window.controller().on_button_pvr_queue_clicked()
         elif name == "ToolsClear":
-            self.main_window.main_controller.on_button_clear_clicked(None)
+            self.main_window.controller().on_button_clear_clicked(None)
         elif name == "ToolsRefresh":
-            self.main_window.main_controller.on_button_refresh_clicked(None)
+            self.main_window.controller().on_button_refresh_clicked(None)
         elif name == "HelpHelp":
             self.on_help()
         elif name == "HelpAbout":
@@ -404,7 +409,7 @@ class ToolBarBox(Gtk.Box):
         if not hide_button_labels:
             button.set_label("Properties")
         button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
-        button.connect("clicked", self.main_window.main_controller.on_button_properties_clicked)
+        button.connect("clicked", self.main_window.controller().on_button_properties_clicked)
         self.pack_start(button, False, False, 0)
 
         button = Gtk.Button(use_underline=True, relief=Gtk.ReliefStyle.NONE,
@@ -414,7 +419,7 @@ class ToolBarBox(Gtk.Box):
         if not hide_button_labels:
             button.set_label("_Download")
         button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
-        button.connect("clicked", self.main_window.main_controller.on_button_download_clicked)
+        button.connect("clicked", self.main_window.controller().on_button_download_clicked)
         self.pack_start(button, False, False, 0)
 
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
@@ -423,7 +428,7 @@ class ToolBarBox(Gtk.Box):
             button.set_label("Clear")
         button.set_tooltip_text(TOOLTIP_TOOLS_CLEAR)
         button.set_focus_on_click(False)
-        button.connect("clicked", self.main_window.main_controller.on_button_clear_clicked)
+        button.connect("clicked", self.main_window.controller().on_button_clear_clicked)
         self.pack_start(button, False, False, 0)
 
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
@@ -432,7 +437,7 @@ class ToolBarBox(Gtk.Box):
             button.set_label("Refresh")
         button.set_tooltip_text(TOOLTIP_TOOLS_REFRESH)
         button.set_focus_on_click(False)
-        button.connect("clicked", self.main_window.main_controller.on_button_refresh_clicked)
+        button.connect("clicked", self.main_window.controller().on_button_refresh_clicked)
         self.pack_start(button, False, False, 0)
         #button.grab_focus()
         
@@ -445,12 +450,12 @@ class ToolBarBox(Gtk.Box):
             button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
                                 image_position=Gtk.PositionType.TOP)
             button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
-            button.connect("clicked", self.main_window.main_controller.on_button_find_clicked)
+            button.connect("clicked", self.main_window.controller().on_button_find_clicked)
             self.pack_start(button, False, False, 0)
 
         self.search_entry = SearchEntry(compact_toolbar)
         self.search_entry.set_tooltip_text(TOOLTIP_FILTER_SEARCH_ENTRY)
-        self.search_entry.connect("activate", self.main_window.main_controller.on_button_find_clicked)
+        self.search_entry.connect("activate", self.main_window.controller().on_button_find_clicked)
         self.search_entry.connect("icon-press", self._on_search_entry_find_icon_press)
         self.pack_start(self.search_entry, False, False, 0)
         self.search_entry.grab_focus()
@@ -477,7 +482,7 @@ class ToolBarBox(Gtk.Box):
         self.preset_combo.pack_start(renderer_text, True)
         # Render third store column 
         self.preset_combo.add_attribute(renderer_text, "text", 2)
-        self.preset_combo.connect("changed", self.main_window.main_controller.on_combo_preset_changed)
+        self.preset_combo.connect("changed", self.main_window.controller().on_combo_preset_changed)
         self.pack_start(self.preset_combo, False, False, 0)
         
         ####
@@ -645,7 +650,7 @@ class ToolBarBox(Gtk.Box):
         self.future_checkbox = Gtk.CheckButton("Future")
         self.future_checkbox.set_tooltip_text(TOOLTIP_TOOLS_FUTURE)
         self.future_checkbox.set_focus_on_click(False)
-        self.future_checkbox.connect("clicked", self.main_window.main_controller.on_checkbox_future_clicked)
+        self.future_checkbox.connect("clicked", self.main_window.controller().on_checkbox_future_clicked)
         grid.attach_next_to(self.future_checkbox, self.pvr_queue_check_button, Gtk.PositionType.BOTTOM, 1, 1)
 
         ##
@@ -722,7 +727,7 @@ class ToolBarBox(Gtk.Box):
 
     def _on_search_entry_find_icon_press(self, entry, icon_pos, event):
         if icon_pos == Gtk.EntryIconPosition.PRIMARY:
-            self.main_window.main_controller.on_button_find_clicked(None)
+            self.main_window.controller().on_button_find_clicked(None)
 
     def _on_progress_bar_update(self, user_data):
         try:
@@ -748,7 +753,7 @@ class ToolBarBox(Gtk.Box):
         return True
 
     def _on_menu_button_press_event(self, widget, event):
-        self.main_window.main_controller.ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
+        self.main_window.controller().ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
         #return True
 
     ##### Spinner
@@ -811,8 +816,8 @@ class MainTreeView(Gtk.TreeView):
         self._init_columns()
 
     def init_store(self):
-        self.main_window.main_controller.session_restore()
-        self.main_window.main_controller.on_button_find_clicked(None)
+        self.main_window.controller().session_restore()
+        self.main_window.controller().on_button_find_clicked(None)
         
     def _init_columns(self):
         if string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")):
@@ -925,11 +930,11 @@ class MainTreeView(Gtk.TreeView):
 
         if event.type == Gdk.EventType._2BUTTON_PRESS:
             # Double-clicked
-            self.main_window.main_controller.on_button_properties_clicked(None)
+            self.main_window.controller().on_button_properties_clicked(None)
             #return True
         elif event.type == Gdk.EventType.BUTTON_PRESS and event.button == 3:
             # Right mouse button pressed
-            self.main_window.main_controller.ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
+            self.main_window.controller().ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
             #return True
         #return False
     
@@ -1196,6 +1201,7 @@ class PreferencesDialogWrapper(object):
 
         self.general_compact_toolbar_checkbox = self.builder.get_object("PrefsGeneralCompactToolbar")
         self.general_compact_treeview_checkbox = self.builder.get_object("PrefsGeneralCompactTreeview")
+        self.general_show_tooltip_checkbox = self.builder.get_object("PrefsGeneralShowTooltip")
         self.general_start_maximized_checkbox = self.builder.get_object("PrefsGeneralStartMaximized")
 
         self.radio_channels_entry = self.builder.get_object("PrefsRadioChannelsEntry")
@@ -1234,6 +1240,7 @@ class PreferencesDialogWrapper(object):
         """ Retrieve in-memory settings and put them in dialog fields """
         self.general_compact_toolbar_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
         self.general_compact_treeview_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
+        self.general_show_tooltip_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
         self.general_start_maximized_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
@@ -1264,6 +1271,7 @@ class PreferencesDialogWrapper(object):
         """ Retrieve settings from dialog fields and put them in in-memory settings """
         settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_checkbox.get_active()))
         settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_checkbox.get_active()))
+        settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_checkbox.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_checkbox.get_active()))
         
         settings.config().set("radio", "channels", self.radio_channels_entry.get_text())
@@ -1285,6 +1293,7 @@ class PreferencesDialogWrapper(object):
 
         settings.revert_option(config.NOSECTION, "compact-toolbar")
         settings.revert_option(config.NOSECTION, "compact-treeview")
+        settings.revert_option(config.NOSECTION, "show-tooltip")
         settings.revert_option(config.NOSECTION, "start-maximized")
 
         settings.revert_option("radio", "channels")
@@ -1352,7 +1361,7 @@ class SearchEntry(Gtk.Entry):
 
 class MainWindowController:
     """ Handle the active part of the main window related widgets. Activity between main widgets and 
-        activity towards the (source of the gtk widget) model get_iplayer.py
+        activity towards the (source of the gtk widget) model, i.e. get_iplayer.py
     """
     
     class PresetComboModelColumn:
@@ -1362,7 +1371,6 @@ class MainWindowController:
     def __init__(self, main_window):
         self.main_window = main_window
 
-    # Convenience method
     def init(self):
         """ Complete initialization, after the main window has completed its initialization """
         self.ui_manager = self.main_window.ui_manager
@@ -1774,8 +1782,6 @@ class MainWindowController:
                     i += 1
                 self.on_combo_preset_changed(combo)
 
-            #
-            
             if categories:
                 combo = self.tool_bar_box.categories_combo
                 model = combo.get_model()
@@ -1791,8 +1797,6 @@ class MainWindowController:
                             break
                         tree_iter = model.iter_next(tree_iter)
 
-            #
-            
             if channels:
                 combo = self.tool_bar_box.channels_combo
                 model = combo.get_model()
@@ -1808,8 +1812,6 @@ class MainWindowController:
                             break
                         tree_iter = model.iter_next(tree_iter)
 
-            #
-            
             if since >= 0:
                 combo = self.tool_bar_box.since_combo
                 model = combo.get_model()
@@ -1856,7 +1858,7 @@ def _files2urls(filepath):
 
 #NOTE session_save() is done from outside the window class and session_restore() is done from inside the window class,
 def _main_quit(main_window, event):
-    main_window.main_controller.session_save()
+    main_window.controller().session_save()
     Gtk.main_quit(main_window, event)
 
 def main():
@@ -1871,8 +1873,8 @@ def main():
     context.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
     window = MainWindow()
+    #window.init()
     window.connect("delete-event", _main_quit)
-
     window.show_all()
 
     # Force images on buttons

@@ -54,12 +54,13 @@ def _save_config(config, config_filename):
         config.write(config_file)    
 
 def _create_args():
-    #NOTE argparse does an implicit auto-complete: --list-ch --> --list-channels
+    #NOTE argparse() does an implicit auto-complete: --list-ch --> --list-channels
     argparser = argparse.ArgumentParser(description=common.__long_description__)
     argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("--list-categories", dest="list_categories", action="store_const", const=True, default=False, help="list all available categories (label-value pairs)")
     argparser.add_argument("--list-channels", dest="list_channels", action="store_const", const=True, default=False, help="list all available channels")
     argparser.add_argument("--list-long-labels", dest="list_long_labels", action="store_const", const=True, default=False, help="used with --list-categories")
+    argparser.add_argument("--version", "--version", dest="version", action="store_const", const=True, default=False, help="print version")    
     argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
     argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")    
     return argparser.parse_args()
@@ -154,3 +155,18 @@ def args():
     if not _args:
         _args = _create_args()
     return _args
+
+####
+
+#class Settings(object):
+#    def __new__(cls, *arguments, **keywords):
+#        if not hasattr(cls, '_inst'):
+#            cls._inst = super(Settings, cls).__new__(cls, *arguments, **keywords)
+#        return cls._inst
+
+#class Settings(object):
+#    _shared_state = { "args": _create_args(), "config": _create_init() }
+#    def __new__(cls, *arguments, **keywords):
+#        obj = super(Settings, cls).__new__(cls, *arguments, **keywords)
+#        obj.__dict__ = cls._shared_state
+#        return obj

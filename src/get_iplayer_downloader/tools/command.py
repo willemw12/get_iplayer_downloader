@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 #def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, **keywords):
 def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname=None):
-    """ @terminal_prog is a terminal emulator program name, compatible with xterm options (-geometry instead of --geometry) """
+    """ @terminal_prog is a terminal emulator program name, compatible with xterm options (-geometry instead of --geometry). """
     
     # The command string that will be executed
     cmd_exec = cmd

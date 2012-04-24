@@ -1,8 +1,8 @@
 # Maintainer: willemw12 <willemw12@gmail.com>
 
 pkgname=get_iplayer_downloader
-pkgver=0.2
-_pkgver=v0.2
+pkgver=0.3
+_pkgver=v0.3
 pkgrel=1
 pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')
