@@ -125,7 +125,7 @@ class MainWindow(Gtk.Window):
         self.main_tree_view_scrollbar.add(self.main_tree_view)
         
     def set_window_title(self, prog_type=get_iplayer.ProgType.RADIO):
-        self.set_title(prog_type + " - " + get_iplayer_downloader.common.__program_name__)
+        self.set_title(prog_type + " - " + get_iplayer_downloader.common.PROGRAM_NAME)
 
 class UIManager():
 
@@ -356,13 +356,14 @@ class UIManager():
         dialog = Gtk.AboutDialog()
         dialog.set_transient_for(self.main_window)
 
-        dialog.set_program_name(get_iplayer_downloader.common.__program_name__)
-        dialog.set_comments(get_iplayer_downloader.common.__description__ + "\n\n" + get_iplayer_downloader.common.__long_description__)
-        dialog.set_version(get_iplayer_downloader.common.__version__)
-        dialog.set_website(get_iplayer_downloader.common.__url__)
-        dialog.set_website_label(get_iplayer_downloader.common.__url__)
+        dialog.set_program_name(get_iplayer_downloader.common.PROGRAM_NAME)
+        dialog.set_logo_icon_name(Gtk.STOCK_GOTO_BOTTOM)
+        dialog.set_comments(get_iplayer_downloader.common.DESCRIPTION + "\n\n" + get_iplayer_downloader.common.LONG_DESCRIPTION)
+        dialog.set_version(get_iplayer_downloader.common.VERSION)
+        dialog.set_website(get_iplayer_downloader.common.URL)
+        dialog.set_website_label(get_iplayer_downloader.common.URL)
         #NOTE [""] means char** in C
-        dialog.set_authors([get_iplayer_downloader.common.__authors__])
+        dialog.set_authors([get_iplayer_downloader.common.AUTHORS])
 
         dialog.connect("response", lambda dialog, response: dialog.destroy())
         dialog.run()
@@ -1036,7 +1037,7 @@ class MainTreeView(Gtk.TreeView):
 class PropertiesWindow(Gtk.Window):
 
     def __init__(self, get_iplayer_output_lines):
-        Gtk.Window.__init__(self, title="properties - " + get_iplayer_downloader.common.__program_name__)
+        Gtk.Window.__init__(self, title="properties - " + get_iplayer_downloader.common.PROGRAM_NAME)
         self.set_default_size(800, 700)
         self.set_border_width(BORDER_WIDTH)
         #self.set_resizable(False)
@@ -1227,7 +1228,7 @@ class PreferencesDialogWrapper(object):
 
         ####
         
-        self.dialog.set_title("preferences - " + get_iplayer_downloader.common.__program_name__)
+        self.dialog.set_title("preferences - " + get_iplayer_downloader.common.PROGRAM_NAME)
         self._display_settings()
 
         self.builder.connect_signals(self)

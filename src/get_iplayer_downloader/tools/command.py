@@ -45,10 +45,8 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
                 cmd_exec = terminal_prog + " -e \"$SHELL -c '( set -x ; " + cmd_exec + " ) ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
                 
     if not quiet:
-        if log_level == logging.DEBUG:
-            logger.debug("run(): cmd_exec=%s", cmd_exec)
-        else:
-            logger.info("run(): cmd=%s", cmd)
+        logger.debug("run(): cmd_exec=%s", cmd_exec)
+        logger.info("run(): cmd=%s", cmd)
 
         if terminal_prog:
             # Log this now. Log statements after subprocess.check_output() will

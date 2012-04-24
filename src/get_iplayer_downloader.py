@@ -66,7 +66,7 @@ def main():
     elif settings.args().list_channels:
         list_channels()
     elif settings.args().version:
-        print common.__program_name__, common.__version__ 
+        print common.PROGRAM_NAME, common.VERSION
     else:
         from get_iplayer_downloader.ui.get_iplayer_gui import main
         main()

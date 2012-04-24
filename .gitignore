@@ -6,8 +6,10 @@ installed-files.txt
 
 tmp/
 
-/deb_dist/
 /build/
+/deb_dist/
 /dist/
 /MANIFEST
+
+/src/get_iplayer_downloader/GIT_VERSION
 

@@ -4,4 +4,4 @@ def str2bool(string):
 
 def decode(string):
     # Simple decoding
-    return string.decode('utf8', "replace")
+    return string.decode("utf8", "replace")

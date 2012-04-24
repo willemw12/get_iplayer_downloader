@@ -13,11 +13,11 @@ from get_iplayer_downloader.tools import config as Config
 DEFAULT_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.conf")
 
 if os.name == "posix":
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.__program_name__, "config")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.PROGRAM_NAME, "config")
 else:
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.__program_name__, "config")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.PROGRAM_NAME, "config")
     
-TEMP_PATHNAME = tempfile.gettempdir() + os.sep + common.__program_name__
+TEMP_PATHNAME = tempfile.gettempdir() + os.sep + common.PROGRAM_NAME
 
 #### "Stateless" utility configuration methods
 
@@ -55,7 +55,7 @@ def _save_config(config, config_filename):
 
 def _create_args():
     #NOTE argparse() does an implicit auto-complete: --list-ch --> --list-channels
-    argparser = argparse.ArgumentParser(description=common.__long_description__)
+    argparser = argparse.ArgumentParser(description=common.LONG_DESCRIPTION)
     argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("--list-categories", dest="list_categories", action="store_const", const=True, default=False, help="list all available categories (label-value pairs)")
     argparser.add_argument("--list-channels", dest="list_channels", action="store_const", const=True, default=False, help="list all available channels")
