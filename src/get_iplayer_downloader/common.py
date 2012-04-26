@@ -1,4 +1,6 @@
+# This file is also invoked by setup.py, which doesn't have a logger
 #import logging
+
 import os
 import re
 import subprocess
@@ -27,8 +29,11 @@ def _version():
         # Get and save the git version, during installation or when run without being installed
         try:
             # Linux specific
-            version = subprocess.check_output("echo -n $(git describe --tags | head -1)", shell=True, stderr=subprocess.STDOUT)
-
+            #version = subprocess.check_output("echo -n $(git describe --tags | head -1)", shell=True, stderr=subprocess.STDOUT)
+            
+            version = subprocess.check_output("git describe --tags", shell=True, stderr=subprocess.STDOUT)
+            version = version.split("\n", 1)[0].lstrip()
+            
             # setup.py stdb (create .deb packages): doesn't like the version to start with a non-digit character
             p = re.compile(r"(^[^0-9]+)")
             version = p.sub("", version)
@@ -37,7 +42,8 @@ def _version():
                 fp = open(_GIT_VERSION_FILENAME, "w")
                 fp.write(version + "\n")
                 fp.close()
-                #NOTE sometimes fatal git error, but not as an exception. Version is a byte string, not a string
+                #NOTE Sometimes version contains a fatal git error, without exception being raised
+                #NOTE Version is a byte string, not a string:
                 #if version and not version.startsWith("fatal") and not version.startsWith("error"):
                 if version:
                     return version
@@ -56,20 +62,6 @@ def _version():
 #    VERSION = version_subst.VERSION
 
 ####
-
-def save_git_version():
-    """ Get _version from git, if possible. """
-    try:
-        # Linux specific
-        _version = subprocess.check_output("echo -n $(git describe --tags | head -1)", shell=True, stderr=subprocess.STDOUT)
-
-        print "save_git_version(): filename", _GIT_VERSION_FILENAME
-        fp = open(_GIT_VERSION_FILENAME, "w")
-        fp.write(_version + "\n")
-        fp.close()
-    except subprocess.CalledProcessError as exc:
-        print "save_git_version():", exc
-        pass
 
 def cleanup_install():
     #if os.path.exists(_GIT_VERSION_FILENAME):
