@@ -395,9 +395,9 @@ class ToolBarBox(Gtk.Box):
         
         compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
         if compact_toolbar:
-            hide_button_labels = True
+            show_button_labels = False
         else:
-            hide_button_labels = compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "hide-button-labels"))
+            show_button_labels = compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "show-button-labels"))
 
         def _label(label):
             #NOTE Conditional expression (one line if-then-else)
@@ -407,7 +407,7 @@ class ToolBarBox(Gtk.Box):
         
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_PROPERTIES))
-        if not hide_button_labels:
+        if show_button_labels:
             button.set_label("Properties")
         button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
         button.connect("clicked", self.main_window.controller().on_button_properties_clicked)
@@ -417,7 +417,7 @@ class ToolBarBox(Gtk.Box):
                             image_position=Gtk.PositionType.TOP)
         #Gtk.STOCK_GO_DOWN
         button.set_image(Gtk.Image(stock=Gtk.STOCK_GOTO_BOTTOM))
-        if not hide_button_labels:
+        if show_button_labels:
             button.set_label("_Download")
         button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
         button.connect("clicked", self.main_window.controller().on_button_download_clicked)
@@ -425,7 +425,7 @@ class ToolBarBox(Gtk.Box):
 
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_CLEAR))
-        if not hide_button_labels:
+        if show_button_labels:
             button.set_label("Clear")
         button.set_tooltip_text(TOOLTIP_TOOLS_CLEAR)
         button.set_focus_on_click(False)
@@ -434,7 +434,7 @@ class ToolBarBox(Gtk.Box):
 
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
-        if not hide_button_labels:
+        if show_button_labels:
             button.set_label("Refresh")
         button.set_tooltip_text(TOOLTIP_TOOLS_REFRESH)
         button.set_focus_on_click(False)
@@ -447,7 +447,7 @@ class ToolBarBox(Gtk.Box):
         separator = Gtk.VSeparator()
         self.pack_start(separator, False, False, 0)
 
-        if not hide_button_labels:
+        if show_button_labels:
             button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
                                 image_position=Gtk.PositionType.TOP)
             button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
@@ -523,7 +523,7 @@ class ToolBarBox(Gtk.Box):
         # Render second store column 
         self.categories_combo.add_attribute(renderer_text, "text", 1)
 
-        if not string.str2bool(settings.config().get(config.NOSECTION, "disable-categories-filter")):
+        if string.str2bool(settings.config().get(config.NOSECTION, "enable-categories-filter")):
             self.pack_start(self.categories_combo, False, False, 0)
 
         ####
@@ -577,7 +577,7 @@ class ToolBarBox(Gtk.Box):
         # Render second store column 
         self.channels_combo.add_attribute(renderer_text, "text", 1)
 
-        if not string.str2bool(settings.config().get(config.NOSECTION, "disable-channels-filter")):
+        if string.str2bool(settings.config().get(config.NOSECTION, "enable-channels-filter")):
             self.pack_start(self.channels_combo, False, False, 0)
 
         ####
@@ -600,7 +600,7 @@ class ToolBarBox(Gtk.Box):
         # Render second store column 
         self.since_combo.add_attribute(renderer_text, "text", 1)
 
-        if not string.str2bool(settings.config().get(config.NOSECTION, "disable-since-filter")):
+        if string.str2bool(settings.config().get(config.NOSECTION, "enable-since-filter")):
             self.pack_start(self.since_combo, False, False, 0)
 
         ####
@@ -810,9 +810,10 @@ class MainTreeView(Gtk.TreeView):
         # First column
         self.set_show_expanders(False)
         self.set_level_indentation(10)
-        self.set_enable_tree_lines(False)
-        ##self.set_property("grid-line-pattern", "\000\001")
-        ##self.set_style(grid_line_pattern="\000\001")
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-tree-lines")):
+            self.set_enable_tree_lines(True)
+            ##self.set_property("grid-line-pattern", "\000\001")
+            ##self.set_style(grid_line_pattern="\000\001")
 
         self._init_columns()
 
@@ -1697,7 +1698,7 @@ class MainWindowController:
                 #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
 
             categories = None
-            if not string.str2bool(settings.config().get(config.NOSECTION, "disable-categories-filter")):
+            if string.str2bool(settings.config().get(config.NOSECTION, "enable-categories-filter")):
                 categories = ""
                 combo = self.tool_bar_box.categories_combo
                 tree_iter = combo.get_active_iter()
@@ -1706,7 +1707,7 @@ class MainWindowController:
                     categories = model[tree_iter][KEY_INDEX]
 
             channels = None
-            if not string.str2bool(settings.config().get(config.NOSECTION, "disable-channels-filter")):
+            if string.str2bool(settings.config().get(config.NOSECTION, "enable-channels-filter")):
                 channels = ""
                 combo = self.tool_bar_box.channels_combo
                 tree_iter = combo.get_active_iter()
@@ -1715,7 +1716,7 @@ class MainWindowController:
                     channels = model[tree_iter][KEY_INDEX]
 
             since = -1
-            if not string.str2bool(settings.config().get(config.NOSECTION, "disable-since-filter")):
+            if string.str2bool(settings.config().get(config.NOSECTION, "enable-since-filter")):
                 since = 0
                 combo = self.tool_bar_box.since_combo
                 tree_iter = combo.get_active_iter()
@@ -1757,11 +1758,11 @@ class MainWindowController:
                 channels = ""
 
             # Don't restore when filter widget is disabled
-            if string.str2bool(settings.config().get(config.NOSECTION, "disable-categories-filter")):
+            if not string.str2bool(settings.config().get(config.NOSECTION, "enable-categories-filter")):
                 categories = None
-            if string.str2bool(settings.config().get(config.NOSECTION, "disable-channels-filter")):
+            if not string.str2bool(settings.config().get(config.NOSECTION, "enable-channels-filter")):
                 channels = None
-            if string.str2bool(settings.config().get(config.NOSECTION, "disable-since-filter")):
+            if not string.str2bool(settings.config().get(config.NOSECTION, "enable-since-filter")):
                 since = -1
 
             # Restore values
