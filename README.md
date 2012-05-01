@@ -3,7 +3,7 @@ get\_iplayer\_downloader
 
 get\_iplayer\_downloader is a download utility for the BBC get\_iplayer program.
 
-This program is a graphical version of the command `get_iplayer --tree`, followed by `get_iplayer --pid` or `get_iplayer --info`. It displays programmes in a large treeview with two main columns: serie title and episode title plus description.
+This program is a graphical version of the command `get_iplayer --tree`, followed by `get_iplayer --pid` or `get_iplayer --info`. It displays programmes in a large tree view with two main columns: serie title and episode title plus description.
 
 It is a small utility program for me to try and find out what can be done with standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
@@ -15,8 +15,9 @@ Note: get\_iplayer has a fixed download list size (info\_limit = 40).
 
 Some screenshots:
 
-* [screenshot1](https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot1.png)
-* [screenshot2](https://github.com/willemw12/get_iplayer_downloader/wiki/images/screenshot2.png)
+* [tree view](https://github.com/willemw12/get_iplayer_downloader/wiki/images/tree_view.jpg)
+* [properties](https://github.com/willemw12/get_iplayer_downloader/wiki/images/properties.jpg)
+* [preferences](https://github.com/willemw12/get_iplayer_downloader/wiki/images/preferences.jpg)
 
 For the latest version go to:
 
@@ -95,7 +96,7 @@ The preconfigured search channels and categories are a reduced set. To start off
 
 and put the printed output in the configuration file. The same can be done for channels (`get_iplayer_downloader.py --list-channels`) or clear the channel lists in the configuration to search in all channels.
 
-If the program crashes immediately on startup or when the mouse cursor moves over the first column in the search result treeview, then disable "show-tooltip" in the GUI or in the configuration file or update the GNOME libraries (in particular GTK+ 3).
+If the program crashes immediately on startup or when the mouse cursor moves over the first column in the search result tree view, then disable "show-tooltip" in the GUI or in the configuration file or update the GNOME libraries (in particular GTK+ 3).
 
 
 
