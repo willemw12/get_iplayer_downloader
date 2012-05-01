@@ -101,7 +101,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">A compact toolbar has no combo box labels. Changes take effect after restart of this program</property>
+                        <property name="tooltip_text" translatable="yes">A compact toolbar has no combo box labels. Change takes effect after restart of this program</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -142,7 +142,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Compact search result list. Changes take effect after restart of this program</property>
+                        <property name="tooltip_text" translatable="yes">Compact search result list. Change takes effect after restart of this program</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -183,7 +183,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Show additional programme information in a tooltip. Changes take effect after restart of this program</property>
+                        <property name="tooltip_text" translatable="yes">Show additional programme information in a tooltip. Change takes effect after restart of this program</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -330,7 +330,7 @@
                       <object class="GtkLabel" id="label5">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Download file path. Iif this field is empty, the get_iplayer output path will be used</property>
+                        <property name="tooltip_text" translatable="yes">Download file path. Use get_iplayer output path if left empty</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -526,7 +526,7 @@
                       <object class="GtkLabel" id="label8">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Download file path. Get_iplayer output path if left empty</property>
+                        <property name="tooltip_text" translatable="yes">Download file path. Use get_iplayer output path if left empty</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>

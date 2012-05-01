@@ -232,7 +232,7 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
     return output_lines
 
 def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=None,
-        hd_tv_modes=False, force_download=False, output_path=None, categories=None, future=False):
+        hd_tv_modes=False, force=False, output_path=None, categories=None, future=False):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
         @search_term_table has columns listed in SearchTermColumn.
         If @pid is true, then the first column of @search_term_table contains pids.
@@ -262,7 +262,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
                 cmd += " --tvmode=\"" + settings.config().get(preset, "hd-modes") + "\""
         if prog_type:
 		    cmd += " --type=" + prog_type
-        if force_download:
+        if force:
             cmd += " --force"
         cmd += " --nocopyright --hash"
         if output_path:
@@ -335,17 +335,17 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
 
     return output_lines
 
-def refresh(preset=None, channels=None, future=False):
+def refresh(preset=None, channels=None, force=False, future=False):
     """ Run get_iplayer --refresh. """
     if not preset:
         #preset = Preset.RADIO + "," + Preset.TV
         preset = "all"
 
     cmd = _GET_IPLAYER_PROG + " --preset=" + preset + " --refresh"
+    if force:
+        cmd += " --force"
     if future:
-        #cmd += " --refresh-future --force"
         cmd += " --refresh-future"
-
     if channels:
         #cmd += " --channel=\"" + channel + "\""
         cmd += " --refresh-include=\"" + channels + "\""
