@@ -2,15 +2,14 @@
 
 _name=get_iplayer_downloader
 pkgname=$_name-git
-pkgver=20120407
+pkgver=20120503
 pkgrel=1
 pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')
 url="https://github.com/willemw12/get_iplayer_downloader"
 license=('GPL3')
-depends=('gtk3' 'python2-gobject' 'python2>=2.7')
+depends=('get_iplayer' 'gtk3' 'python2-gobject' 'python2>=2.7')
 makedepends=('git')
-optdepends=('get_iplayer' 'get_iplayer-git')
 provides=("$_name")
 conflicts=("$_name")
 options=(!emptydirs)
