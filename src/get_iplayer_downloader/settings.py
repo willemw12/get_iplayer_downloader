@@ -55,14 +55,16 @@ def _save_config(config, config_filename):
 
 def _create_args():
     #NOTE argparse() does an implicit auto-complete: --list-ch --> --list-channels
+    #NOTE add_argument(): dest="clean_cache", etc. are generated automatically. "-" are replaced by "_"
     argparser = argparse.ArgumentParser(description=common.LONG_DESCRIPTION)
-    argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
-    argparser.add_argument("--list-categories", dest="list_categories", action="store_const", const=True, default=False, help="list all available categories (label-value pairs)")
-    argparser.add_argument("--list-channels", dest="list_channels", action="store_const", const=True, default=False, help="list all available channels")
-    argparser.add_argument("--list-long-labels", dest="list_long_labels", action="store_const", const=True, default=False, help="used with --list-categories")
-    argparser.add_argument("--version", "--version", dest="version", action="store_const", const=True, default=False, help="print version")    
-    argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
-    argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")    
+    argparser.add_argument("-c", "--clear-cache", action="store_const", const=True, default=False, help="delete get_iplayer_downloader cache and log files")
+    argparser.add_argument("-d", "--debug", action="store_const", const=True, default=False, help="set log level to debug")
+    argparser.add_argument("-q", "--quiet", action="store_const", const=True, default=False, help="set log level to fatal")
+    argparser.add_argument("-v", "--verbose", action="store_const", const=True, default=False, help="set log level to info")    
+    argparser.add_argument("--list-categories", action="store_const", const=True, default=False, help="list all available categories (label-value pairs)")
+    argparser.add_argument("--list-channels", action="store_const", const=True, default=False, help="list all available channels")
+    argparser.add_argument("--list-long-labels", action="store_const", const=True, default=False, help="used with --list-categories")
+    argparser.add_argument("--version", action="store_const", const=True, default=False, help="print version")    
     return argparser.parse_args()
 
 ####

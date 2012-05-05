@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import logging
+import shutil
 import os
 
 from datetime import datetime
@@ -54,6 +55,9 @@ def list_channels():
     print "[tv]"
     print "channels =", channels
 
+def clear_cache():
+    shutil.rmtree(settings.TEMP_PATHNAME)
+    
 def main():
     # Exit if run from the interpreter
     #if not sys.argv[0]:
@@ -65,6 +69,8 @@ def main():
         list_categories(settings.args().list_long_labels)
     elif settings.args().list_channels:
         list_channels()
+    elif settings.args().clear_cache:
+        clear_cache()
     elif settings.args().version:
         print common.PROGRAM_NAME, common.VERSION
     else:

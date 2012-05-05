@@ -1,11 +1,11 @@
 """ Perform get_iplayer operations. """
 
 import ast
-from datetime import datetime
+import get_iplayer_downloader
 
+from datetime import datetime
 from get_iplayer_downloader import common, settings
 from get_iplayer_downloader.tools import command, command_queue, config, string
-import get_iplayer_downloader
 
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")

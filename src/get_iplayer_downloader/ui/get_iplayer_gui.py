@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
-import os
-import signal
-from gi.repository import Gdk, Gio, GObject, Gtk, Pango
-
 # Application-wide constants
 import get_iplayer_downloader.common
+
+import os
+import signal
 
 from get_iplayer_downloader import get_iplayer, settings
 from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX, VALUE_INDEX
 from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
+from gi.repository import Gdk, Gio, GObject, Gtk, Pango
 
 ####
 
@@ -798,7 +798,9 @@ class ToolBarBox(Gtk.Box):
 class MainTreeView(Gtk.TreeView):
 
     def __init__(self, main_window):
+        #super(MainTreeView, self). __init__()
         Gtk.TreeView.__init__(self)
+        
         #self.set_property("fixed-height-mode", True)
         self.main_window = main_window
         self.button_pressed = False
@@ -1361,7 +1363,7 @@ class SearchEntry(Gtk.Entry):
             self.set_icon_tooltip_text(Gtk.EntryIconPosition.PRIMARY, TOOLTIP_SEARCH_FIND)
         self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, Gtk.STOCK_CLEAR)
         self.set_icon_tooltip_text(Gtk.EntryIconPosition.SECONDARY, TOOLTIP_SEARCH_CLEAR)
-        self.set_placeholder_text("Filter programmes")
+        self.set_placeholder_text("Search")
         self.connect("icon-press", self._on_icon_press)
 
     def _on_icon_press(self, entry, icon_pos, event):
@@ -1371,7 +1373,7 @@ class SearchEntry(Gtk.Entry):
         #    signal.emity_by_name(...)
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             entry.set_text("")
-            #entry.set_placeholder_text("Filter programmes")
+            #entry.set_placeholder_text("Search")
 
 #### Main window controller
 
