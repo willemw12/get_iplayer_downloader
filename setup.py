@@ -2,13 +2,11 @@ import os
 import sys
 from distutils.core import setup
 
-# Add "src" to Python search paths
+# Add "src" to the Python search paths
 sys.path.insert(0, "src")
 
-# Application-wide constants
-import get_iplayer_downloader.common as common
-
-####
+# Load application-wide definitions
+import get_iplayer_downloader
 
 if os.path.exists(os.path.join(os.getcwd(), "MANIFEST")):
     os.remove(os.path.join(os.getcwd(), "MANIFEST"))
@@ -20,16 +18,16 @@ if os.path.exists(os.path.join(os.getcwd(), "MANIFEST")):
 #    echo "Installing desktop menu item..."
 #    subprocess.call(["xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop"], shell=True)
 
-#NOTE name can be anything. It is the folder name in /usr/local/lib/python*/dist-packages
-setup(name = common.PROGRAM_NAME,
-    version = common.VERSION,
-    description = common.DESCRIPTION,
-    long_description = common.LONG_DESCRIPTION,
-    author = common.AUTHORS,
-    author_email = common.EMAILS,
-    url = common.URL,
-    license = common.LICENSE,
-    platforms = common.PLATFORMS,
+#NOTE "name" can be anything. It is the folder name in /usr/local/lib/python*/dist-packages
+setup(name = get_iplayer_downloader.PROGRAM_NAME,
+    version = get_iplayer_downloader.VERSION,
+    description = get_iplayer_downloader.DESCRIPTION,
+    long_description = get_iplayer_downloader.LONG_DESCRIPTION,
+    author = get_iplayer_downloader.AUTHORS,
+    author_email = get_iplayer_downloader.EMAILS,
+    url = get_iplayer_downloader.URL,
+    license = get_iplayer_downloader.LICENSE,
+    platforms = get_iplayer_downloader.PLATFORMS,
 
     package_dir = {"get_iplayer_downloader": "src/get_iplayer_downloader"},
     packages = ["get_iplayer_downloader", "get_iplayer_downloader.tools",
@@ -47,4 +45,4 @@ setup(name = common.PROGRAM_NAME,
     scripts = ["bin/get_iplayer_downloader"]
     )
 
-common.cleanup_install()
+get_iplayer_downloader.cleanup_install()

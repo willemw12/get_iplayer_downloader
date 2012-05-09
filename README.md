@@ -84,13 +84,13 @@ Most configuration settings can be managed from the GUI. Other settings can be f
 
 Before downloading programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file. Clear the download path, to use the default download path specified in get\_iplayer.
 
-The preconfigured search channels and categories are a reduced set. To start off with category lists containing all available categories, run:
+The preconfigured search channels and categories are a reduced set. To start off with category lists containing all available categories, run from this directory:
 
-    <path to this directory>/src/get_iplayer_downloader.py --list-categories --quiet
+    ./src/get_iplayer_downloader.py --list-categories --quiet
 
 and put the printed output in the configuration file. The same can be done for channels:
 
-    <path to this directory>/src/get_iplayer_downloader.py --list-channels --quiet
+    ./src/get_iplayer_downloader.py --list-channels --quiet
 	
 or clear the channel lists in the configuration to search in all channels.
 
@@ -189,12 +189,13 @@ File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing scr
 
 The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /usr/local/share/get\_iplayer\_downloader/scripts.
 
-Copy or link the script to a directory in $PATH, for example:
+Copy or link the script to a directory in $PATH, for example, from this directory:
 
-    ln -s <absolute path to this directory>/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
+    ln -s $(pwd)/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
 
 or add a path in front of the command below as shown below.
 
 To configure, put for example in ~/.get\_iplayer/presets/tv:
 
     command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+

@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 
 import logging
-import shutil
 import os
+import shutil
 
 from datetime import datetime
-from get_iplayer_downloader import common, get_iplayer, settings
+
+# Load application-wide definitions
+import get_iplayer_downloader
+
+from get_iplayer_downloader import get_iplayer, settings
 
 def _init_loggers():
     level = settings.get_log_level()
@@ -72,7 +76,7 @@ def main():
     elif settings.args().clear_cache:
         clear_cache()
     elif settings.args().version:
-        print common.PROGRAM_NAME, common.VERSION
+        print get_iplayer_downloader.PROGRAM_NAME, get_iplayer_downloader.VERSION
     else:
         from get_iplayer_downloader.ui.get_iplayer_gui import main
         main()

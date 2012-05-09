@@ -2,9 +2,8 @@ import argparse
 import os
 import tempfile
 
-# Application-wide constants
-import common
-
+# Load application-wide definitions
+import get_iplayer_downloader
 # "as Config": to avoid conflict with package method config() (and local variable config)
 from get_iplayer_downloader.tools import config as Config
 
@@ -13,11 +12,11 @@ from get_iplayer_downloader.tools import config as Config
 DEFAULT_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.conf")
 
 if os.name == "posix":
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", common.PROGRAM_NAME, "config")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", get_iplayer_downloader.PROGRAM_NAME, "config")
 else:
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), common.PROGRAM_NAME, "config")
+    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), get_iplayer_downloader.PROGRAM_NAME, "config")
     
-TEMP_PATHNAME = tempfile.gettempdir() + os.sep + common.PROGRAM_NAME
+TEMP_PATHNAME = tempfile.gettempdir() + os.sep + get_iplayer_downloader.PROGRAM_NAME
 
 #### "Stateless" utility configuration methods
 
@@ -56,7 +55,7 @@ def _save_config(config, config_filename):
 def _create_args():
     #NOTE argparse() does an implicit auto-complete: --list-ch --> --list-channels
     #NOTE add_argument(): dest="clean_cache", etc. are generated automatically. "-" are replaced by "_"
-    argparser = argparse.ArgumentParser(description=common.LONG_DESCRIPTION)
+    argparser = argparse.ArgumentParser(description=get_iplayer_downloader.LONG_DESCRIPTION)
     argparser.add_argument("-c", "--clear-cache", action="store_const", const=True, default=False, help="delete get_iplayer_downloader cache and log files")
     argparser.add_argument("-d", "--debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("-q", "--quiet", action="store_const", const=True, default=False, help="set log level to fatal")

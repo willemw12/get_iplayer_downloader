@@ -1,10 +1,8 @@
 """ Perform get_iplayer operations. """
 
 import ast
-import get_iplayer_downloader
 
-from datetime import datetime
-from get_iplayer_downloader import common, settings
+from get_iplayer_downloader import settings
 from get_iplayer_downloader.tools import command, command_queue, config, string
 
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
@@ -150,7 +148,7 @@ def channels(search_text, preset=None, prog_type=None):
     lines = process_output.splitlines()
     first_value = True
     output_line = ""
-    for i, line in enumerate(lines):
+    for line in lines:
         # Skip empty or message lines
         if line and line[0] and not line.startswith("INFO:") and not line.startswith("Matches:"):
             if first_value:
@@ -261,7 +259,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
             if hd_tv_modes and preset == Preset.TV:
                 cmd += " --tvmode=\"" + settings.config().get(preset, "hd-modes") + "\""
         if prog_type:
-		    cmd += " --type=" + prog_type
+            cmd += " --type=" + prog_type
         if force:
             cmd += " --force"
         cmd += " --nocopyright --hash"
@@ -271,8 +269,6 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
         if pvr_queue:
             if not preset:
                 return False
-            # Output will be displayed in a dialog window
-            run_in_terminal_window = False
             # Must explicitly specify type and pid on the command line
             cmd += " --pvrqueue --type " + preset + " --pid "
         elif pid:
@@ -312,7 +308,7 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
     if preset:
         cmd += " --preset=" + preset
     if prog_type:
-	    cmd += " --type=" + prog_type
+        cmd += " --type=" + prog_type
     if not proxy_enabled:
         # Disable proxy setting
         cmd += " --proxy=0"
