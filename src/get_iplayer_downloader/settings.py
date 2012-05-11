@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import tempfile
 
 # Load application-wide definitions
@@ -12,9 +13,9 @@ from get_iplayer_downloader.tools import config as Config
 DEFAULT_CONFIG_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "default.conf")
 
 if os.name == "posix":
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", get_iplayer_downloader.PROGRAM_NAME, "config")
+    DEFAULT_USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), ".config", get_iplayer_downloader.PROGRAM_NAME, "config")
 else:
-    USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), get_iplayer_downloader.PROGRAM_NAME, "config")
+    DEFAULT_USER_CONFIG_FILENAME = os.path.join(os.path.expanduser("~"), get_iplayer_downloader.PROGRAM_NAME, "config")
     
 TEMP_PATHNAME = tempfile.gettempdir() + os.sep + get_iplayer_downloader.PROGRAM_NAME
 
@@ -29,9 +30,11 @@ def _reload_config(config):
     """ Reload configuration. Create user's configuration file (copy of the default configuration file)
         if it did not exist.
     """
-    if os.path.isfile(USER_CONFIG_FILENAME):
-        #config.read(USER_CONFIG_FILENAME)
-        config.readfp(open(USER_CONFIG_FILENAME))
+    
+    config_filename = args().config[0]
+    if os.path.isfile(config_filename):
+        #config.read(config_filename)
+        config.readfp(open(config_filename))
         
         #ALTERNATIVE read from string
         #    default_config = """
@@ -41,25 +44,32 @@ def _reload_config(config):
         #"""
         #config.readfp(io.BytesIO(default_config))
     else:
-        _save_config(config, USER_CONFIG_FILENAME)
+        _save_config(config, config_filename)
 
 def _save_config(config, config_filename):
-    config_pathname = os.path.dirname(config_filename)
-    if not os.path.exists(config_pathname):
-        os.makedirs(config_pathname)
-    
-    # Create a configuration file for the user
-    with open(config_filename, "wb") as config_file:
-        config.write(config_file)    
+    if config_filename == DEFAULT_USER_CONFIG_FILENAME:
+        config_pathname = os.path.dirname(config_filename)
+        if not os.path.exists(config_pathname):
+            os.makedirs(config_pathname)
+
+    try:
+        # Create a configuration file
+        with open(config_filename, "wb") as config_file:
+            config.write(config_file)
+    except IOError as exc:
+        sys.stderr.write("Failed to create or write to configuration file\n")
+        sys.stderr.write(str(exc) + "\n")
+        sys.exit(exc.errno)
 
 def _create_args():
     #NOTE argparse() does an implicit auto-complete: --list-ch --> --list-channels
     #NOTE add_argument(): dest="clean_cache", etc. are generated automatically. "-" are replaced by "_"
     argparser = argparse.ArgumentParser(description=get_iplayer_downloader.LONG_DESCRIPTION)
-    argparser.add_argument("-c", "--clear-cache", action="store_const", const=True, default=False, help="delete get_iplayer_downloader cache and log files")
+    argparser.add_argument("-c", "--config", nargs=1, default=[DEFAULT_USER_CONFIG_FILENAME], help="configuration file, which will be created if it does not exist")
     argparser.add_argument("-d", "--debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("-q", "--quiet", action="store_const", const=True, default=False, help="set log level to fatal")
     argparser.add_argument("-v", "--verbose", action="store_const", const=True, default=False, help="set log level to info")    
+    argparser.add_argument("--clear-cache", action="store_const", const=True, default=False, help="delete get_iplayer_downloader cache and log files")
     argparser.add_argument("--list-categories", action="store_const", const=True, default=False, help="list all available categories (label-value pairs)")
     argparser.add_argument("--list-channels", action="store_const", const=True, default=False, help="list all available channels")
     argparser.add_argument("--list-long-labels", action="store_const", const=True, default=False, help="used with --list-categories")
@@ -82,7 +92,7 @@ def reload():
 
 def save():
     """ Save configuration to file. """
-    _save_config(config(), USER_CONFIG_FILENAME)
+    _save_config(config(), args().config[0])
 
 # Convenience methods for properties that are both in _args and in _config
 
