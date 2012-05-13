@@ -760,6 +760,7 @@ class ToolBarBox(Gtk.Box):
         #NOTE String formatting: right-aligned (default for int), 4 characters wide:  str.format("D:{0:4}  Q:{1:4}", ...)
         #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
         self.progress_bar.set_text(str(processes))
+        # Full progress bar when 6 get_iplayer processes are running.  % 1 to keep the fraction between 0.0 and 1.0.
         self.progress_bar.set_fraction(processes / 6.0 % 1)
         #Gray-out
         #self.progress_bar.set_sensitive(processes != 0 or command_queue.size() != 0)
@@ -918,8 +919,11 @@ class MainTreeView(Gtk.TreeView):
             duration = None
         else:
             try:
-                # Convert into minutes
-                duration = str(int(duration) / 60) + ":00"
+                # Convert into hours and minutes
+                #NOTE // is the integer division operator
+                duration_mins = int(duration) // 60
+                duration = "{0:2}".format(duration_mins // 60) + ":" + \
+                           "{0:02}".format(duration_mins % 60) + ":00"
             except ValueError:
                 #NOTE duration still has its original value
                 pass
@@ -1121,8 +1125,12 @@ class PropertiesWindow(Gtk.Window):
             if prop_label in PROP_LABEL_LIST:
                 if prop_label == "duration":
                     try:
-                        # Convert into minutes
-                        prop_value = str(int(prop_value) / 60) + ":00"
+                        # Convert into hours and minutes
+                        #NOTE // is the integer division operator
+                        duration_mins = int(prop_value) // 60
+                        prop_value = "{0:2}".format(duration_mins // 60) + ":" + \
+                                     "{0:02}".format(duration_mins % 60) + ":00"
+                        prop_value = prop_value.strip()
                     except ValueError:
                         #NOTE prop_value still has its original value
                         pass
