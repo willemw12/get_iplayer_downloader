@@ -159,7 +159,7 @@ There are two PKGBUILD files. For example, to build and install the latest versi
     mkdir -p ~/abs/get_iplayer_downloader-git
     cd ~/abs/get_iplayer_downloader-git
     wget https://github.com/willemw12/get_iplayer_downloader/raw/master/extra/abs/get_iplayer_downloader-git/PKGBUILD
-    makepkg -sc
+    makepkg -sic
 
 
 
