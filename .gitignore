@@ -1,14 +1,16 @@
 *~
+*.bak
 *.log
 *.pyc
 .*.swp
-installed-files.txt
 
+__pycache__/
 tmp/
 
 /build/
 /deb_dist/
 /dist/
+/installed-files.txt
 /MANIFEST
 
 /src/get_iplayer_downloader/GIT_VERSION

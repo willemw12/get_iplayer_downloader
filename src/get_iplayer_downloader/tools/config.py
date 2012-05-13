@@ -1,4 +1,4 @@
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
 
 """ The in-memory section header that contains properties that will not be part of a section in the configuration file. """
 NOSECTION = "nosection"
@@ -29,32 +29,46 @@ class PropertiesConfigParser(ConfigParser):
                 # Skip NOSECTION header
                 self.no_section_header = None
                 return
-            self.fp.write(string)
+            self.fp.write(bytes(string, "UTF-8"))
 
     ####
     
     def __init__(self, defaults=None, **keywords):
         ConfigParser.__init__(self, **keywords)
+
+    #TODO remove
+    def _readline_generator(self, f):
+        line = f.readline()
+        while line:
+            yield line
+            line = f.readline()
         
-    #def read(self, filenames):
+    #def read(self, filenames, encoding=None):
     #    pass
 
-    def readfp(self, fp, filename=None):
-        if filename is None:
+    def read_file(self, fp, source=None):
+        if source is None:
             #try:
-            filename = fp.name
+            source = fp.name
             #except AttributeError:
-            #    filename = "<???>"
-        #super(PropertiesConfigParser, self).readfp(NoSectionHeader(open(filename)))
-        ConfigParser.readfp(self, PropertiesConfigParser.NoSectionHeader(open(filename)))
+            #    source = "<???>"
+        #super(PropertiesConfigParser, self).read_file(_readline_generator(PropertiesConfigParser.NoSectionHeader(open(source))))
+        ConfigParser.read_file(self, self._readline_generator(PropertiesConfigParser.NoSectionHeader(open(source))))
+
+    #def read_string(string, source='<string>'):
+    #    pass
+
+    #def read_dict(dictionary, source='<dict>'):
+    #    pass
 
     def write(self, fp):
-        #super(PropertiesConfigParser, self).write(NoSectionHeader(fp))
+        #super(PropertiesConfigParser, self).write(PropertiesConfigParser.NoSectionHeader(fp))
         ConfigParser.write(self, PropertiesConfigParser.NoSectionHeader(fp))
 
 
 #############################################################################
 #
+# Python 2.7
 #
 ##ALTERNATIVE without subclassing ConfigParser: allow properties not being inside a header
 #

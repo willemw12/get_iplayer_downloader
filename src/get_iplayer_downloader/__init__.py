@@ -30,7 +30,7 @@ def _version():
             # Linux specific
             #version = subprocess.check_output("echo -n $(git describe --tags | head -1)", shell=True, stderr=subprocess.STDOUT)
             
-            version = subprocess.check_output("git describe --tags", shell=True, stderr=subprocess.STDOUT)
+            version = subprocess.check_output("git describe --tags", shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
             version = version.split("\n", 1)[0].lstrip()
             
             # setup.py stdb (create .deb packages): doesn't like the version to start with a non-digit character

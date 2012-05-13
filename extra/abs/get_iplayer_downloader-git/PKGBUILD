@@ -8,7 +8,7 @@ pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')
 url="https://github.com/willemw12/get_iplayer_downloader"
 license=('GPL3')
-depends=('get_iplayer' 'gtk3' 'python2-gobject' 'python2>=2.7')
+depends=('get_iplayer' 'gtk3' 'python-gobject' 'python>=3.2')
 makedepends=('git')
 provides=("$_name")
 conflicts=("$_name")
@@ -42,10 +42,10 @@ build() {
 package() {
   cd "$srcdir/$_gitname-build"
 
-  sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python2|' extra/get_iplayer_post_subdir.py
+  #sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python2|' extra/get_iplayer_post_subdir.py
 
-  python2 setup.py install --root="$pkgdir/" --optimize=1
-  python2 setup.py clean
+  python setup.py install --root="$pkgdir/" --optimize=1
+  python setup.py clean
   rm -rf build
 
   ##install -m644 res/get_iplayer_downloader.desktop -t ${pkgdir}/usr/share/applications/

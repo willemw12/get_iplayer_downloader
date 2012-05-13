@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+## ! /usr/bin/python3
 
 import logging
 import os
@@ -31,33 +32,33 @@ def list_categories(long_labels):
 
     categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, 
                                         long_labels=long_labels)
-    print "[radio]"
-    print
-    print "categories-radio =", categories
-    print
+    print("[radio]")
+    print()
+    print("categories-radio =", categories)
+    print()
 
     categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, 
                                         long_labels=long_labels)
-    print "categories-podcast =", categories
-    print
+    print("categories-podcast =", categories)
+    print()
     
     categories = get_iplayer.categories("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV, 
                                         long_labels=long_labels)
-    print "[tv]"
-    print
-    print "categories =", categories
+    print("[tv]")
+    print()
+    print("categories =", categories)
 
 def list_channels():
     get_iplayer.refresh()
 
     channels = get_iplayer.channels("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO + "," + get_iplayer.ProgType.PODCAST)
-    print "[radio]"
-    print "channels =", channels
-    print
+    print("[radio]")
+    print("channels =", channels)
+    print()
 
     channels = get_iplayer.channels("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV)
-    print "[tv]"
-    print "channels =", channels
+    print("[tv]")
+    print("channels =", channels)
 
 def clear_cache():
     shutil.rmtree(settings.TEMP_PATHNAME)
@@ -76,7 +77,7 @@ def main():
     elif settings.args().clear_cache:
         clear_cache()
     elif settings.args().version:
-        print get_iplayer_downloader.PROGRAM_NAME, get_iplayer_downloader.VERSION
+        print(get_iplayer_downloader.PROGRAM_NAME, get_iplayer_downloader.VERSION)
     else:
         from get_iplayer_downloader.ui.get_iplayer_gui import main
         main()

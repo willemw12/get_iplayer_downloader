@@ -198,12 +198,12 @@ def _move_file(categories, dirname, filename, subdir_format):
     # Move the file
     try:
         dest_dirname = os.path.join(dirname, subdir_format)
+        logger.info("move_file(): Move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         if not os.path.exists(dest_dirname):
             os.makedirs(dest_dirname)
         shutil.move(filename, dest_dirname)
-        logger.info("move_file(): Moved \"{0}\" to \"{1}\"".format(filename, dest_dirname))
     #NOTE Combined exception handling
-    except (IOError, os.error, shutil.Error), why:
+    except (IOError, os.error, shutil.Error) as why:
         logger.warning("move_file(): Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         logger.debug(str(why))
 

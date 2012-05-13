@@ -55,7 +55,7 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
 
     process_output = ""
     try:
-        process_output = subprocess.check_output(cmd_exec, shell=True, stderr=subprocess.STDOUT)
+        process_output = subprocess.check_output(cmd_exec, shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as exc:
         #logger.warning("(return code " + str(exc.returncode) + ") " + exc.output)
         logger.warning(exc.output)

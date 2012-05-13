@@ -20,7 +20,7 @@ class ExtendedMessageDialog(Gtk.MessageDialog):
                                **keywords)
         
         # Creating a secondary text results in a large "primary" text in bold
-        #self.format_secondary_text(string.decode(process_output))
+        #self.format_secondary_text(process_output)
         self.format_secondary_text(" ")
 
         #### Add text label with scrollbars

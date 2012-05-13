@@ -1133,7 +1133,7 @@ class PropertiesWindow(Gtk.Window):
                 #label1.set_selectable(False)
                 prop_grid.attach(label1, 0, i, 1, 1)
 
-                label2 = Gtk.Label(markup.text2html(string.decode(prop_value)), margin_left=40,
+                label2 = Gtk.Label(markup.text2html(prop_value), margin_left=40,
                                    valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True)
                 label2.set_padding(BORDER_WIDTH, 0)
                 label2.set_line_wrap(True)
@@ -1412,7 +1412,7 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            #WORKAROUND see also get_iplayer.py
+            #WORKAROUND see also get_iplayer.py (at least in Python 2.7)
             #    On some systems, when model[tree_iter][KEY_INDEX] == None, the following exception is raised:
             #    AttributeError: 'NoneType' object has no attribute 'decode'
             #    In the debugger, model[tree_iter][KEY_INDEX] is displayed as a unicode string.
@@ -1511,7 +1511,7 @@ class MainWindowController:
                 dialog.set_default_response(Gtk.ResponseType.CLOSE)
                 #dialog.format_secondary_text("")
                 dialog.get_content_area().set_size_request(600, 500)
-                dialog.format_tertiary_scrolled_text(string.decode(process_output))
+                dialog.format_tertiary_scrolled_text(process_output)
                 label = dialog.get_scrolled_label()
                 label.set_valign(Gtk.Align.START)
                 label.set_halign(Gtk.Align.START)

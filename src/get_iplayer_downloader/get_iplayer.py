@@ -51,7 +51,7 @@ class ProgType:
 
 # List of key-value pairs
 #NOTE cannot extend a constant list: RADIO = [[None, "Genre"]].extend(...)
-#WORKAROUND see get_iplayer_gui.py
+#WORKAROUND see get_iplayer_gui.py (at least in Python 2.7)
 #  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
 
 class Channels:
@@ -222,9 +222,9 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
                 # Add an episode line. Episode title and description from the current line
                 if l[3].startswith("- ~ "):
                     # No episode title
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3][len("- ~ "):]), l[4], l[5], l[6], l[7], l[8]])
+                    output_lines.append([False, l[1], l[2], None, l[3][len("- ~ "):], l[4], l[5], l[6], l[7], l[8]])
                 else:
-                    output_lines.append([False, l[1], l[2], None, string.decode(l[3]), l[4], l[5], l[6], l[7], l[8]])
+                    output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8]])
             l_prev = l
 
     return output_lines

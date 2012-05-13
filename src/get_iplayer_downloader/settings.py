@@ -24,7 +24,7 @@ TEMP_PATHNAME = tempfile.gettempdir() + os.sep + get_iplayer_downloader.PROGRAM_
 def _revert_config(config):
     # Properties not defined in the user configuration file will still be created 
     # and have the default value from the default configuration file
-    config.readfp(open(DEFAULT_CONFIG_FILENAME))
+    config.read_file(open(DEFAULT_CONFIG_FILENAME))
 
 def _reload_config(config):
     """ Reload configuration. Create user's configuration file (copy of the default configuration file)
@@ -34,7 +34,7 @@ def _reload_config(config):
     config_filename = args().config[0]
     if os.path.isfile(config_filename):
         #config.read(config_filename)
-        config.readfp(open(config_filename))
+        config.read_file(open(config_filename))
         
         #ALTERNATIVE read from string
         #    default_config = """
@@ -42,7 +42,7 @@ def _reload_config(config):
         #debug-level = DEBUG
         #...
         #"""
-        #config.readfp(io.BytesIO(default_config))
+        #config.read_file(io.BytesIO(default_config))
     else:
         _save_config(config, config_filename)
 

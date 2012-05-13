@@ -36,9 +36,10 @@ The dependencies are:
 
 * get\_iplayer and its dependencies  
   [http://www.infradead.org/get\_iplayer/html/get\_iplayer.html](http://www.infradead.org/get_iplayer/html/get_iplayer.html)
-* Python 2.7 or higher (not Python 3)
-* Python setuptools, to install get\_iplayer\_downloader
-* GNOME libraries for Python (mainly GTK+ 3). In most cases, already installed
+* Python 3 (3.2). Python 2.7 is supported in get_iplayer_downloader v0.3
+* Python setuptools (pytyon3-setuptools), to install get\_iplayer\_downloader
+* GNOME libraries for Python (mainly GTK+ 3). In most cases, already installed.  
+  For Debian/Ubuntu, check that the following packages are also installed: python3-gi, python3-gi-cairo 
 * Linux. Only required to run get\_iplayer in a terminal window.  
   This program may work on other platforms, however, that has not been tested
 
@@ -46,7 +47,6 @@ The dependencies are:
 
 Configuration
 -------------
-
 
 ### get\_iplayer
 
@@ -86,11 +86,11 @@ Before downloading programmes for the first time, verify the download paths and 
 
 The preconfigured search channels and categories are a reduced set. To start off with category lists containing all available categories, run from this directory:
 
-    ./src/get_iplayer_downloader.py --list-categories --quiet
+    python3 ./get_iplayer_downloader.py --list-categories --quiet
 
 and put the printed output in the configuration file. The same can be done for channels:
 
-    ./src/get_iplayer_downloader.py --list-channels --quiet
+    python3 ./get_iplayer_downloader.py --list-channels --quiet
 	
 or clear the channel lists in the configuration to search in all channels.
 
@@ -111,12 +111,16 @@ or run it from the desktop menu.
 
 To execute without installing, run:
 
-    <path to this directory>/src/get_iplayer_downloader.py
+    python3 <path to this directory>/src/get_iplayer_downloader.py
 
-If the python 2 executable name is python2, run:
+If the "python" executable is a version of Python 3, then you can simply link the script to a directory in $PATH. For example, from this directory:
 
-    python2 <path to this directory>/src/get_iplayer_downloader.py
+    ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/get_iplayer_downloader.py
 
+and run it, without installing, as:
+
+    get_iplayer_downloader.py
+    
 
 ### Running the install script
 
@@ -128,19 +132,19 @@ To uninstall, run from this directory:
 
     ./uninstall.sh
 
-If the python 2 executable name is python2, then modify the scripts accordingly.
-
 
 ### Installing on Debian/Ubuntu
 
+__Warning: this does not work in Python 3. Distutils command "bdist_deb" is not available for Python 3__
+
 To build and install as a .deb file:
 
-    # Install build and package tools
+    # Install build and package tools (Python 2)
     sudo apt-get install python-stdeb
 
     # Create a .deb file in directory deb_dist from Python setuptools (distutils) files
     sudo rm *.deb
-    python setup.py --command-packages=stdeb.command bdist_deb
+    python3 setup.py --command-packages=stdeb.command bdist_deb
 
     # Install the .deb file
     sudo dpkg -i deb_dist/python-get-iplayer-downloader_*_all.deb
@@ -155,7 +159,7 @@ There are two PKGBUILD files. For example, to build and install the latest versi
     mkdir -p ~/abs/get_iplayer_downloader-git
     cd ~/abs/get_iplayer_downloader-git
     wget https://github.com/willemw12/get_iplayer_downloader/raw/master/extra/abs/get_iplayer_downloader-git/PKGBUILD
-    makepkg -ic
+    makepkg -sc
 
 
 
@@ -185,17 +189,10 @@ Want to group downloaded programmes automatically by category?
 
 File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer subdir output option. The script supports additional property substitutions (category, week, ...) in the output subdirectory names. For more information, run:
 
-    ./extra/get_iplayer_post_subdir.py --help 
+    python3 ./extra/get_iplayer_post_subdir.py --help 
 
 The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /usr/local/share/get\_iplayer\_downloader/scripts.
 
-Copy or link the script to a directory in $PATH, for example, from this directory:
-
-    ln -s $(pwd)/extra/get_iplayer_post_subdir.py ~/bin/get_iplayer_post_subdir.py
-
-or add a path in front of the command below as shown below.
-
 To configure, put for example in ~/.get\_iplayer/presets/tv:
 
-    command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
-
+    command python3 /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
