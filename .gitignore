@@ -2,6 +2,7 @@
 *.bak
 *.log
 *.pyc
+*.pyo
 .*.swp
 
 __pycache__/

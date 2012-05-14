@@ -1756,7 +1756,7 @@ class MainWindowController:
             if channels is not None:
                 settings.config().set("session", "channels", channels)
             if since >= 0:
-                settings.config().set("session", "since", since)
+                settings.config().set("session", "since", str(since))
             
             settings.save()
     

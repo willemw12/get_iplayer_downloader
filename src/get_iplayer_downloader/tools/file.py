@@ -1,5 +1,5 @@
 import os
-import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.parse     #, urllib.error
 
 def load_url(url, pathname):
     """ Download file @url to folder @pathname """
