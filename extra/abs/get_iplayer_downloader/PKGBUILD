@@ -19,6 +19,9 @@ package() {
   #cd "$srcdir/$pkgname-$_pkgver"
   cd "$srcdir/willemw12-get_iplayer_downloader-"*
 
+  # Don't let get_iplayer_downloader guess an approximate version
+  echo "$pkgver" > src/get_iplayer_downloader/GIT_VERSION
+
   #sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python2|' extra/get_iplayer_post_subdir.py
 
   python setup.py install --root="$pkgdir/" --optimize=1
