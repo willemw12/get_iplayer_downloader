@@ -9,6 +9,9 @@ sudo rm /tmp/installed-files.txt
 sudo python3 setup.py clean 
 sudo rm -r build
 
-echo "Installing desktop menu item..."
-sudo xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop
+#echo "Installing desktop menu item and icon..."
+#sudo xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop
+#sudo xdg-desktop-icon install --novendor res/get_iplayer_downloader.desktop
+#sudo xdg-icon-resource install --novendor --size 96 res/get_iplayer_downloader.png
+#sudo gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 

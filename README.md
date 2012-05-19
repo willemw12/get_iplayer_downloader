@@ -3,11 +3,11 @@ get\_iplayer\_downloader
 
 get\_iplayer\_downloader is a download utility for the BBC get\_iplayer program.
 
-This program is a graphical version of the command `get_iplayer --tree`, followed by `get_iplayer --pid` or `get_iplayer --info`. It displays programmes in a large tree view with two main columns: serie title, episode title plus episode description.
-
 It is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
-This program works best with a screen resolution of 1024x768 or higher. You can continue using the program, while get\_iplayer is downloading in the background. I let the downloads run in one or more terminal windows, so I can see when a download hangs or fails. Note: get\_iplayer has a fixed download list size (info\_limit = 40).
+This program is a graphical version of the command `get_iplayer --tree`, followed by `get_iplayer --pid` or `get_iplayer --info`. It displays programmes in a large tree view with two main columns: serie title, episode title plus episode description. This program works best with a screen resolution of 1024x768 or higher.
+
+You can predefine category search filters and you can continue using the program, while get\_iplayer is downloading in the background. I let the downloads run in one or more terminal windows, so I can see when a download hangs or fails. Note that get\_iplayer has a fixed download list size (info\_limit = 40).
 
 Some screenshots:
 
@@ -60,9 +60,10 @@ File ~/.get\_iplayer/presets/radio:
 
     aactomp3 1
     #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
+    #ffmpeg /usr/bin/avconv
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
-    output /var/tmp/get_iplayer_downloader/Music
+    output /home/willemw12/Music
     radiomode flashaudio,realaudio,flashaac,wma
 
 File ~/.get\_iplayer/presets/tv:
@@ -70,7 +71,7 @@ File ~/.get\_iplayer/presets/tv:
     #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
-    output /var/tmp/get_iplayer_downloader/Videos
+    output /home/willemw12/Videos
     tvmode flashhigh,flashstd,flashnormal
 
 Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` work properly from the command line.
@@ -82,7 +83,7 @@ Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued p
 
 Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/.config/get\_iplayer\_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Before downloading programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file. Clear the download path, to use the default download path specified in get\_iplayer.
+Before downloading programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file. To use the default download path specified in get\_iplayer, leave the download path empty.
 
 The preconfigured search channels and categories are a reduced set. To start off with category lists containing all available categories, run from this directory:
 
@@ -135,31 +136,22 @@ To uninstall, run from this directory:
 
 ### Installing on Debian/Ubuntu
 
-__Warning: this does not work in Python 3. Distutils command "bdist_deb" is not available for Python 3__
+__Warning: this does not work in Python 3. Distutils command "bdist_deb" in package "python-stdeb" is not available for Python 3.__
 
-To build and install as a .deb file:
-
-    # Install build and package tools (Python 2)
+    # Install build and package tools
     sudo apt-get install python-stdeb
 
-    # Create a .deb file in directory deb_dist from Python setuptools (distutils) files
-    sudo rm *.deb
-    python3 setup.py --command-packages=stdeb.command bdist_deb
-
-    # Install the .deb file
-    sudo dpkg -i deb_dist/python-get-iplayer-downloader_*_all.deb
-    rm -rf deb_dist/
-
+    ./install-deb.sh
 
 ### Installing on Arch Linux
 
-There are two PKGBUILD files. For example, to build and install the latest version:
+To install the latest git version:
 
-    rm -rf ~/abs/get_iplayer_downloader-git
-    mkdir -p ~/abs/get_iplayer_downloader-git
-    cd ~/abs/get_iplayer_downloader-git
-    wget https://github.com/willemw12/get_iplayer_downloader/raw/master/extra/abs/get_iplayer_downloader-git/PKGBUILD
-    makepkg -sic
+    ./install-pkgbuild-git.sh
+
+To install the latest version:
+
+    ./install-pkgbuild.sh
 
 
 
@@ -185,7 +177,7 @@ The keyboard shortcuts are:
 Extra
 -----
 
-Want to group downloaded programmes automatically by category?
+Want to group downloaded programmes automatically by category or week?
 
 File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer subdir output option. The script supports additional property substitutions (category, week, ...) in the output subdirectory names. For more information, run:
 

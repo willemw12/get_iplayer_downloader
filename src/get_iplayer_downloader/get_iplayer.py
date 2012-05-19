@@ -46,6 +46,7 @@ class ProgType:
     RADIO = "radio"
     PODCAST = "podcast"
     TV = "tv"
+    ITV = "itv"
 
 ####
 
@@ -57,6 +58,7 @@ class ProgType:
 class Channels:
     RADIO = _ALL_CHANNELS_LABEL + "," + settings.config().get("radio", "channels")
     TV = _ALL_CHANNELS_LABEL + "," + settings.config().get("tv", "channels")
+    ITV = _ALL_CHANNELS_LABEL
 
 class Categories:
     # No filter
@@ -170,6 +172,7 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
         cmd += " --type=all"
         # If type=all then preset is ignored
     else:
+        cmd += " --nocopyright --long"
         if preset:
             cmd += " --preset=" + preset
         if prog_type:
@@ -182,7 +185,7 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
         cmd += " --since=" + str(since)
     if future:
         cmd += " --future"
-    cmd += " --long --nocopyright --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\" --tree"
+    cmd += " --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\" --tree"
     if search_text:
         cmd += " \"" + search_text + "\""
     
@@ -252,7 +255,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
     #cmd += "; do " + _GET_IPLAYER_PROG
     cmd = ""
     for i, search_term_row in enumerate(search_term_table):
-        cmd += _GET_IPLAYER_PROG
+        cmd += _GET_IPLAYER_PROG + " --nocopyright --hash"
         
         if preset:
             cmd += " --preset=" + preset
@@ -262,17 +265,16 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
             cmd += " --type=" + prog_type
         if force:
             cmd += " --force"
-        cmd += " --nocopyright --hash"
         if output_path:
             cmd += " --output=\"" + output_path + "\""
         #if pvr_queue or future:
         if pvr_queue:
             if not preset:
                 return False
-            # Must explicitly specify type and pid on the command line
-            cmd += " --pvrqueue --type " + preset + " --pid "
+            # Must explicitly specify programme type and pid on the command line in queue mode
+            cmd += " --pvrqueue --pid="
         elif pid:
-            cmd += " --pid "
+            cmd += " --pid="
         else:
             cmd += " --get "        
     
@@ -304,7 +306,7 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
     # Only from outside the UK and partial_proxy enabled in get_iplayer(?):
     #     If proxy_enabled is false then info retrieval will be faster but the info 
     #     will not contain proper values for "modes" and "tvmodes" (the available tv download file sizes)
-    cmd = _GET_IPLAYER_PROG + " --info --nocopyright" 
+    cmd = _GET_IPLAYER_PROG + " --nocopyright --info"
     if preset:
         cmd += " --preset=" + preset
     if prog_type:
@@ -331,13 +333,17 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
 
     return output_lines
 
-def refresh(preset=None, channels=None, force=False, future=False):
+def refresh(preset=None, prog_type=None, channels=None, force=False, future=False):
     """ Run get_iplayer --refresh. """
     if not preset:
         #preset = Preset.RADIO + "," + Preset.TV
         preset = "all"
 
-    cmd = _GET_IPLAYER_PROG + " --preset=" + preset + " --refresh"
+    cmd = _GET_IPLAYER_PROG + " --nocopyright --refresh"
+    if preset:
+        cmd += " --preset=" + preset
+    if prog_type:
+        cmd += " --type=" + prog_type
     if force:
         cmd += " --force"
     if future:

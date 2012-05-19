@@ -22,11 +22,18 @@ package() {
   #sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python2|' extra/get_iplayer_post_subdir.py
 
   python setup.py install --root="$pkgdir/" --optimize=1
+  # Because of cd ...* above, make sure there will be only be a single package build directory next time
   python setup.py clean
   rm -rf build
 
-  ##install -m644 res/get_iplayer_downloader.desktop -t ${pkgdir}/usr/share/applications/
-  ##install -m755 extra/get_iplayer_post_subdir.py -t ${pkgdir}/usr/share/get_iplayer_downloader/scripts/
+  # Python setup.py already does the following
+  #install -m644 res/get_iplayer_downloader.desktop -t ${pkgdir}/usr/share/applications/
+  #install -m644 res/get_iplayer_downloader.svg -t ${pkgdir}/usr/share/pixmaps/
+  #install -m755 extra/get_iplayer_post_subdir.py -t ${pkgdir}/usr/share/get_iplayer_downloader/scripts/
+
+  #xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop
+  #xdg-desktop-icon install --novendor res/get_iplayer_downloader.desktop
+  #xdg-icon-resource install --novendor --size 96 res/get_iplayer_downloader.png
 }
 
 # vim:set ts=2 sw=2 et:

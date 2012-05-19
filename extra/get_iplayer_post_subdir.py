@@ -205,7 +205,7 @@ def _move_file(categories, dirname, filename, subdir_format):
     #NOTE Combined exception handling
     except (IOError, os.error, shutil.Error) as why:
         logger.warning("move_file(): Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
-        logger.debug(str(why))
+        logger.warning(str(why))
 
     # Remove empty directory
     try:

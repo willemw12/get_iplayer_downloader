@@ -13,10 +13,10 @@ if os.path.exists(os.path.join(os.getcwd(), "MANIFEST")):
 
 ## Linux specific
 #if os.geteuid() == 0:
-#    # Root user
-#    # Install desktop menu item
-#    echo "Installing desktop menu item..."
+#    # Running as root
+#    echo "Installing desktop menu item and icon..."
 #    subprocess.call(["xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop"], shell=True)
+#    subprocess.call(["xdg-desktop-icon install --novendor res/get_iplayer_downloader.svg"], shell=True)
 
 #NOTE "name" can be anything. It is the folder name in /usr/local/lib/python*/dist-packages
 setup(name = get_iplayer_downloader.PROGRAM_NAME,
@@ -38,11 +38,16 @@ setup(name = get_iplayer_downloader.PROGRAM_NAME,
     #"ui/*.ui", "ui/*.css"
     package_data = {"get_iplayer_downloader": ["default.conf", "GIT_VERSION", "ui/preferences.ui", "ui/style.css"]},
 
-    # Moving .desktop file: for Debian/Ubuntu and Arch Linux packaging
+    # Moving .desktop and .svg file: for Debian/Ubuntu and Arch Linux packaging
+    # Linux specific
     data_files = [("share/applications", ["res/get_iplayer_downloader.desktop"]),
-                  ("share/get_iplayer_downloader/scripts", ["extra/get_iplayer_post_subdir.py"])],
+                  ("share/get_iplayer_downloader/scripts", ["extra/get_iplayer_post_subdir.py"]),
+                  #("share/icons/scalable/apps", ["res/get_iplayer_downloader.svg"]),
+                  ("share/pixmaps", ["res/get_iplayer_downloader.svg"])],
 
+    # Linux specific
     scripts = ["bin/get_iplayer_downloader"]
     )
 
 get_iplayer_downloader.cleanup_install()
+

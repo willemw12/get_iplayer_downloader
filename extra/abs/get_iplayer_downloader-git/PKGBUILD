@@ -2,7 +2,7 @@
 
 _name=get_iplayer_downloader
 pkgname=$_name-git
-pkgver=20120503
+pkgver=20120519
 pkgrel=1
 pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')
@@ -48,8 +48,14 @@ package() {
   python setup.py clean
   rm -rf build
 
-  ##install -m644 res/get_iplayer_downloader.desktop -t ${pkgdir}/usr/share/applications/
-  ##install -m755 extra/get_iplayer_post_subdir.py -t ${pkgdir}/usr/share/get_iplayer_downloader/scripts/
+  # Python setup.py already does the following
+  #install -m644 res/get_iplayer_downloader.desktop -t ${pkgdir}/usr/share/applications/
+  #install -m644 res/get_iplayer_downloader.svg -t ${pkgdir}/usr/share/pixmaps/
+  #install -m755 extra/get_iplayer_post_subdir.py -t ${pkgdir}/usr/share/get_iplayer_downloader/scripts/
+
+  #xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop
+  #xdg-desktop-icon install --novendor res/get_iplayer_downloader.desktop
+  #xdg-icon-resource install --novendor --size 96 res/get_iplayer_downloader.png
 }
 
 # vim:set ts=2 sw=2 et:

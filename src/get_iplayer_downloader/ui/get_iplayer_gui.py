@@ -22,7 +22,7 @@ TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme (of programm
 TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes or queue programmes if PVR checked"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
 TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
-TOOLTIP_TOOLS_REFRESH = "Refresh programme search cache"
+TOOLTIP_TOOLS_REFRESH = "Refresh search cache of the selected programme type (radio, podcast, tv)"
 
 TOOLTIP_SEARCH_FIND = "Find programmes"
 TOOLTIP_SEARCH_CLEAR = "Clear search text"
@@ -36,7 +36,7 @@ TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Disabled when
 TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the search cache. Disabled when filter label is 'Since' or empty"
 
 TOOLTIP_OPTION_FORCE = "Set force mode. Force download or refresh programme cache"
-TOOLTIP_OPTION_HD_TV = "Set HD TV download mode. Overrides the default TV mode"
+TOOLTIP_OPTION_HD_TV = "Set alternative TV download and queue mode. Overrides the default TV mode"
 TOOLTIP_OPTION_FULL_PROXY = "Set full proxy mode when viewing programme properties. Useful outside the UK. When enabled, displayed properties will include the available tv mode and tv mode size"
 TOOLTIP_OPTION_FIND_ALL = "Set search all mode. Search in all available programme types and channels"
 
@@ -124,7 +124,10 @@ class MainWindow(Gtk.Window):
         self.main_tree_view_scrollbar.add(self.main_tree_view)
         
     def set_window_title(self, prog_type=get_iplayer.ProgType.RADIO):
-        self.set_title(prog_type + " - " + get_iplayer_downloader.PROGRAM_NAME)
+        if prog_type:
+            self.set_title(prog_type + " - " + get_iplayer_downloader.PROGRAM_NAME)
+        else:
+            self.set_title(get_iplayer_downloader.PROGRAM_NAME)
 
 class UIManager():
 
@@ -355,8 +358,9 @@ class UIManager():
         dialog = Gtk.AboutDialog()
         dialog.set_transient_for(self.main_window)
 
-        dialog.set_program_name(get_iplayer_downloader.PROGRAM_NAME)
-        dialog.set_logo_icon_name(Gtk.STOCK_GOTO_BOTTOM)
+        #dialog.set_program_name(get_iplayer_downloader.PROGRAM_NAME)
+        #dialog.set_logo_icon_name(Gtk.STOCK_GOTO_BOTTOM)
+        dialog.set_logo_icon_name(get_iplayer_downloader.PROGRAM_NAME)
         dialog.set_comments(get_iplayer_downloader.DESCRIPTION + "\n\n" + get_iplayer_downloader.LONG_DESCRIPTION)
         dialog.set_version(get_iplayer_downloader.VERSION)
         dialog.set_website(get_iplayer_downloader.URL)
@@ -472,6 +476,8 @@ class ToolBarBox(Gtk.Box):
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, "Radio"],
                    [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, "Podcast"],
                    [get_iplayer.Preset.TV, get_iplayer.ProgType.TV, "TV"]]
+        if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
+            presets.append([get_iplayer.Preset.TV, get_iplayer.ProgType.ITV, "ITV"])
         store = Gtk.ListStore(str, str, str)
         for preset in presets:
             store.append(preset)
@@ -569,6 +575,24 @@ class ToolBarBox(Gtk.Box):
                     # Remove leading "BBC " string
                     label = label[len("BBC "):]
             self.chan_tv_store.append([key, label])
+
+        self.chan_itv_store = None
+        if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
+            # First in the list the label for all listed channels, the rest are keys
+            channels = (get_iplayer.Channels.ITV).split(",")
+            self.chan_itv_store = Gtk.ListStore(str, str)
+            first = True
+            for channel in channels:
+                key = label = channel.strip()
+                if first:
+                    #key = settings.config().get("tv", "channels")
+                    key = ",".join(channels[1:])
+                    first = False
+                else:
+                    if compact_toolbar and label.startswith("ITV "):
+                        # Remove leading "ITV " string
+                        label = label[len("ITV "):]
+                self.chan_itv_store.append([key, label])
 
         #self.channels_combo = Gtk.ComboBox.new_with_model(self.chan_radio_store)
         self.channels_combo = Gtk.ComboBox()
@@ -917,16 +941,6 @@ class MainTreeView(Gtk.TreeView):
         duration = model.get_value(tree_iter, SearchResultColumn.DURATION)
         if not duration or duration == "Unknown" or duration == "<duration>":
             duration = None
-        else:
-            try:
-                # Convert into hours and minutes
-                #NOTE // is the integer division operator
-                duration_mins = int(duration) // 60
-                duration = "{0:2}".format(duration_mins // 60) + ":" + \
-                           "{0:02}".format(duration_mins % 60) + ":00"
-            except ValueError:
-                #NOTE duration still has its original value
-                pass
 
         #
 
@@ -1129,7 +1143,7 @@ class PropertiesWindow(Gtk.Window):
                         #NOTE // is the integer division operator
                         duration_mins = int(prop_value) // 60
                         prop_value = "{0:2}".format(duration_mins // 60) + ":" + \
-                                     "{0:02}".format(duration_mins % 60) + ":00"
+                                     "{0:02}".format(duration_mins % 60)
                         prop_value = prop_value.strip()
                     except ValueError:
                         #NOTE prop_value still has its original value
@@ -1471,6 +1485,9 @@ class MainWindowController:
             if preset == get_iplayer.Preset.TV:
                 hd_tv_modes = self.tool_bar_box.hd_tv_check_button.get_active()
 
+        if prog_type == get_iplayer.ProgType.ITV:
+            hd_tv_modes = "itvnormal,itvhigh"
+
         force = self.tool_bar_box.force_check_button.get_active()
         if button is not None and not pvr_queue:
             # If event was raised from the tool bar download button and not from a keyboard shortcut,
@@ -1548,7 +1565,6 @@ class MainWindowController:
             model = combo.get_model()
             preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
-            #channel = model[tree_iter][self.PresetComboModelColumn.CHANNEL]
  
         proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
         
@@ -1622,6 +1638,7 @@ class MainWindowController:
         if tree_iter is not None:
             model = combo.get_model()
             preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
 
         channels = None
         combo = self.tool_bar_box.channels_combo
@@ -1632,7 +1649,7 @@ class MainWindowController:
 
         future = self.tool_bar_box.future_checkbox.get_active()
 
-        get_iplayer.refresh(preset=preset, channels=channels, future=future)
+        get_iplayer.refresh(preset=preset, prog_type=prog_type, channels=channels, future=future)
         
         ### Refresh programme list
 
@@ -1653,13 +1670,19 @@ class MainWindowController:
                 self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_podcast_store)
             elif prog_type == get_iplayer.ProgType.TV:
                 self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_tv_store)
+            elif prog_type == get_iplayer.ProgType.ITV:
+                #self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_tv_store)
+                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_disabled_store)
             self.tool_bar_box.categories_combo.set_active(0)
 
             # Synchronize channel filter
             if preset == get_iplayer.Preset.RADIO:
                 self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_radio_store)
             elif preset == get_iplayer.Preset.TV:
-                self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_tv_store)
+                if prog_type == get_iplayer.ProgType.ITV:
+                    self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_itv_store)
+                else:
+                    self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_tv_store)
             self.tool_bar_box.channels_combo.set_active(0)
 
             # Limit the initial podcast search result by enabling the since filter

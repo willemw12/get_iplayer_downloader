@@ -7,8 +7,8 @@ import subprocess
 
 #logger = logging.getLogger(__name__)
 
-# Default value (for the non-git downnloaded version)
-_GENERAL_VERSION = "0.3-x"
+# Default value (for the non-git downloaded version)
+_GENERAL_VERSION = "0.4-x"
 
 _GIT_VERSION_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "GIT_VERSION")
 
