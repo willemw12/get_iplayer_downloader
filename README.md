@@ -63,7 +63,7 @@ File ~/.get\_iplayer/presets/radio:
     #ffmpeg /usr/bin/avconv
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
-    output /home/willemw12/Music
+    output /home/willemw12/Music/bbc
     radiomode flashaudio,realaudio,flashaac,wma
 
 File ~/.get\_iplayer/presets/tv:
@@ -71,7 +71,7 @@ File ~/.get\_iplayer/presets/tv:
     #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
-    output /home/willemw12/Videos
+    output /home/willemw12/Videos/bbc
     tvmode flashhigh,flashstd,flashnormal
 
 Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` work properly from the command line.
@@ -160,17 +160,19 @@ Keyboard shortcuts
 
 The keyboard shortcuts are:
 
-    alt + enter     Properties  View properties of highlighted programme (of programme in focus)
-    ctrl + d        Download    Download or queue selected programmes
-    ctrl + q        Queue       Queue selected programmes for one-off downloading by get_iplayer pvr
-    ctrl + f        Find        Go to search entry field on the tool bar
-    ctrl + t        Toggle      Rotate between programme types (radio, podcast, tv)
-    ctrl + c        Clear       Clear programme download selection
-    ctrl + r        Refresh     Refresh programme cache
-    f1              Help        View keyboard shortcuts
+    Shortcut                Command       Description
+    alt+enter               Properties    View properties of highlighted programme (of programme in focus)
+    ctrl+c                  Clear         Clear programme download selection
+    ctrl+d                  Download      Download or queue selected programmes
+    ctrl+f                  Find          Go to search entry field on the tool bar
+    ctrl+q                  Queue         Queue selected programmes for one-off downloading by get_iplayer pvr
+    ctrl+r                  Refresh       Refresh programme cache
+    ctrl+s, ctrl+shift+s    Since         Select since programmes were added to the search cache
+    ctrl+t                  Type          Select programme type (radio, podcast, tv)
+    f1                      Help          View keyboard shortcuts
 
-    down-arrow                  Go from tool bar to the search result
-    space or enter              Toggle programme selection in the search result
+    down-arrow                            Go from tool bar to the search result
+    space or enter                        Toggle programme selection in the search result
 
 
 

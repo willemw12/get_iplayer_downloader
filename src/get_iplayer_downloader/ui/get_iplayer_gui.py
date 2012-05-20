@@ -27,7 +27,8 @@ TOOLTIP_TOOLS_REFRESH = "Refresh search cache of the selected programme type (ra
 TOOLTIP_SEARCH_FIND = "Find programmes"
 TOOLTIP_SEARCH_CLEAR = "Clear search text"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
-TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Rotate between programme types (radio, podcast, tv)"
+TOOLTIP_SEARCH_ROTATE_SINCE = "Select since programmes were added to the search cache"
+TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast, tv)"
 
 TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
@@ -186,6 +187,8 @@ class UIManager():
     <menuitem action="FileQuit"/>
   </popup>
   <popup name="Hidden">
+    <menuitem action="SearchRotateForwardSince"/>
+    <menuitem action="SearchRotateBackwardSince"/>
     <menuitem action="SearchRotateProgrammeType"/>
   </popup>
 </ui>
@@ -244,6 +247,8 @@ class UIManager():
         action_group.add_actions([
             ("SearchMenu", None, "Search"),
             ("SearchGoToFind", Gtk.STOCK_FIND, "_Find", "<control>F", TOOLTIP_SEARCH_GO_TO_FIND, self._on_menu_others),
+            ("SearchRotateForwardSince", None, None, "<control>S", TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
+            ("SearchRotateBackwardSince", None, None, "<control><shift>S", TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
             ("SearchRotateProgrammeType", None, None, "<control>T", TOOLTIP_SEARCH_ROTATE_PROG_TYPE, self._on_menu_others)
         ])
 
@@ -292,6 +297,10 @@ class UIManager():
             self.main_window.controller().on_button_properties_clicked(None)
         elif name == "SearchGoToFind":
             self.main_window.controller().on_accel_go_to_find()
+        elif name == "SearchRotateForwardSince":
+            self.main_window.controller().on_accel_rotate_since(False)
+        elif name == "SearchRotateBackwardSince":
+            self.main_window.controller().on_accel_rotate_since(True)
         elif name == "SearchRotateProgrammeType":
             self.main_window.controller().on_accel_rotate_programme_type()
         elif name == "ToolsDownload":
@@ -325,13 +334,16 @@ class UIManager():
         content_area = dialog.get_content_area()
         #content_area.set_size_request(800, 400)
 
-        KEYBOARD_SHORTCUTS = [["alt + enter", "Properties", TOOLTIP_VIEW_PROPERTIES],
-                              ["ctrl + d", "Download", TOOLTIP_TOOLS_DOWNLOAD],
-                              ["ctrl + q", "Queue", TOOLTIP_TOOLS_PVR_QUEUE],
-                              ["ctrl + f", "Find", TOOLTIP_SEARCH_GO_TO_FIND],
-                              ["ctrl + t", "Toggle", TOOLTIP_SEARCH_ROTATE_PROG_TYPE],
-                              ["ctrl + c", "Clear", TOOLTIP_TOOLS_CLEAR],
-                              ["ctrl + r", "Refresh", TOOLTIP_TOOLS_REFRESH],
+        KEYBOARD_SHORTCUTS = [["Shortcut", "Command", "Description"],
+                              [" ", None, None],
+                              ["alt+enter", "Properties", TOOLTIP_VIEW_PROPERTIES],
+                              ["ctrl+c", "Clear", TOOLTIP_TOOLS_CLEAR],
+                              ["ctrl+d", "Download", TOOLTIP_TOOLS_DOWNLOAD],
+                              ["ctrl+f", "Find", TOOLTIP_SEARCH_GO_TO_FIND],
+                              ["ctrl+q", "Queue", TOOLTIP_TOOLS_PVR_QUEUE],
+                              ["ctrl+r", "Refresh", TOOLTIP_TOOLS_REFRESH],
+                              ["ctrl+s, ctrl+shift+s", "Since", TOOLTIP_SEARCH_ROTATE_SINCE],
+                              ["ctrl+t", "Type", TOOLTIP_SEARCH_ROTATE_PROG_TYPE],
                               [" ", None, None],
                               ["down-arrow", None, "Go from tool bar to search result"],
                               ["space or enter", None, "Toggle programme selection in search result"]]
@@ -1591,6 +1603,22 @@ class MainWindowController:
             
     def on_accel_go_to_find(self):
         self.tool_bar_box.search_entry.grab_focus()
+
+    def on_accel_rotate_since(self, backward):
+        combo = self.tool_bar_box.since_combo
+        tree_iter = combo.get_active_iter()
+        if tree_iter is not None:
+            active = combo.get_active()
+            if backward:
+                if active == 0:
+                    combo.set_active(len(get_iplayer.SINCE_LIST) - 1)
+                else:
+                    combo.set_active(active - 1)
+            else:
+                combo.set_active(active + 1)
+                active = combo.get_active()
+                if active == -1:
+                    combo.set_active(0)
 
     def on_accel_rotate_programme_type(self):
         combo = self.tool_bar_box.preset_combo
