@@ -87,11 +87,11 @@ Before downloading programmes for the first time, verify the download paths and 
 
 The preconfigured search channels and categories are a reduced set. You can define your own search categories. To start off with category lists containing all available categories, run from this directory:
 
-    python3 ./get_iplayer_downloader.py --list-categories --quiet
+    ./get_iplayer_downloader.py --list-categories --quiet
 
 and put the printed output in the configuration file. The same can be done for channels:
 
-    python3 ./get_iplayer_downloader.py --list-channels --quiet
+    ./get_iplayer_downloader.py --list-channels --quiet
 	
 or clear the channel lists in the configuration to search in all channels.
 
@@ -112,15 +112,15 @@ or run it from the desktop menu.
 
 To execute without installing, run:
 
-    python3 <path to this directory>/src/get_iplayer_downloader.py
+    <path to this directory>/src/get_iplayer_downloader.py
 
-If the "python" executable is a version of Python 3, then you can simply link the script to a directory in $PATH. For example, from this directory:
+Or create a symbolic link of get_iplayer_downloader.py in a directory of $PATH. From this directory:
 
-    ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/get_iplayer_downloader.py
+    ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/get_iplayer_downloader
 
-and run it, without installing, as:
+and run it as:
 
-    get_iplayer_downloader.py
+    get_iplayer_downloader
     
 
 ### Running the install script
