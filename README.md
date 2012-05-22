@@ -7,7 +7,7 @@ It is a small utility program for me to try and find out the capabilities of sta
 
 This program is a graphical version of the command `get_iplayer --tree`, followed by `get_iplayer --pid` or `get_iplayer --info`. It displays programmes in a large tree view with two main columns: serie title, episode title plus episode description. This program works best with a screen resolution of 1024x768 or higher.
 
-You can predefine category search filters and you can continue using the program, while get\_iplayer is downloading in the background. I let the downloads run in one or more terminal windows, so I can see when a download hangs or fails. Note that get\_iplayer has a fixed download list size (info\_limit = 40).
+You can continue using the program, while get\_iplayer is downloading in the background. I let the downloads run in one or more terminal windows, so I can see when a download hangs or fails. Note that get\_iplayer has a fixed download list size (info\_limit = 40).
 
 Some screenshots:
 
@@ -85,7 +85,7 @@ Most configuration settings can be managed from the GUI. Other settings can be f
 
 Before downloading programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file. To use the default download path specified in get\_iplayer, leave the download path empty.
 
-The preconfigured search channels and categories are a reduced set. To start off with category lists containing all available categories, run from this directory:
+The preconfigured search channels and categories are a reduced set. You can define your own search categories. To start off with category lists containing all available categories, run from this directory:
 
     python3 ./get_iplayer_downloader.py --list-categories --quiet
 

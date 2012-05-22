@@ -15,7 +15,7 @@ from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
 #TOOLTIP_FILE_QUIT
 
-TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme (of programme in focus)"
+TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme"
 
 #TOOLTIP_EDIT_PREFERENCES
 
@@ -67,6 +67,9 @@ class MainWindow(Gtk.Window):
         if start_maximized:
             self.maximize()
 
+        self.busy_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
+        self.normal_cursor = Gdk.Cursor(Gdk.CursorType.LEFT_PTR)
+        
         ####
         
         # Initialize the controller
@@ -76,7 +79,7 @@ class MainWindow(Gtk.Window):
         self._init_ui_manager()
         self._init_builder()
         self._init_main_grid()
-        #self._init_menu_bar()
+        self._init_menu_bar()
         self._init_tool_bar_box()
         self._init_main_tree_view()
 
@@ -88,15 +91,12 @@ class MainWindow(Gtk.Window):
         # Initialize the model
         self.main_tree_view.init_store()        
 
-        if start_maximized:
-            # Avoid redraw of the right-aligned menu/configuration image/icon 
-            # to another position on the top tool bar, by forcing the calculation
-            # of the main window width and therefore also the top tool bar width
-            self.tool_bar_box.show_all()
+        #if start_maximized:
+        #    # Avoid redraw of the right-aligned menu/configuration image/icon 
+        #    # to another position on the top tool bar, by forcing the calculation
+        #    # of the main window width and therefore also the top tool bar width
+        #    self.tool_bar_box.show_all()
 
-    def controller(self):
-        return self._main_controller
-    
     def _init_ui_manager(self):
         self.ui_manager = UIManager(self)
 
@@ -107,9 +107,10 @@ class MainWindow(Gtk.Window):
         self.main_grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.main_grid)
 
-    #def _init_menu_bar(self):
-    #    self.menu_bar = self.ui_manager.get_menu_bar()
-    #    self.main_grid.add(self.menu_bar)
+    def _init_menu_bar(self):
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")):
+            self.menu_bar = self.ui_manager.get_menu_bar()
+            self.main_grid.add(self.menu_bar)
         
     def _init_tool_bar_box(self):
         self.tool_bar_box = ToolBarBox(self)
@@ -124,11 +125,30 @@ class MainWindow(Gtk.Window):
         self.main_tree_view = MainTreeView(self)
         self.main_tree_view_scrollbar.add(self.main_tree_view)
         
+    def controller(self):
+        return self._main_controller
+    
     def set_window_title(self, prog_type=get_iplayer.ProgType.RADIO):
         if prog_type:
             self.set_title(prog_type + " - " + get_iplayer_downloader.PROGRAM_NAME)
         else:
             self.set_title(get_iplayer_downloader.PROGRAM_NAME)
+
+    def display_busy_mouse_cursor(self, busy):
+        #WORKAROUND get_root_window()
+        #    get root window (the desktop), otherwise setting the cursor won't work from a menu
+        #    TODO get a window inside this program, not the desktop window, otherwise if the program crashes, the mouse cursor may remain busy on the desktop
+        #window = self.get_window()
+        window = self.get_root_window()
+        if window is not None:
+            if busy:
+                Gdk.Window.set_cursor(window, self.busy_cursor)
+                # Display the cursor immediately
+                #Gdk.Display.get_default().sync()
+                #self.get_display().sync()
+                window.get_display().sync()
+            else:
+                Gdk.Window.set_cursor(window, self.normal_cursor)
 
 class UIManager():
 
@@ -147,17 +167,22 @@ class UIManager():
     <menu action="EditMenu">
       <menuitem action="EditPreferences"/>
     </menu>
+    <!--
     <menu action="ViewMenu">
       <menuitem action="ViewProperties"/>
     </menu>
     <menu action="SearchMenu">
       <menuitem action="SearchGoToFind"/>
     </menu>
+    -->
     <menu action="ToolsMenu">
+      <menuitem action="ViewProperties"/>
       <menuitem action="ToolsDownload"/>
       <menuitem action="ToolsPvrQueue"/>
       <menuitem action="ToolsClear"/>
       <menuitem action="ToolsRefresh"/>
+      <separator/>
+      <menuitem action="SearchGoToFind"/>
     </menu>
     <menu action="HelpMenu">
       <menuitem action="HelpHelp"/>
@@ -254,7 +279,7 @@ class UIManager():
 
     def _add_tools_menu_actions(self, action_group):
         action_group.add_actions([
-            ("ToolsMenu", None, "Tools"),
+            ("ToolsMenu", None, "Programme"),
             #Gtk.STOCK_GO_DOWN
             ("ToolsDownload", Gtk.STOCK_GOTO_BOTTOM, "_Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
             ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", TOOLTIP_TOOLS_PVR_QUEUE, self._on_menu_others),
@@ -370,7 +395,7 @@ class UIManager():
         dialog = Gtk.AboutDialog()
         dialog.set_transient_for(self.main_window)
 
-        #dialog.set_program_name(get_iplayer_downloader.PROGRAM_NAME)
+        dialog.set_program_name(get_iplayer_downloader.PROGRAM_NAME)
         #dialog.set_logo_icon_name(Gtk.STOCK_GOTO_BOTTOM)
         dialog.set_logo_icon_name(get_iplayer_downloader.PROGRAM_NAME)
         dialog.set_comments(get_iplayer_downloader.DESCRIPTION + "\n\n" + get_iplayer_downloader.LONG_DESCRIPTION)
@@ -457,7 +482,7 @@ class ToolBarBox(Gtk.Box):
         button.connect("clicked", self.main_window.controller().on_button_refresh_clicked)
         self.pack_start(button, False, False, 0)
         focus_chain.append(button)
-        
+
         ####
         
         separator = Gtk.VSeparator()
@@ -478,7 +503,7 @@ class ToolBarBox(Gtk.Box):
         focus_chain.append(self.search_entry)
 
         self.search_entry.grab_focus()
-
+        
         ####
 
         if not compact_toolbar:
@@ -862,7 +887,7 @@ class MainTreeView(Gtk.TreeView):
         # First column
         self.set_show_expanders(False)
         self.set_level_indentation(10)
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-tree-lines")):
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-treelines")):
             self.set_enable_tree_lines(True)
             ##self.set_property("grid-line-pattern", "\000\001")
             ##self.set_style(grid_line_pattern="\000\001")
@@ -871,8 +896,22 @@ class MainTreeView(Gtk.TreeView):
 
     def init_store(self):
         self.main_window.controller().session_restore()
-        self.main_window.controller().on_button_find_clicked(None)
         
+        #if string.str2bool(settings.config().get(config.NOSECTION, "start-treeview-populated")):
+        #    self.main_window.controller().on_button_find_clicked(None)
+        
+        # Lazy treeview initialization
+        #self.connect("event", self._on_event)
+        self.connect("visibility-notify-event", self._on_visibility_notify_event)
+
+    # Lazy treeview initialization. Signal when treeview is being displayed on screen
+    #def _on_event(self, widget, event):
+    def _on_visibility_notify_event(self, event, user_data):
+        self.main_window.controller().on_button_find_clicked(None)
+
+        #self.disconnect_by_func(self._on_event)
+        self.disconnect_by_func(self._on_visibility_notify_event)
+
     def _init_columns(self):
         if string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")):
             widget = Gtk.Label()
@@ -1250,8 +1289,9 @@ class PreferencesDialogWrapper(object):
         
         self.dialog = self.builder.get_object("PreferencesDialog")
 
-        self.general_compact_toolbar_checkbox = self.builder.get_object("PrefsGeneralCompactToolbar")
-        self.general_compact_treeview_checkbox = self.builder.get_object("PrefsGeneralCompactTreeview")
+        self.general_compact_toolbar_checkbox = self.builder.get_object("PrefsGeneralCompactToolBar")
+        self.general_compact_treeview_checkbox = self.builder.get_object("PrefsGeneralCompactTreeView")
+        self.general_show_menubar_checkbox = self.builder.get_object("PrefsGeneralShowMenuBar")
         self.general_show_tooltip_checkbox = self.builder.get_object("PrefsGeneralShowTooltip")
         self.general_start_maximized_checkbox = self.builder.get_object("PrefsGeneralStartMaximized")
 
@@ -1285,12 +1325,13 @@ class PreferencesDialogWrapper(object):
         self.dialog.connect("response", self._response)
 
         #self.ok_button = self.builder.get_object("PrefsOkButton")
-        #self.dialog.connect("show", self._on_show)
+        #self.dialog.connect("show", self._on_map_event)
 
     def _display_settings(self):
         """ Retrieve in-memory settings and put them in dialog fields """
         self.general_compact_toolbar_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
         self.general_compact_treeview_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
+        self.general_show_menubar_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")))
         self.general_show_tooltip_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
         self.general_start_maximized_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
@@ -1322,6 +1363,7 @@ class PreferencesDialogWrapper(object):
         """ Retrieve settings from dialog fields and put them in in-memory settings """
         settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_checkbox.get_active()))
         settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_checkbox.get_active()))
+        settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_checkbox.get_active()))
         settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_checkbox.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_checkbox.get_active()))
         
@@ -1333,7 +1375,7 @@ class PreferencesDialogWrapper(object):
         settings.config().set("tv", "download-path", self.tv_download_path_entry.get_text())
         settings.config().set("tv", "run-in-terminal", str(self.tv_run_in_terminal_entry.get_active()))
 
-    #def _on_show(self, user_data):
+    #def _on_map_event(self, user_data):
     #    self.ok_button.grab_focus()
 
     def _on_prefs_revert_clicked(self, user_data):
@@ -1344,6 +1386,7 @@ class PreferencesDialogWrapper(object):
 
         settings.revert_option(config.NOSECTION, "compact-toolbar")
         settings.revert_option(config.NOSECTION, "compact-treeview")
+        settings.revert_option(config.NOSECTION, "show-menubar")
         settings.revert_option(config.NOSECTION, "show-tooltip")
         settings.revert_option(config.NOSECTION, "start-maximized")
 
@@ -1472,10 +1515,13 @@ class MainWindowController:
 
         future = self.tool_bar_box.future_checkbox.get_active()
 
-        get_iplayer_output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
-                                                      channels=channels, categories=categories, since=since,
-                                                      search_all=search_all, future=future)
-        self.main_tree_view.set_store(get_iplayer_output_lines)
+        self.main_window.display_busy_mouse_cursor(True)
+        output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
+                                          channels=channels, categories=categories, since=since,
+                                          search_all=search_all, future=future)
+        self.main_window.display_busy_mouse_cursor(False)
+
+        self.main_tree_view.set_store(output_lines)
         # Scroll up
         adjustment = self.main_window.main_tree_view_scrollbar.get_vadjustment()
         adjustment.set_value(0.0)
@@ -1531,9 +1577,12 @@ class MainWindowController:
 
         #if indices:
         if len(pid_list) > 0:
+            self.main_window.display_busy_mouse_cursor(True)
             launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset,
                                                        prog_type=prog_type, hd_tv_modes=hd_tv_modes,
 													   force=force, future=future)
+            self.main_window.display_busy_mouse_cursor(False)
+            
             if not launched:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
@@ -1586,21 +1635,29 @@ class MainWindowController:
         if tree_iter is not None:
             index = model[tree_iter][SearchResultColumn.INDEX]
             if index:
+                self.main_window.display_busy_mouse_cursor(True)
                 get_iplayer_output_lines = get_iplayer.info(index,
 				                             preset=preset, prog_type=prog_type,
                                              proxy_enabled=proxy_enabled, future=future)
+                self.main_window.display_busy_mouse_cursor(False)
+
                 window = PropertiesWindow(get_iplayer_output_lines)
                 window.show_all()
-            #else:
-            #    assert(False)
+            else:
+                dialog = Gtk.MessageDialog(self.main_window, 0,
+                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                           "No programme highlighted. A serie is highlighted")
+                #dialog.format_secondary_text("")
+                dialog.run()
+                dialog.destroy()
         else:
             dialog = Gtk.MessageDialog(self.main_window, 0,
                                        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No programme highlighted (no programme in focus)")
+                                       "No programme highlighted")
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
-            
+    
     def on_accel_go_to_find(self):
         self.tool_bar_box.search_entry.grab_focus()
 
@@ -1677,7 +1734,9 @@ class MainWindowController:
 
         future = self.tool_bar_box.future_checkbox.get_active()
 
+        self.main_window.display_busy_mouse_cursor(True)
         get_iplayer.refresh(preset=preset, prog_type=prog_type, channels=channels, future=future)
+        self.main_window.display_busy_mouse_cursor(False)
         
         ### Refresh programme list
 
@@ -1934,6 +1993,10 @@ def _files2urls(filepath):
 #NOTE session_save() is done from outside the window class and session_restore() is done from inside the window class,
 def _main_quit(main_window, event):
     main_window.controller().session_save()
+
+    #WORKAROUND get_root_window()
+    main_window.display_busy_mouse_cursor(False)
+
     Gtk.main_quit(main_window, event)
 
 def main():
@@ -1951,7 +2014,7 @@ def main():
     #window.init()
     window.connect("delete-event", _main_quit)
     window.show_all()
-
+    
     # Force images on buttons
     settings = Gtk.Settings.get_default()
     settings.props.gtk_button_images = True
