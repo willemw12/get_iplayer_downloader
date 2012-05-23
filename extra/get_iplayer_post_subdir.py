@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import logging
@@ -158,7 +158,7 @@ def _move_file(categories, dirname, filename, subdir_format):
         week_number = datetime.today().isocalendar()[1]
         subdir_format = subdir_format.replace("<week>", "{0:02}".format(week_number))
 
-    if args.categories is not None:
+    if categories is not None:
         #AlTERNATIVE retrieve category name from the last subdirectory in @filename,
         #    which is formatted with the <categories> property value.
         #categories = os.path.basename(src_dirname)
@@ -203,9 +203,9 @@ def _move_file(categories, dirname, filename, subdir_format):
             os.makedirs(dest_dirname)
         shutil.move(filename, dest_dirname)
     #NOTE Combined exception handling
-    except (IOError, os.error, shutil.Error) as why:
+    except (IOError, os.error, shutil.Error) as exc:
         logger.warning("move_file(): Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
-        logger.warning(str(why))
+        logger.warning(exc)
 
     # Remove empty directory
     try:
@@ -217,8 +217,8 @@ def main():
     _init_argparser()
     _init_loggers()
     
-    #NOTE If arg not required, then check e.g. args.filename is not None
-    _move_file(args.categories[0], args.dir[0], args.filename[0], args.subdir_format[0])
+    categories = args.categories[0] if args.categories is not None else None
+    _move_file(categories, args.dir[0], args.filename[0], args.subdir_format[0])
 
 if __name__ == "__main__":
     main()
