@@ -181,7 +181,10 @@ class UIManager():
       <menuitem action="ToolsPvrQueue"/>
       <menuitem action="ToolsClear"/>
       <menuitem action="ToolsRefresh"/>
+      <!--
+      BUG? the separator causes the "SearchGoToFind" menu item to have a different left/right padding when not in focus
       <separator/>
+      -->
       <menuitem action="SearchGoToFind"/>
     </menu>
     <menu action="HelpMenu">
