@@ -868,6 +868,8 @@ class MainTreeView(Gtk.TreeView):
         #self.set_property("fixed-height-mode", True)
         self.main_window = main_window
         self.button_pressed = False
+        self.show_images = string.str2bool(settings.config().get(config.NOSECTION, "show-images"))
+        self.load_image_timeout_seconds = string.str2float(settings.config().get(config.NOSECTION, "load-image-timeout-seconds"))
 
         #selection = self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         ##self.set_style(allow_rules=True)
@@ -971,7 +973,7 @@ class MainTreeView(Gtk.TreeView):
     def _get_column_width(self, n):
         return self.get_column(n).get_width()
 
-    def _on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):      #, user_data):
+    def _on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         points_to_row, x, y, model, path, tree_iter = widget.get_tooltip_context(x, y, keyboard_mode)
         if not points_to_row or keyboard_mode or x > self._get_column_width(0):
             # x mouse coordinate is outside the first column
@@ -1008,8 +1010,10 @@ class MainTreeView(Gtk.TreeView):
 
         tooltip.set_markup(tooltip_text)
 
-        if image_url is not None:
-            tooltip.set_icon(_image(image_url).get_pixbuf())
+        if self.show_images and image_url is not None:
+            image = _image(image_url, timeout=self.load_image_timeout_seconds)
+            if image is not None:
+                tooltip.set_icon(image.get_pixbuf())
 
         widget.set_tooltip_cell(tooltip, path, None, None)
         return True
@@ -1165,7 +1169,11 @@ class PropertiesWindow(Gtk.Window):
         #    image_url = prop_table[i][InfoResultColumn.PROP_VALUE /* 1 */]
 
         if image_url is not None:
-            self.grid.add(_image(image_url))
+            if string.str2bool(settings.config().get(config.NOSECTION, "show-images")):
+                timeout = string.str2float(settings.config().get(config.NOSECTION, "load-image-timeout-seconds"))
+                image = _image(image_url, timeout=timeout)
+                if image is not None:
+                    self.grid.add(image)
 
         #### Property table
         
@@ -1965,11 +1973,16 @@ class MainWindowController:
 
 ####
 
-def _image(url):
+def _image(url, timeout=0.0):
     #TODO url: g_markup_escape_text() or g_markup_printf_escaped()
     url = markup.html2text(url)
     pathname = settings.TEMP_PATHNAME + os.sep + "images"
-    filename = file.load_url(url, pathname)
+    if timeout <= 0.0:
+        filename = file.load_url(url, pathname)
+    else:
+        filename = file.load_url(url, pathname, timeout=timeout)
+    if filename is None:
+        return None
     return Gtk.Image.new_from_file(filename)
 
 def _files2urls(filepath):
