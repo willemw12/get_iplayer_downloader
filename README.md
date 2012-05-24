@@ -183,10 +183,11 @@ Want to group downloaded programmes automatically by category or week?
 
 File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer subdir output option. The script supports additional property substitutions (category, week, ...) in the output subdirectory names. For more information, run:
 
-    python3 ./extra/get_iplayer_post_subdir.py --help 
+    ./extra/get_iplayer_post_subdir.py --help 
 
 The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /usr/local/share/get\_iplayer\_downloader/scripts.
 
 To configure, put for example in ~/.get\_iplayer/presets/tv:
 
-    command python3 /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+    command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+
