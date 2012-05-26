@@ -72,8 +72,8 @@ def _create_args():
     argparser.add_argument("--clear-cache", action="store_const", const=True, default=False, help="delete get_iplayer_downloader cache and log files")
     argparser.add_argument("--list-categories", action="store_const", const=True, default=False, help="list all available categories (label-value pairs)")
     argparser.add_argument("--list-channels", action="store_const", const=True, default=False, help="list all available channels")
-    argparser.add_argument("--list-long-labels", action="store_const", const=True, default=False, help="used with --list-categories")
-    argparser.add_argument("--version", action="store_const", const=True, default=False, help="print version")    
+    argparser.add_argument("--list-full-labels", action="store_const", const=True, default=False, help="leave \"BBC\" in the labels. Used with --list-channels")
+    argparser.add_argument("--version", action="store_const", const=True, default=False, help="print version")
     return argparser.parse_args()
 
 ####

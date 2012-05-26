@@ -596,7 +596,7 @@ class ToolBarBox(Gtk.Box):
                 first = False
             else:
                 if compact_toolbar and label.startswith("BBC "):
-                    # Remove leading "BBC " string
+                    # Remove leading "BBC " substring
                     label = label[len("BBC "):]
             self.chan_radio_store.append([key, label])
         
@@ -612,7 +612,7 @@ class ToolBarBox(Gtk.Box):
                 first = False
             else:
                 if compact_toolbar and label.startswith("BBC "):
-                    # Remove leading "BBC " string
+                    # Remove leading "BBC " substring
                     label = label[len("BBC "):]
             self.chan_tv_store.append([key, label])
 
@@ -1275,12 +1275,12 @@ class PropertiesWindow(Gtk.Window):
         url = "<a href=\"http://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
         url += "      "
 
-        # Add urls to get_iplayer's pvr configuration folder and files
+        # Add URLs to get_iplayer's pvr configuration folder and files
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "pvr")
         url += _files2urls(filepath)
         url += "      "
 
-        # Add urls to get_iplayer's presets configuration folder and files
+        # Add URLs to get_iplayer's presets configuration folder and files
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
         url += _files2urls(filepath)
 
@@ -2016,6 +2016,8 @@ def _main_quit(main_window, event):
     Gtk.main_quit(main_window, event)
 
 def main():
+    get_iplayer.check_preset_files()
+
     # Load css file. Do this before window.show_all() since some themes don't resize after a css update
     screen = Gdk.Screen.get_default()
     css_provider = Gtk.CssProvider()

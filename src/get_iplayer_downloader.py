@@ -26,36 +26,36 @@ def _init_loggers():
     handler = logging.FileHandler(log_filename)
     logging.getLogger().addHandler(handler)
 
-def list_categories(long_labels):
+def list_categories():
+    # Avoid refresh messages in the print statements below
     get_iplayer.refresh()
-
-    categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, 
-                                        long_labels=long_labels)
-    print("[radio]")
     print()
+
+    categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST)
+    print("[radio]")
+    print("categories-podcast =", categories)
+    
+    categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO)
     print("categories-radio =", categories)
     print()
 
-    categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, 
-                                        long_labels=long_labels)
-    print("categories-podcast =", categories)
-    print()
-    
-    categories = get_iplayer.categories("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV, 
-                                        long_labels=long_labels)
+    categories = get_iplayer.categories("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV)
     print("[tv]")
-    print()
     print("categories =", categories)
 
-def list_channels():
+def list_channels(full_labels):
+    # Avoid refresh messages in the print statements below
     get_iplayer.refresh()
+    print()
 
-    channels = get_iplayer.channels("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO + "," + get_iplayer.ProgType.PODCAST)
+    channels = get_iplayer.channels("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO + "," + get_iplayer.ProgType.PODCAST, 
+                                    full_labels=full_labels)
     print("[radio]")
     print("channels =", channels)
     print()
 
-    channels = get_iplayer.channels("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV)
+    channels = get_iplayer.channels("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV, 
+                                    full_labels=full_labels)
     print("[tv]")
     print("channels =", channels)
 
@@ -69,13 +69,16 @@ def main():
 
     _init_loggers()
 
-    if settings.args().list_categories:
-        list_categories(settings.args().list_long_labels)
-    elif settings.args().list_channels:
-        list_channels()
-    elif settings.args().clear_cache:
+    args = settings.args()
+    #if args.list_full_labels and not args.list_channels:
+    #    logger.info("--list-full-labels is only used with --list-channels")
+    if args.list_categories:
+        list_categories()
+    elif args.list_channels:
+        list_channels(args.list_full_labels)
+    elif args.clear_cache:
         clear_cache()
-    elif settings.args().version:
+    elif args.version:
         print(get_iplayer_downloader.PROGRAM_NAME, get_iplayer_downloader.VERSION)
     else:
         from get_iplayer_downloader.ui.get_iplayer_gui import main

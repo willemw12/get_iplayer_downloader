@@ -82,3 +82,9 @@ URL = "https://github.com/willemw12/get_iplayer_downloader"
 LICENSE = "GPLv3"
 # BSD, MacOS, Windows untested
 PLATFORMS = "Linux"
+
+####
+
+#NOTE logging not fully initialized yet
+#import get_iplayer_downloader.get_iplayer
+#get_iplayer.check_preset_files()

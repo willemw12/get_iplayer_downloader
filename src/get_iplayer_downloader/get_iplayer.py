@@ -1,9 +1,13 @@
 """ Perform get_iplayer operations. """
 
 import ast
+import logging
+import os
 
 from get_iplayer_downloader import settings
 from get_iplayer_downloader.tools import command, command_queue, config, string
+
+logger = logging.getLogger(__name__)
 
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
@@ -37,7 +41,7 @@ SINCE_LIST = [[0, _SINCE_FOREVER_LABEL],
               [168 + _SINCE_HOUR_MARGIN, "7 days"]]
 
 class Preset:
-    # preset-file: filename in folder ~/.get_iplayer/presets
+    # "preset-file": filename in folder ~/.get_iplayer/presets
     RADIO = settings.config().get("radio", "preset-file")
     TV = settings.config().get("tv", "preset-file")
     
@@ -101,7 +105,23 @@ class SearchResultColumn:
 
 ####
 
-def categories(search_text, preset=None, prog_type=None, long_labels=True):
+def check_preset_files():
+    pathname = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
+
+    filename = os.path.join(pathname, Preset.RADIO)
+    if not os.path.exists(filename):
+        logger.warning("Configured preset file %s does not exist" % filename)
+
+    filename = os.path.join(pathname, Preset.TV)
+    if not os.path.exists(filename):
+        logger.warning("Configured preset file %s does not exist" % filename)
+
+#NOTE logging not fully initialized yet
+#check_preset_files()
+
+####
+
+def categories(search_text, preset=None, prog_type=None):
     """ Run get_iplayer --list=categories.
         Return table with columns: categories, categories (key-value pair).
     """
@@ -123,17 +143,13 @@ def categories(search_text, preset=None, prog_type=None, long_labels=True):
         if line and line[0] and not line.startswith("INFO:") and not line.startswith("Matches:"):
             # Strip the count number from the categories name
             categories_key = line.rsplit(" ", 1)[0].rstrip()
-            if long_labels:
-                categories_value = categories_key
-            else:
-                # Copy the first word
-                categories_value = line.split(" ", 1)[0].rstrip()
+            categories_value = categories_key
             output_lines.append([categories_key, categories_value])
 
     return output_lines
 
-def channels(search_text, preset=None, prog_type=None):
-    """ Run get_iplayer --list=channel.
+def channels(search_text, preset=None, prog_type=None, full_labels=True):
+    """ Run get_iplayer --list=channel. @full_labels is False: strip leading "BBC " substring.
         Return comma-separated list of channels.
     """
     cmd = _GET_IPLAYER_PROG
@@ -157,6 +173,9 @@ def channels(search_text, preset=None, prog_type=None):
                 first_value = False
             else:
                 output_line += ","
+            if not full_labels and line.startswith("BBC "):
+                # Remove leading "BBC " substring
+                line = line[len("BBC "):]
             # Strip the count number from the channel name
             output_line += line.rsplit(" ", 1)[0].rstrip()
 
