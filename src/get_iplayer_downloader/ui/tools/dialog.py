@@ -2,6 +2,7 @@ from gi.repository import Gtk
 
 class ExtendedMessageDialog(Gtk.MessageDialog):
     """ A message dialog with a third scrollable text widget. """
+    
     #NOTE Subclassing a convenience class, a class not always suited for that purpose
     def __init__(self,
                  parent,
@@ -19,11 +20,11 @@ class ExtendedMessageDialog(Gtk.MessageDialog):
                                message_format=message_format,
                                **keywords)
         
-        # Creating a secondary text results in a large "primary" text in bold
+        # Creating a secondary text makes the"primary" text appear in a large bold font
         #self.format_secondary_text(process_output)
         self.format_secondary_text(" ")
 
-        #### Add text label with scrollbars
+        # Add text label with scrollbars
         
         content_area = self.get_content_area()
         scrolled_window = Gtk.ScrolledWindow(expand=True)

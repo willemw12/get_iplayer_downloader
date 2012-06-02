@@ -16,9 +16,9 @@ def _version():
     if os.path.exists(_GIT_VERSION_FILENAME):
         # Load the git version
         try:
-            fp = open(_GIT_VERSION_FILENAME, "r")
-            version = fp.read().strip()
-            fp.close()
+            file = open(_GIT_VERSION_FILENAME, "r")
+            version = file.read().strip()
+            file.close()
             if version:
                 return version
         except Exception: # as exc:
@@ -38,9 +38,9 @@ def _version():
             version = p.sub("", version)
 
             if os.path.exists(".git"):
-                fp = open(_GIT_VERSION_FILENAME, "w")
-                fp.write(version + "\n")
-                fp.close()
+                file = open(_GIT_VERSION_FILENAME, "w")
+                file.write(version + "\n")
+                file.close()
                 #NOTE Sometimes version contains a fatal git error, without exception being raised
                 #NOTE Version is a byte string, not a string:
                 #if version and not version.startsWith("fatal") and not version.startsWith("error"):

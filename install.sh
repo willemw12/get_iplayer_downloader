@@ -8,6 +8,7 @@ sudo rm /tmp/installed-files.txt
 
 sudo python3 setup.py clean 
 sudo rm -r build
+sudo find . -name __pycache__ -exec rm -rf '{}' \; 2>/dev/null
 
 #echo "Installing desktop menu item and icon..."
 #sudo xdg-desktop-menu install --novendor res/get_iplayer_downloader.desktop

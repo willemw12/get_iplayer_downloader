@@ -3,12 +3,12 @@
 import os
 import signal
 
-from gi.repository import Gdk, Gio, GObject, Gtk, Pango
+from gi.repository import Gdk, GObject, Gtk, Pango
 
 # Load application-wide definitions
 import get_iplayer_downloader
 
-from get_iplayer_downloader import get_iplayer, settings
+from get_iplayer_downloader import command_util, get_iplayer, settings
 from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX
 from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
@@ -16,6 +16,7 @@ from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 #TOOLTIP_FILE_QUIT
 
 TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme"
+TOOLTIP_VIEW_LOG = "View download log"
 
 #TOOLTIP_EDIT_PREFERENCES
 
@@ -47,13 +48,23 @@ TOOLTIP_TOOLS_FUTURE = "Set future search mode. Include future programmes in the
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
 
-TOOLTIP_PROGRESS_DOWNLOADING = "Downloading"
+TOOLTIP_PROGRESS_BAR = "Downloading / Errors. Click to view the download log, reset the error count or clear log and cache files"
 
-TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click anywhere"
+TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click on the main window"
+
+####
+
+WINDOW_MAIN_HEIGHT = 720
+
+WINDOW_LARGE_WIDTH = 800
+WINDOW_LARGE_HEIGHT = 700
+
+WINDOW_MEDIUM_WIDTH = 600
+WINDOW_MEDIUM_HEIGHT = 500
+
+WIDGET_BORDER_WIDTH = 4
 
 #### Main window
-
-BORDER_WIDTH = 4
 
 class MainWindow(Gtk.Window):
 
@@ -61,8 +72,8 @@ class MainWindow(Gtk.Window):
         Gtk.Window.__init__(self)
         self.set_window_title()
         # Set minimal size: self.set_size_request(...)
-        self.set_default_size(-1, 720)
-        self.set_border_width(BORDER_WIDTH)
+        self.set_default_size(-1, WINDOW_MAIN_HEIGHT)
+        self.set_border_width(WIDGET_BORDER_WIDTH)
         start_maximized = string.str2bool(settings.config().get(config.NOSECTION, "start-maximized"))
         if start_maximized:
             self.maximize()
@@ -167,10 +178,13 @@ class UIManager():
     <menu action="EditMenu">
       <menuitem action="EditPreferences"/>
     </menu>
-    <!--
     <menu action="ViewMenu">
+      <!--
       <menuitem action="ViewProperties"/>
+      -->
+      <menuitem action="ViewLog"/>
     </menu>
+    <!--
     <menu action="SearchMenu">
       <menuitem action="SearchGoToFind"/>
     </menu>
@@ -208,6 +222,8 @@ class UIManager():
     <menuitem action="SearchGoToFind"/>
     <separator/>
     <menuitem action="EditPreferences"/>
+    <separator/>
+    <menuitem action="ViewLog"/>
     <separator/>
     <menuitem action="HelpHelp"/>
     <menuitem action="HelpAbout"/>
@@ -268,7 +284,8 @@ class UIManager():
     def _add_view_menu_actions(self, action_group):
         action_group.add_actions([
             ("ViewMenu", None, "View"),
-            ("ViewProperties", Gtk.STOCK_PROPERTIES, "_Properties", "<alt>Return", TOOLTIP_VIEW_PROPERTIES, self._on_menu_others)
+            ("ViewProperties", Gtk.STOCK_PROPERTIES, "_Properties", "<alt>Return", TOOLTIP_VIEW_PROPERTIES, self._on_menu_others),
+            ("ViewLog", Gtk.STOCK_CAPS_LOCK_WARNING, "_Log", "<control>L", TOOLTIP_VIEW_LOG, self._on_menu_others)
         ])
 
     def _add_search_menu_actions(self, action_group):
@@ -323,6 +340,8 @@ class UIManager():
             self.on_preferences()
         elif name == "ViewProperties":
             self.main_window.controller().on_button_properties_clicked(None)
+        elif name == "ViewLog":
+            self.main_window.controller().on_progress_bar_button_release_event(None, None)
         elif name == "SearchGoToFind":
             self.main_window.controller().on_accel_go_to_find()
         elif name == "SearchRotateForwardSince":
@@ -355,9 +374,9 @@ class UIManager():
     def on_help(self):
         dialog = Gtk.MessageDialog(self.main_window, 0,
                                    Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                   "Keyboard shortcuts")
-        dialog.set_default_response(Gtk.ResponseType.CLOSE)
+                                   "Keyboard Shortcuts")
         dialog.format_secondary_text(" ")
+        dialog.set_default_response(Gtk.ResponseType.CLOSE)
 
         content_area = dialog.get_content_area()
         #content_area.set_size_request(800, 400)
@@ -368,6 +387,7 @@ class UIManager():
                               ["ctrl+c", "Clear", TOOLTIP_TOOLS_CLEAR],
                               ["ctrl+d", "Download", TOOLTIP_TOOLS_DOWNLOAD],
                               ["ctrl+f", "Find", TOOLTIP_SEARCH_GO_TO_FIND],
+                              ["ctrl+l", "Log", TOOLTIP_VIEW_LOG],
                               ["ctrl+q", "Queue", TOOLTIP_TOOLS_PVR_QUEUE],
                               ["ctrl+r", "Refresh", TOOLTIP_TOOLS_REFRESH],
                               ["ctrl+s, ctrl+shift+s", "Since", TOOLTIP_SEARCH_ROTATE_SINCE],
@@ -383,7 +403,7 @@ class UIManager():
                     label = Gtk.Label(label_text, valign=Gtk.Align.START, halign=Gtk.Align.START,
                                       margin_left=16, margin_right=16,
                                       hexpand_set=True, hexpand=True)
-                    #label.set_padding(BORDER_WIDTH, 0)
+                    #label.set_padding(WIDGET_BORDER_WIDTH, 0)
                     grid.attach(label, j, i, 1, 1)
         content_area.add(grid)
         
@@ -423,7 +443,7 @@ class Builder(object):
         self.builder = Gtk.Builder()
         #self.builder.set_translation_domain(textdomain)
 
-        #TODO load all ui/*.ui files
+        #TODO load all ui/*.ui filenames
         package_pathname = os.path.dirname(os.path.realpath(__file__))
         ui_filename = os.path.join(package_pathname, "preferences.ui")
         self.builder.add_from_file(ui_filename)
@@ -431,9 +451,9 @@ class Builder(object):
 class ToolBarBox(Gtk.Box):
 
     def __init__(self, main_window):
-        Gtk.Box.__init__(self, spacing=BORDER_WIDTH)
+        Gtk.Box.__init__(self, spacing=WIDGET_BORDER_WIDTH)
         self.main_window = main_window
-        
+
         ####
         
         compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
@@ -720,11 +740,11 @@ class ToolBarBox(Gtk.Box):
         self.pvr_queue_check_button.set_focus_on_click(False)
         grid.add(self.pvr_queue_check_button)
 
-        self.future_checkbox = Gtk.CheckButton("Future")
-        self.future_checkbox.set_tooltip_text(TOOLTIP_TOOLS_FUTURE)
-        self.future_checkbox.set_focus_on_click(False)
-        self.future_checkbox.connect("clicked", self.main_window.controller().on_checkbox_future_clicked)
-        grid.attach_next_to(self.future_checkbox, self.pvr_queue_check_button, Gtk.PositionType.BOTTOM, 1, 1)
+        self.future_check_button = Gtk.CheckButton("Future")
+        self.future_check_button.set_tooltip_text(TOOLTIP_TOOLS_FUTURE)
+        self.future_check_button.set_focus_on_click(False)
+        self.future_check_button.connect("clicked", self.main_window.controller().on_check_button_future_clicked)
+        grid.attach_next_to(self.future_check_button, self.pvr_queue_check_button, Gtk.PositionType.BOTTOM, 1, 1)
 
         ##
         
@@ -736,6 +756,10 @@ class ToolBarBox(Gtk.Box):
         #self.queue_size_label.set_tooltip_text("Waiting to download")
         #grid.addmain_window.main_controller.(self.queue_size_label)
 
+        event_box = Gtk.EventBox()
+        event_box.connect("button-press-event", self.main_window.controller().on_progress_bar_button_release_event)
+        grid.attach_next_to(event_box, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
+
         ##halign="start", min_horizontal_bar_width=16
         self.progress_bar = Gtk.ProgressBar()
         # Set minimal size: self.progress_bar.set_size_request(90, -1)
@@ -743,9 +767,12 @@ class ToolBarBox(Gtk.Box):
         self.progress_bar.set_show_text(True)
         self.progress_bar.set_valign(Gtk.Align.START)
         self.progress_bar.set_fraction(0.0)
+        #self.progress_bar.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        #self.progress_bar.connect("button-press-event", self.main_window.controller().on_progress_bar_button_release_event)
         #self.progress_bar.set_tooltip_text("D (downloading), Q (waiting to download)")
-        self.progress_bar.set_tooltip_text(TOOLTIP_PROGRESS_DOWNLOADING)
-        grid.attach_next_to(self.progress_bar, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
+        self.progress_bar.set_tooltip_text(TOOLTIP_PROGRESS_BAR)
+        #grid.attach_next_to(self.progress_bar, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
+        event_box.add(self.progress_bar)
 
         ##
 
@@ -761,10 +788,10 @@ class ToolBarBox(Gtk.Box):
         ##
 
         # Timeout in milliseconds
-        self.timeout_id = GObject.timeout_add(4000, self._on_progress_bar_update, None)
+        self.timeout_id = GObject.timeout_add(5000, self.main_window.controller().on_progress_bar_update, None)
         
         # Initialize label text
-        self._on_progress_bar_update(None)
+        #self.main_window.controller().on_progress_bar_update(None)
 
         ####
 
@@ -774,13 +801,18 @@ class ToolBarBox(Gtk.Box):
         #      - grid: fill argument set to True
         #      - grid child: hexpand_set=True, hexpand=True, halign=Gtk.Align.END
         self.pack_start(grid, False, True, 0)
+        #KEYBOARD FOCUS:
+        #focus_chain.append(grid)
 
+        #KEYBOARD FOCUS:
+        #event_box = Gtk.EventBox(can_focus=True)
         event_box = Gtk.EventBox()
-        #event_box.set_events(gtk.gdk.GDK_BUTTON_PRESS_MASK 
         event_box.connect("button-press-event", self._on_menu_button_press_event)
+        #KEYBOARD FOCUS:
+        #event_box.connect("key-release-event", self._on_menu_button_key_release_event)
         grid.add(event_box)
-        
-        #margin_left=BORDER_WIDTH
+
+        #margin_left=WIDGET_BORDER_WIDTH
         #image.set_alignment(0, 0.2)
         #grid.attach_next_to(image, self.progress_bar, Gtk.PositionType.RIGHT, 1, 1)
         image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES, hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
@@ -807,33 +839,16 @@ class ToolBarBox(Gtk.Box):
         if icon_pos == Gtk.EntryIconPosition.PRIMARY:
             self.main_window.controller().on_button_find_clicked(None)
 
-    def _on_progress_bar_update(self, user_data):
-        try:
-            if os.name == "posix":
-                processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True))
-            else:
-                processes = 0
-        except ValueError:
-            # On occasion, processes is not a valid int (empty string?)
-            #NOTE Variable "processes" remains initialized after the try-except compound statement
-            processes = 0
-
-        ##self.processes_label.set_label("D: " + str(processes))
-        ##self.queue_size_label.set_label("Q: " + str(command_queue.size()))
-
-        #NOTE String formatting: right-aligned (default for int), 4 characters wide:  str.format("D:{0:4}  Q:{1:4}", ...)
-        #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
-        self.progress_bar.set_text(str(processes))
-        # Full progress bar when 6 get_iplayer processes are running.  % 1 to keep the fraction between 0.0 and 1.0.
-        self.progress_bar.set_fraction(processes / 6.0 % 1)
-        #Gray-out
-        #self.progress_bar.set_sensitive(processes != 0 or command_queue.size() != 0)
-
-        return True
-
     def _on_menu_button_press_event(self, widget, event):
         self.main_window.controller().ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
         #return True
+
+    #KEYBOARD FOCUS:
+    #def _on_menu_button_key_release_event(self, widget, event):
+    #    if event.string == "\r":
+    #        # Enter key released
+    #        self.main_window.controller().ui_manager.get_popup_menu().popup(None, None, None, None, 0, event.time)
+    #    #return True
 
     ##### Spinner
 
@@ -922,7 +937,7 @@ class MainTreeView(Gtk.TreeView):
             widget = Gtk.Label()
         else:
             widget = Gtk.CheckButton()
-        (minimum_height, natural_height) = widget.get_preferred_height()
+        (unused_minimum_height, natural_height) = widget.get_preferred_height()
         row_height = natural_height
         
         #### First column
@@ -1130,8 +1145,8 @@ class PropertiesWindow(Gtk.Window):
 
     def __init__(self, get_iplayer_output_lines):
         Gtk.Window.__init__(self, title="properties - " + get_iplayer_downloader.PROGRAM_NAME)
-        self.set_default_size(800, 700)
-        self.set_border_width(BORDER_WIDTH)
+        self.set_default_size(WINDOW_LARGE_WIDTH, WINDOW_LARGE_HEIGHT)
+        self.set_border_width(WIDGET_BORDER_WIDTH)
         #self.set_resizable(False)
         
         self._init_grid(get_iplayer_output_lines)
@@ -1178,7 +1193,7 @@ class PropertiesWindow(Gtk.Window):
         #### Property table
         
         #NOTE To expand the grid, expand one of its child widgets
-        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=BORDER_WIDTH, hexpand=True)
+        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=WIDGET_BORDER_WIDTH, hexpand=True)
         self.grid.add(frame)
 
         ####
@@ -1191,7 +1206,7 @@ class PropertiesWindow(Gtk.Window):
                            "type", "versions", "web"]
 
         prop_grid = Gtk.Grid(column_homogeneous=False, row_homogeneous=False,
-                             margin_top=BORDER_WIDTH, margin_bottom=BORDER_WIDTH)
+                             margin_top=WIDGET_BORDER_WIDTH, margin_bottom=WIDGET_BORDER_WIDTH)
         frame.add(prop_grid)
         
         focused_label = None
@@ -1212,14 +1227,14 @@ class PropertiesWindow(Gtk.Window):
                         pass
                 
                 label1 = Gtk.Label(prop_label, valign=Gtk.Align.START, halign=Gtk.Align.START)
-                label1.set_padding(BORDER_WIDTH, 0)
+                label1.set_padding(WIDGET_BORDER_WIDTH, 0)
                 label1.set_line_wrap(True)
                 #label1.set_selectable(False)
                 prop_grid.attach(label1, 0, i, 1, 1)
 
                 label2 = Gtk.Label(markup.text2html(prop_value), margin_left=40,
                                    valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True)
-                label2.set_padding(BORDER_WIDTH, 0)
+                label2.set_padding(WIDGET_BORDER_WIDTH, 0)
                 label2.set_line_wrap(True)
                 label2.set_selectable(True)
                 label2.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
@@ -1269,24 +1284,24 @@ class PropertiesWindow(Gtk.Window):
 
         ####
 
-        frame = Gtk.Frame(label="Additional links", label_xalign=0.01, margin=BORDER_WIDTH)
+        frame = Gtk.Frame(label="Additional links", label_xalign=0.01, margin=WIDGET_BORDER_WIDTH)
         self.grid.add(frame)
 
         url = "<a href=\"http://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
         url += "      "
 
-        # Add URLs to get_iplayer's pvr configuration folder and files
+        # Add URLs to get_iplayer's pvr configuration folder and filenames
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "pvr")
         url += _files2urls(filepath)
         url += "      "
 
-        # Add URLs to get_iplayer's presets configuration folder and files
+        # Add URLs to get_iplayer's presets configuration folder and filenames
         filepath = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
         url += _files2urls(filepath)
 
         label1 = Gtk.Label(url, valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True,
-                           margin_top=BORDER_WIDTH, margin_bottom=BORDER_WIDTH)
-        label1.set_padding(BORDER_WIDTH, 0)
+                           margin_top=WIDGET_BORDER_WIDTH, margin_bottom=WIDGET_BORDER_WIDTH)
+        label1.set_padding(WIDGET_BORDER_WIDTH, 0)
         label1.set_line_wrap(True)
         #WORD_CHAR
         label1.set_line_wrap_mode(Pango.WrapMode.CHAR)
@@ -1300,21 +1315,21 @@ class PreferencesDialogWrapper(object):
         
         self.dialog = self.builder.get_object("PreferencesDialog")
 
-        self.general_compact_toolbar_checkbox = self.builder.get_object("PrefsGeneralCompactToolBar")
-        self.general_compact_treeview_checkbox = self.builder.get_object("PrefsGeneralCompactTreeView")
-        self.general_show_menubar_checkbox = self.builder.get_object("PrefsGeneralShowMenuBar")
-        self.general_show_tooltip_checkbox = self.builder.get_object("PrefsGeneralShowTooltip")
-        self.general_start_maximized_checkbox = self.builder.get_object("PrefsGeneralStartMaximized")
+        self.general_compact_toolbar_check_button = self.builder.get_object("PrefsGeneralCompactToolBarCheckButton")
+        self.general_compact_treeview_check_button = self.builder.get_object("PrefsGeneralCompactTreeViewCheckButton")
+        self.general_show_menubar_check_button = self.builder.get_object("PrefsGeneralShowMenuBarCheckButton")
+        self.general_show_tooltip_check_button = self.builder.get_object("PrefsGeneralShowTooltipCheckButton")
+        self.general_start_maximized_check_button = self.builder.get_object("PrefsGeneralStartMaximizedCheckButton")
 
         self.radio_channels_entry = self.builder.get_object("PrefsRadioChannelsEntry")
         self.radio_download_path_entry = self.builder.get_object("PrefsRadioDownloadPathEntry")
         self.radio_download_file_chooser_button = self.builder.get_object("PrefsRadioDownloadFileChooserButton")
-        self.radio_run_in_terminal_entry = self.builder.get_object("PrefsRadioRunInTerminalCheckButton")
+        self.radio_run_in_terminal_check_button = self.builder.get_object("PrefsRadioRunInTerminalCheckButton")
 
         self.tv_channels_entry = self.builder.get_object("PrefsTvChannelsEntry")
         self.tv_download_path_entry = self.builder.get_object("PrefsTvDownloadPathEntry")
         self.tv_download_file_chooser_button = self.builder.get_object("PrefsTvDownloadFileChooserButton")
-        self.tv_run_in_terminal_entry = self.builder.get_object("PrefsTvRunInTerminalCheckButton")
+        self.tv_run_in_terminal_check_button = self.builder.get_object("PrefsTvRunInTerminalCheckButton")
 
         ####
         
@@ -1339,12 +1354,13 @@ class PreferencesDialogWrapper(object):
         #self.dialog.connect("show", self._on_map_event)
 
     def _display_settings(self):
-        """ Retrieve in-memory settings and put them in dialog fields """
-        self.general_compact_toolbar_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
-        self.general_compact_treeview_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
-        self.general_show_menubar_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")))
-        self.general_show_tooltip_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
-        self.general_start_maximized_checkbox.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
+        """ Retrieve in-memory settings and put them in dialog fields. """
+
+        self.general_compact_toolbar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
+        self.general_compact_treeview_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
+        self.general_show_menubar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")))
+        self.general_show_tooltip_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
+        self.general_start_maximized_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
         download_path = settings.config().get("radio", "download-path")
@@ -1356,7 +1372,7 @@ class PreferencesDialogWrapper(object):
         else:
             # Set to root path
             self.radio_download_file_chooser_button.set_filename(os.sep)
-        self.radio_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("radio", "run-in-terminal")))
+        self.radio_run_in_terminal_check_button.set_active(string.str2bool(settings.config().get("radio", "run-in-terminal")))
         
         self.tv_channels_entry.set_text(settings.config().get("tv", "channels"))
         download_path = settings.config().get("tv", "download-path")
@@ -1368,29 +1384,30 @@ class PreferencesDialogWrapper(object):
         else:
             # Set to root path
             self.tv_download_file_chooser_button.set_filename(os.sep)
-        self.tv_run_in_terminal_entry.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
+        self.tv_run_in_terminal_check_button.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
     def _capture_settings(self):
-        """ Retrieve settings from dialog fields and put them in in-memory settings """
-        settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_checkbox.get_active()))
-        settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_checkbox.get_active()))
-        settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_checkbox.get_active()))
-        settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_checkbox.get_active()))
-        settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_checkbox.get_active()))
+        """ Retrieve settings from dialog fields and put them in in-memory settings. """
+
+        settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_check_button.get_active()))
         
         settings.config().set("radio", "channels", self.radio_channels_entry.get_text())
         settings.config().set("radio", "download-path", self.radio_download_path_entry.get_text())
-        settings.config().set("radio", "run-in-terminal", str(self.radio_run_in_terminal_entry.get_active()))
+        settings.config().set("radio", "run-in-terminal", str(self.radio_run_in_terminal_check_button.get_active()))
         
         settings.config().set("tv", "channels", self.tv_channels_entry.get_text())
         settings.config().set("tv", "download-path", self.tv_download_path_entry.get_text())
-        settings.config().set("tv", "run-in-terminal", str(self.tv_run_in_terminal_entry.get_active()))
+        settings.config().set("tv", "run-in-terminal", str(self.tv_run_in_terminal_check_button.get_active()))
 
     #def _on_map_event(self, user_data):
     #    self.ok_button.grab_focus()
 
     def _on_prefs_revert_clicked(self, user_data):
-        """ Only reset settings visible on the preferences dialog window """
+        """ Only reset settings visible on the preferences dialog window. """
 
         # Factory-reset all options
         #settings.revert()
@@ -1466,7 +1483,7 @@ class SearchEntry(Gtk.Entry):
 
 class MainWindowController:
     """ Handle the active part of the main window related widgets. Activity between main widgets and 
-        activity towards the (source of the gtk widget) model, i.e. get_iplayer.py
+        activity towards the (source of the gtk widget) model, i.e. get_iplayer.py.
     """
     
     class PresetComboModelColumn:
@@ -1475,12 +1492,18 @@ class MainWindowController:
     
     def __init__(self, main_window):
         self.main_window = main_window
+        self.log_dialog = None
+        self.errors_offset = 0
 
     def init(self):
-        """ Complete initialization, after the main window has completed its initialization """
+        """ Complete initialization, after the main window has completed its initialization. """
+
         self.ui_manager = self.main_window.ui_manager
         self.tool_bar_box = self.main_window.tool_bar_box
         self.main_tree_view = self.main_window.main_tree_view
+
+        # Initialize label text
+        self.on_progress_bar_update(None)
 
     def on_button_find_clicked(self, button):
         # button can be None
@@ -1524,7 +1547,7 @@ class MainWindowController:
 
         search_all = self.tool_bar_box.search_all_check_button.get_active()
 
-        future = self.tool_bar_box.future_checkbox.get_active()
+        future = self.tool_bar_box.future_check_button.get_active()
 
         self.main_window.display_busy_mouse_cursor(True)
         output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
@@ -1533,7 +1556,7 @@ class MainWindowController:
         self.main_window.display_busy_mouse_cursor(False)
 
         self.main_tree_view.set_store(output_lines)
-        # Scroll up
+        # Scroll to top
         adjustment = self.main_window.main_tree_view_scrollbar.get_vadjustment()
         adjustment.set_value(0.0)
         adjustment.value_changed()
@@ -1584,7 +1607,7 @@ class MainWindowController:
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
 
-        future = self.tool_bar_box.future_checkbox.get_active()
+        future = self.tool_bar_box.future_check_button.get_active()
 
         #if indices:
         if len(pid_list) > 0:
@@ -1604,15 +1627,17 @@ class MainWindowController:
             elif pvr_queue:
                 dialog = ExtendedMessageDialog(self.main_window, 0,
                                                Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                               "Queued programmes")
-                dialog.set_default_response(Gtk.ResponseType.CLOSE)
+                                               "Queued Programmes")
                 #dialog.format_secondary_text("")
-                dialog.get_content_area().set_size_request(600, 500)
+                dialog.set_default_response(Gtk.ResponseType.CLOSE)
+                dialog.get_content_area().set_size_request(WINDOW_MEDIUM_WIDTH, WINDOW_MEDIUM_HEIGHT)
                 dialog.format_tertiary_scrolled_text(process_output)
                 label = dialog.get_scrolled_label()
                 label.set_valign(Gtk.Align.START)
                 label.set_halign(Gtk.Align.START)
                 label.set_selectable(True)
+                #label.override_font(Pango.FontDescription("monospace small"))
+                label.override_font(Pango.FontDescription("monospace 10"))
                 dialog.run()
                 dialog.destroy()
             #else:
@@ -1640,16 +1665,16 @@ class MainWindowController:
  
         proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
         
-        future = self.tool_bar_box.future_checkbox.get_active()
+        future = self.tool_bar_box.future_check_button.get_active()
 
         model, tree_iter = self.main_tree_view.get_selection().get_selected()
         if tree_iter is not None:
             index = model[tree_iter][SearchResultColumn.INDEX]
             if index:
                 self.main_window.display_busy_mouse_cursor(True)
-                get_iplayer_output_lines = get_iplayer.info(index,
-				                             preset=preset, prog_type=prog_type,
-                                             proxy_enabled=proxy_enabled, future=future)
+                get_iplayer_output_lines = get_iplayer.info(
+                                                index, preset=preset, prog_type=prog_type,
+                                                proxy_enabled=proxy_enabled, future=future)
                 self.main_window.display_busy_mouse_cursor(False)
 
                 window = PropertiesWindow(get_iplayer_output_lines)
@@ -1668,7 +1693,137 @@ class MainWindowController:
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
-    
+
+    def on_progress_bar_update(self, user_data):
+        try:
+            if os.name == "posix":
+                processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True))
+            else:
+                processes = 0
+        except ValueError:
+            # On occasion, processes is not a valid int (empty string?)
+            #NOTE Variable "processes" remains initialized after the try-except compound statement
+            processes = 0
+
+        ##self.processes_label.set_label("D: " + str(processes))
+        ##self.queue_size_label.set_label("Q: " + str(command_queue.size()))
+
+        errors = command_util.download_errors()
+        if self.errors_offset < 0:
+            # Display zero errors by raising the error count offset
+            self.errors_offset = errors
+        errors = errors - self.errors_offset
+        if errors < 0:
+            # Reset error count. Log files were probably removed
+            errors = 0
+            self.errors_offset = 0
+        
+        #NOTE String formatting: right-aligned (default for int), 4 characters wide: str.format("D:{0:4}  Q:{1:4}", ...)
+        #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
+        self.tool_bar_box.progress_bar.set_text("%s / %s" % (processes, errors))
+        # Full progress bar when 6 get_iplayer processes are running.  % 1 to keep the fraction between 0.0 and 1.0.
+        self.tool_bar_box.progress_bar.set_fraction(processes / 6.0 % 1)
+        #Gray-out
+        #self.tool_bar_box.progress_bar.set_sensitive(processes != 0 or command_queue.size() != 0)
+
+        return True
+
+    def on_progress_bar_button_release_event(self, widget, event):
+        # widget and event can be None
+        if self.log_dialog is not None:
+            #return False
+            return
+
+        #TODO TextView instead of Label
+        #TODO Resizable window
+        # Display download log dialog window
+        
+        #NOTE positive ID numbers for user-defined buttons
+        CLEAR_CACHE_BUTTON_ID = 1
+        RESET_ERROR_COUNT_BUTTON_ID = 2
+        FULL_LOG_BUTTON_ID = 3
+        SUMMARY_LOG_BUTTON_ID = 4
+
+        self.log_dialog = ExtendedMessageDialog(self.main_window, 0,
+                                        Gtk.MessageType.INFO, None, #Gtk.ButtonsType.CLOSE,
+                                        "", title="log - " + get_iplayer_downloader.PROGRAM_NAME)
+
+        label = self.log_dialog.get_scrolled_label()
+        label.set_valign(Gtk.Align.START)
+        label.set_halign(Gtk.Align.START)
+        label.set_selectable(True)
+        
+        #label.override_font(Pango.FontDescription("monospace small"))
+        label.override_font(Pango.FontDescription("monospace 10"))
+        #ALTERNATIVE
+        #css_provider = Gtk.CssProvider()
+        #css_provider.load_from_data(b""" * { font: monospace; font-size: 10; } """)
+        #context = label.get_style_context()
+        #context.add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
+
+        self.log_dialog.add_button("Clear log and cache", CLEAR_CACHE_BUTTON_ID)
+        self.log_dialog.add_button("Reset error count", RESET_ERROR_COUNT_BUTTON_ID)
+        self.log_dialog.add_button("Full log", FULL_LOG_BUTTON_ID)
+        self.log_dialog.add_button("Summary log", SUMMARY_LOG_BUTTON_ID)
+        self.log_dialog.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
+        
+        # Dialog buttons are layed out from right to left
+        button = self.log_dialog.get_action_area().get_children()[4]
+        button.set_tooltip_text("Remove all log and image cache files")
+        button = self.log_dialog.get_action_area().get_children()[3]
+        button.set_tooltip_text("Reset error count in the progress bar")
+        button = self.log_dialog.get_action_area().get_children()[2]
+        button.set_tooltip_text("View today's full download log. When the download log is very large, it will not be displayed")
+        button = self.log_dialog.get_action_area().get_children()[1]
+        button.set_tooltip_text("View today's summary download log. Error and warning messages are displayed in bold")
+        
+        self.log_dialog.set_default_response(Gtk.ResponseType.CLOSE)
+        #self.log_dialog.format_secondary_text("")
+        self.log_dialog.get_content_area().set_size_request(WINDOW_LARGE_WIDTH, WINDOW_LARGE_HEIGHT)
+
+        button_id = SUMMARY_LOG_BUTTON_ID
+        button_id_prev = button_id
+        full = False
+        while True:
+            if button_id == FULL_LOG_BUTTON_ID or button_id == SUMMARY_LOG_BUTTON_ID:
+                full = (button_id == FULL_LOG_BUTTON_ID)
+            if full:
+                message_format = "Detailed Download Log"
+            else:
+                message_format = "Summary Download Log"
+            markup = not full
+            log_output = command_util.download_log(full=full, markup=markup, sort_by_mtime=True)
+
+            # Set dialog content title and text
+            self.log_dialog.set_property("text", message_format)
+            #NOTE if full download log text is too large, it won't be displayed
+            if markup:
+                self.log_dialog.format_tertiary_scrolled_markup(log_output)
+            else:
+                self.log_dialog.format_tertiary_scrolled_text(log_output)
+                
+            # Scroll to top
+            label = self.log_dialog.get_scrolled_label()
+            adjustment = label.get_parent().get_vadjustment()
+            adjustment.set_value(0.0)
+            adjustment.value_changed()
+            #adjustment = label.get_parent().set_vadjustment(adjustment)
+            
+            button_id = self.log_dialog.run()
+
+            if button_id_prev != button_id:
+                button_id_prev = button_id
+            if button_id == CLEAR_CACHE_BUTTON_ID:
+                command_util.clear_cache()
+            elif button_id == RESET_ERROR_COUNT_BUTTON_ID:
+                # Invalidate download errors offset
+                self.errors_offset = -1
+            elif button_id == Gtk.ResponseType.CLOSE or button_id == Gtk.ResponseType.DELETE_EVENT:
+                break
+            
+        self.log_dialog.destroy()
+        self.log_dialog = None
+
     def on_accel_go_to_find(self):
         self.tool_bar_box.search_entry.grab_focus()
 
@@ -1743,7 +1898,7 @@ class MainWindowController:
             model = combo.get_model()
             channels = model[tree_iter][KEY_INDEX]
 
-        future = self.tool_bar_box.future_checkbox.get_active()
+        future = self.tool_bar_box.future_check_button.get_active()
 
         self.main_window.display_busy_mouse_cursor(True)
         get_iplayer.refresh(preset=preset, prog_type=prog_type, channels=channels, future=future)
@@ -1755,6 +1910,7 @@ class MainWindowController:
 
     def on_combo_preset_changed(self, combo):
         """ Synchronize associated model settings. """
+
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
@@ -1797,8 +1953,8 @@ class MainWindowController:
                 # Disable since filter
                 combo.set_active(SinceListIndex.FOREVER)
 
-    def on_checkbox_future_clicked(self, checkbox):
-        if checkbox.get_active():
+    def on_check_button_future_clicked(self, check_button):
+        if check_button.get_active():
             self.tool_bar_box.pvr_queue_check_button.set_active(True)
 
             ## Limit the initial search result to future programmes
@@ -1986,23 +2142,24 @@ def _image(url, timeout=0.0):
     return Gtk.Image.new_from_file(filename)
 
 def _files2urls(filepath):
-    """ Return a string containing a url to the folder @filepath and the files inside @filepath (one level deep), sorted by file name """
+    """ Return a string containing a url to the folder @filepath and the filenames inside @filepath (one level deep), sorted by file name. """
+
     basename = os.path.basename(filepath)
     url = "<a href=\"file://" + filepath + "\" title=\"get_iplayer " + basename + " configuration folder\">" + basename + "</a>"
-    for root, dirs, files in os.walk(filepath):
+    for dirpath, unused_dirnames, filenames in os.walk(filepath):
         # Skip empty and subfolders
-        if len(files) > 0 and filepath == root:
-            files.sort()
+        if len(filenames) > 0 and filepath == dirpath:
+            filenames.sort()
             url += " ("
-            for i, filename in enumerate(files):
-                # Skip files created by get_iplayer --pvrqueue
+            for i, filename in enumerate(filenames):
+                # Skip filenames created by get_iplayer --pvrqueue
                 if not filename.startswith("ONCE_"):
                     url += "<a href=\"file://" + os.path.join(filepath, filename) + "\" title=\"get_iplayer " + basename + " configuration file\">" + filename + "</a>"
-                    if (i < len(files) - 1):
+                    if (i < len(filenames) - 1):
                         url += ", "
             url += ")"
     return url
-    #ALTERNATIVE ways of sorting a list of files in a folder: glob(<filename filter>); listdir()
+    #ALTERNATIVE ways of sorting a list of filenames in a folder: glob(<filename filter>); listdir()
 
 ####
 

@@ -1,7 +1,7 @@
 /* See /usr/share/themes/.../gtk-3... */
 
 * {
-	/* Smaller ProgressBar */
+	/* Allow small ProgressBar */
 	-GtkProgressBar-min-horizontal-bar-width: 50;
 	-GtkProgressBar-min-vertital-bar-height: 50;
 	/* font-size: smaller; */

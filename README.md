@@ -63,6 +63,7 @@ File ~/.get\_iplayer/presets/radio:
     #ffmpeg /usr/bin/avconv
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
+    listformat <index>:   <episode> ~ <desc> (<pid>)
     output /home/willemw12/Music/bbc
     radiomode flashaudio,realaudio,flashaac,wma
 
@@ -71,6 +72,7 @@ File ~/.get\_iplayer/presets/tv:
     #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
     fileprefix <name>-<episode>-<lastbcast>
     isodate 1
+    listformat <index>:   <episode> ~ <desc> (<pid>)
     output /home/willemw12/Videos/bbc
     tvmode flashhigh,flashstd,flashnormal
 
@@ -85,15 +87,10 @@ Most configuration settings can be managed from the GUI. Other settings can be f
 
 Before downloading programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file. To use the default download path specified in get\_iplayer, leave the download path empty.
 
-The preconfigured search channels and categories are a reduced set. You can define your own search categories. To start off with category lists containing all available categories, run from this directory:
+The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs or "substring search term"-"GUI label" pairs). To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
     ./get_iplayer_downloader.py --list-categories --quiet
-
-and put the printed output in the configuration file. The same can be done for channels:
-
     ./get_iplayer_downloader.py --list-channels --quiet
-	
-or clear the channel lists in the configuration to search in all channels.
 
 If the program crashes immediately on startup or when the mouse cursor moves over the first column in the programme search result, disable the "show-tooltip" option or update the GNOME libraries (in particular GTK+ 3).
 
@@ -165,6 +162,7 @@ The keyboard shortcuts are:
     ctrl+c                  Clear         Clear programme download selection
     ctrl+d                  Download      Download or queue selected programmes
     ctrl+f                  Find          Go to search entry field on the tool bar
+    ctrl+l                  Log           View log
     ctrl+q                  Queue         Queue selected programmes for one-off downloading by get_iplayer pvr
     ctrl+r                  Refresh       Refresh programme cache
     ctrl+s, ctrl+shift+s    Since         Select since programmes were added to the search cache

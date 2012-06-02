@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 
 # Singleton wrapper class (class containing a singleton)
 class CommandQueue:
-    
     """ Push commands in one of the available queues and execute them when popped from the queue.
         Running commands from different queues run in parallel.
     """
+    
     class _Worker(Thread):
     
         def __init__(self, queue):
@@ -39,7 +39,7 @@ class CommandQueue:
         self._queue = _get_queue()
         
         # Start worker threads
-        for i in range(TOTAL_WORKER_THREADS):
+        for unused_i in range(TOTAL_WORKER_THREADS):
             thread = CommandQueue._Worker(self._queue)
             thread.setDaemon(True)
             thread.start()

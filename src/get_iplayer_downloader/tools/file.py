@@ -6,6 +6,7 @@ import urllib.request, urllib.parse     #, urllib.error
 
 def load_url(url, pathname, **urlopen_keywords):
     """ Download file @url to folder @pathname. @urlopen_keywords are for urllib.request.urlopen(): "timeout" keyword in seconds """
+
     if not os.path.exists(pathname):
         os.makedirs(pathname)
     
@@ -23,13 +24,13 @@ def load_url(url, pathname, **urlopen_keywords):
         #except ValueError: invalid URL
             
         #NOTE Do not add "os." at the beginning of these I/O methods
-        fp = open(filename, "wb")
-        fp.write(stream.read())
-        fp.close()
+        file = open(filename, "wb")
+        file.write(stream.read())
+        file.close()
         #ALTERNATIVE
-        #with open(filename, "w") as fp:
-        #    fp.write(stream.read())
-        #b = fp.closed()
+        #with open(filename, "w") as file:
+        #    file.write(stream.read())
+        #b = file.closed()
         
         stream.close()
     return filename

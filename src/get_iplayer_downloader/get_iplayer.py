@@ -1,4 +1,4 @@
-""" Perform get_iplayer operations. """
+""" Perform get_iplayer commands. """
 
 import ast
 import logging
@@ -125,6 +125,7 @@ def categories(search_text, preset=None, prog_type=None):
     """ Run get_iplayer --list=categories.
         Return table with columns: categories, categories (key-value pair).
     """
+    
     cmd = _GET_IPLAYER_PROG
     if preset:
         cmd += " --preset=" + preset
@@ -148,10 +149,11 @@ def categories(search_text, preset=None, prog_type=None):
 
     return output_lines
 
-def channels(search_text, preset=None, prog_type=None, full_labels=True):
-    """ Run get_iplayer --list=channel. @full_labels is False: strip leading "BBC " substring.
+def channels(search_text, preset=None, prog_type=None, compact=False):
+    """ Run get_iplayer --list=channel. @compact is False: strip leading "BBC " substring.
         Return comma-separated list of channels.
     """
+    
     cmd = _GET_IPLAYER_PROG
     if preset:
         cmd += " --preset=" + preset
@@ -173,7 +175,7 @@ def channels(search_text, preset=None, prog_type=None, full_labels=True):
                 first_value = False
             else:
                 output_line += ","
-            if not full_labels and line.startswith("BBC "):
+            if compact and line.startswith("BBC "):
                 # Remove leading "BBC " substring
                 line = line[len("BBC "):]
             # Strip the count number from the channel name
@@ -186,6 +188,7 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
     """ Run get_iplayer (--search).
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
+    
     cmd = _GET_IPLAYER_PROG
     if search_all:
         cmd += " --type=all"
@@ -258,6 +261,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
         If @pid is true, then the first column of @search_term_table contains pids.
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
+    
     if preset == Preset.RADIO:
         output_path = RADIO_DOWNLOAD_PATH
     elif preset == Preset.TV:
@@ -321,10 +325,12 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
     """ Run get_iplayer --info.
         Return table with columns: serie title, episode title plus description.
     """
+    
     # Cannot do a search on pid
     # Only from outside the UK and partial_proxy enabled in get_iplayer(?):
     #     If proxy_enabled is false then info retrieval will be faster but the info 
     #     will not contain proper values for "modes" and "tvmodes" (the available tv download file sizes)
+
     cmd = _GET_IPLAYER_PROG + " --nocopyright --info"
     if preset:
         cmd += " --preset=" + preset
@@ -354,13 +360,14 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
 
 def refresh(preset=None, prog_type=None, channels=None, force=False, future=False):
     """ Run get_iplayer --refresh. """
-    if not preset:
-        #preset = Preset.RADIO + "," + Preset.TV
-        preset = "all"
+    
+    #if not preset:
+    #    #preset = Preset.RADIO + "," + Preset.TV
+    #    preset = "all"
 
     cmd = _GET_IPLAYER_PROG + " --nocopyright --refresh"
-    if preset:
-        cmd += " --preset=" + preset
+    #if preset:
+    #    cmd += " --preset=" + preset
     if prog_type:
         cmd += " --type=" + prog_type
     if force:
@@ -371,4 +378,9 @@ def refresh(preset=None, prog_type=None, channels=None, force=False, future=Fals
         #cmd += " --channel=\"" + channel + "\""
         cmd += " --refresh-include=\"" + channels + "\""
 
-    return command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
+    if preset is None:
+        ret1 = command.run(cmd + " --preset=" + Preset.RADIO, temp_pathname=settings.TEMP_PATHNAME)
+        ret2 = command.run(cmd + " --preset=" + Preset.TV, temp_pathname=settings.TEMP_PATHNAME)
+        return ret2 if ret2 != 0 else ret1
+    else:
+        return command.run(cmd + " --preset=" + preset, temp_pathname=settings.TEMP_PATHNAME)

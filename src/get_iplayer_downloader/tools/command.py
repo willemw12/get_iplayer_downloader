@@ -12,29 +12,29 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
     
     # The command string that will be executed
     cmd_exec = cmd
-    cmd_logname = ""
     
     log_level = logging.getLogger().level
 
-    if not quiet and log_level == logging.DEBUG:
+    if not quiet:
         #temp_pathname = keywords["temp_pathname"] if "temp_pathname" in keywords else None
         if temp_pathname is not None:
-            # Add commands to log to file
+            # Log commands
+            
             if not os.path.exists(temp_pathname):
                 os.makedirs(temp_pathname)
-
+        
             ##cmd_exec += " 2>&1 | tee $(mktemp " + temp_pathname + "/cmd_exec-XXXXXXXXXX.log)"
             #cmd_exec = "(" + cmd_exec + ") 2>&1 | tee " + temp_pathname + "/$(date +\"%Y%m%d%H%M%S\")-cmd_exec.log"
-
+        
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             cmd_logname = os.path.join(temp_pathname, timestamp + "-cmd.log")
-            #with open(cmd_logname, "w") as fp:
-            #    fp.write("%s\n\n" % cmd)
+            #with open(cmd_logname, "w") as file:
+            #    file.write("%s\n\n" % cmd)
             #cmd_exec = "( " + cmd_exec + " ) 2>&1 | tee -a " + cmd_logname
             cmd_exec = "( set -x ; " + cmd_exec + " ) 2>&1 | tee  " + cmd_logname
 
     if terminal_prog:
-        # terminal_prog is not None or empty string
+        # terminal_prog is not None and not empty string
         
         # Add commands to run in a terminal window
         if os.name == "posix":
@@ -65,3 +65,4 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         #print "Ready"
 
     return process_output
+                            
