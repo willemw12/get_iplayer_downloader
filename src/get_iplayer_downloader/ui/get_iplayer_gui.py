@@ -341,7 +341,7 @@ class UIManager():
         elif name == "ViewProperties":
             self.main_window.controller().on_button_properties_clicked(None)
         elif name == "ViewLog":
-            self.main_window.controller().on_progress_bar_button_release_event(None, None)
+            self.main_window.controller().on_progress_bar_button_press_event(None, None)
         elif name == "SearchGoToFind":
             self.main_window.controller().on_accel_go_to_find()
         elif name == "SearchRotateForwardSince":
@@ -757,7 +757,7 @@ class ToolBarBox(Gtk.Box):
         #grid.addmain_window.main_controller.(self.queue_size_label)
 
         event_box = Gtk.EventBox()
-        event_box.connect("button-press-event", self.main_window.controller().on_progress_bar_button_release_event)
+        event_box.connect("button-press-event", self.main_window.controller().on_progress_bar_button_press_event)
         grid.attach_next_to(event_box, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
 
         ##halign="start", min_horizontal_bar_width=16
@@ -768,7 +768,7 @@ class ToolBarBox(Gtk.Box):
         self.progress_bar.set_valign(Gtk.Align.START)
         self.progress_bar.set_fraction(0.0)
         #self.progress_bar.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
-        #self.progress_bar.connect("button-press-event", self.main_window.controller().on_progress_bar_button_release_event)
+        #self.progress_bar.connect("button-press-event", self.main_window.controller().on_progress_bar_button_press_event)
         #self.progress_bar.set_tooltip_text("D (downloading), Q (waiting to download)")
         self.progress_bar.set_tooltip_text(TOOLTIP_PROGRESS_BAR)
         #grid.attach_next_to(self.progress_bar, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
@@ -840,7 +840,9 @@ class ToolBarBox(Gtk.Box):
             self.main_window.controller().on_button_find_clicked(None)
 
     def _on_menu_button_press_event(self, widget, event):
-        self.main_window.controller().ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
+        if event.button == 1:
+            # Left mouse click
+            self.main_window.controller().ui_manager.get_popup_menu().popup(None, None, None, None, event.button, event.time)
         #return True
 
     #KEYBOARD FOCUS:
@@ -1728,14 +1730,17 @@ class MainWindowController:
 
         return True
 
-    def on_progress_bar_button_release_event(self, widget, event):
+    def on_progress_bar_button_press_event(self, widget, event):
         # widget and event can be None
         if self.log_dialog is not None:
+            # Dialog already running
+            #return False
+            return
+        if event is not None and event.button != 1:
+            # Not left mouse click
             #return False
             return
 
-        #TODO TextView instead of Label
-        #TODO Resizable window
         # Display download log dialog window
         
         #NOTE positive ID numbers for user-defined buttons
@@ -1745,8 +1750,8 @@ class MainWindowController:
         SUMMARY_LOG_BUTTON_ID = 4
 
         self.log_dialog = ExtendedMessageDialog(self.main_window, 0,
-                                        Gtk.MessageType.INFO, None, #Gtk.ButtonsType.CLOSE,
-                                        "", title="log - " + get_iplayer_downloader.PROGRAM_NAME)
+                                Gtk.MessageType.INFO, None, #Gtk.ButtonsType.CLOSE,
+                                "", title="log - " + get_iplayer_downloader.PROGRAM_NAME)
 
         label = self.log_dialog.get_scrolled_label()
         label.set_valign(Gtk.Align.START)

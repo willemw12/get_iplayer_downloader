@@ -9,6 +9,8 @@ from get_iplayer_downloader.tools import command, command_queue, config, string
 
 logger = logging.getLogger(__name__)
 
+####
+
 RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
 TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
 
@@ -17,13 +19,18 @@ ALL_CATEGORIES_LABEL = "Categories"
 ALL_CHANNELS_LABEL = "Channels"
 SINCE_FOREVER_LABEL = "Since"
 
+# Indices of a key-value pair
+KEY_INDEX = 0
+VALUE_INDEX = 1
+
+####
+
 _GET_IPLAYER_PROG = "get_iplayer"
 _TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
 
 _SINCE_HOUR_MARGIN = 6
 
 _COMPACT_TOOLBAR = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
-
 _ALL_CATEGORIES_LABEL = ALL_CATEGORIES_LABEL if _COMPACT_TOOLBAR else ""
 _ALL_CHANNELS_LABEL = ALL_CHANNELS_LABEL if _COMPACT_TOOLBAR else ""
 _SINCE_FOREVER_LABEL = SINCE_FOREVER_LABEL if _COMPACT_TOOLBAR else ""
@@ -79,10 +86,6 @@ class Categories:
 
 ####
 
-# Indices of a key-value pair
-KEY_INDEX = 0
-VALUE_INDEX = 1
-
 class SinceListIndex:
     FOREVER = 0
     #FUTURE = 1
@@ -105,16 +108,21 @@ class SearchResultColumn:
 
 ####
 
-def check_preset_files():
+def check_preset_files(quiet=False):
     pathname = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
 
-    filename = os.path.join(pathname, Preset.RADIO)
-    if not os.path.exists(filename):
-        logger.warning("Configured preset file %s does not exist" % filename)
-
-    filename = os.path.join(pathname, Preset.TV)
-    if not os.path.exists(filename):
-        logger.warning("Configured preset file %s does not exist" % filename)
+    log_output = ""
+    for preset in [Preset.RADIO, Preset.TV]:
+        filename = os.path.join(pathname, preset)
+        if not os.path.exists(filename):
+            msg = "Configured preset file %s does not exist" % filename
+            # Don't bother returning msg if msg is already written to the log
+            if not quiet:
+                logger.warning("Configured preset file %s does not exist" % filename)
+            else:
+                log_output += "WARNING: " + msg + "\n"
+            
+    return log_output
 
 #NOTE logging not fully initialized yet
 #check_preset_files()

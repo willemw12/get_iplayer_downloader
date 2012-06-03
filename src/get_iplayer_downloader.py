@@ -15,7 +15,7 @@ def _init_loggers():
     logging.basicConfig(level=level)
     #root_logger = logging.getLogger()
 
-    # Log to file
+    # Write session logs to file
     if not os.path.exists(settings.TEMP_PATHNAME):
         os.mkdir(settings.TEMP_PATHNAME)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -33,8 +33,8 @@ def main():
     _init_loggers()
 
     args = settings.args()
-    #if args.list_full_labels and not args.list_channels:
-    #    logger.info("--list-full-labels is only used with --list-channels")
+    #if args.compact and not args.list_channels:
+    #    logger.info("--compact is only used with --list-channels")
     if args.list_categories:
         config_util.list_categories()
     elif args.list_channels:

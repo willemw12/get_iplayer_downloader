@@ -2,12 +2,24 @@
 
 import shutil
 
-from get_iplayer_downloader import settings
+from get_iplayer_downloader import get_iplayer, settings
 from get_iplayer_downloader.tools import command_log
+
+#def download_log(**keywords):
+#    """ Return today's download log. """
+#    return command_log.download_log(settings.TEMP_PATHNAME, **keywords)
 
 def download_log(**keywords):
     """ Return today's download log. """
-    return command_log.download_log(settings.TEMP_PATHNAME, **keywords)
+    
+    # Add some useful session log messages
+    log_output = get_iplayer.check_preset_files(quiet=True)
+    if log_output:
+        log_output += "\n======================================================================\n\n"
+    
+    log_output += command_log.download_log(settings.TEMP_PATHNAME, **keywords)
+
+    return log_output
 
 def download_errors():
     """ Return the number of today's FATAL, ERROR and WARNING download log messages. """

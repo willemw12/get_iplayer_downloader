@@ -63,19 +63,19 @@ def _save_config(config, config_filename):
 def _create_args():
     #NOTE argparse() does an implicit auto-complete: --list-ch --> --list-channels
     #NOTE add_argument(): dest="clean_cache", etc. are generated automatically. "-" are replaced by "_"
-    argparser = argparse.ArgumentParser(description=get_iplayer_downloader.LONG_DESCRIPTION)
-    argparser.add_argument("-c", "--config", nargs=1, default=[DEFAULT_USER_CONFIG_FILENAME], help="configuration file, which will be created if it does not exist")
-    argparser.add_argument("-d", "--debug", action="store_const", const=True, default=False, help="set log level to debug")
-    argparser.add_argument("-l", "--log", action="store_const", const=True, default=False, help="list download log")
-    argparser.add_argument("-q", "--quiet", action="store_const", const=True, default=False, help="set log level to fatal")
-    argparser.add_argument("-v", "--verbose", action="store_const", const=True, default=False, help="set log level to info")    
-    argparser.add_argument("--clear-cache", action="store_const", const=True, default=False, help="delete log files and image cache files")
-    argparser.add_argument("--compact", action="store_const", const=True, default=False, help="used with --list-channels: remove \"BBC\" from labels")
-    argparser.add_argument("--full", action="store_const", const=True, default=False, help="used with --log: print detailed download log")
-    argparser.add_argument("--list-categories", action="store_const", const=True, default=False, help="list all available categories (key-value pairs or \"substring search term\"-\"GUI label\" pairs)")
-    argparser.add_argument("--list-channels", action="store_const", const=True, default=False, help="list all available channels")
-    argparser.add_argument("--version", action="store_const", const=True, default=False, help="print version")
-    return argparser.parse_args()
+    parser = argparse.ArgumentParser(description=get_iplayer_downloader.LONG_DESCRIPTION)
+    parser.add_argument("-c", "--config", nargs=1, default=[DEFAULT_USER_CONFIG_FILENAME], help="configuration file, which will be created if it does not exist")
+    parser.add_argument("-d", "--debug", action="store_const", const=True, default=False, help="set log level to debug")
+    parser.add_argument("-l", "--log", action="store_const", const=True, default=False, help="list download log")
+    parser.add_argument("-q", "--quiet", action="store_const", const=True, default=False, help="set log level to fatal")
+    parser.add_argument("-v", "--verbose", action="store_const", const=True, default=False, help="set log level to info")    
+    parser.add_argument("--clear-cache", action="store_const", const=True, default=False, help="delete log files and image cache files")
+    parser.add_argument("--compact", action="store_const", const=True, default=False, help="used with --list-channels: remove \"BBC\" from labels")
+    parser.add_argument("--full", action="store_const", const=True, default=False, help="used with --log: print detailed download log")
+    parser.add_argument("--list-categories", action="store_const", const=True, default=False, help="list all available categories (key-value pairs or \"substring search term\"-\"GUI label\" pairs)")
+    parser.add_argument("--list-channels", action="store_const", const=True, default=False, help="list all available channels")
+    parser.add_argument("--version", action="store_const", const=True, default=False, help="print version")
+    return parser.parse_args()
 
 ####
 

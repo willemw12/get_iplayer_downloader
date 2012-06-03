@@ -36,7 +36,7 @@ The dependencies are:
 
 * get\_iplayer and its dependencies  
   [http://www.infradead.org/get\_iplayer/html/get\_iplayer.html](http://www.infradead.org/get_iplayer/html/get_iplayer.html)
-* Python 3 (3.2). Python 2.7 is supported in get_iplayer_downloader v0.3
+* Python 3 (3.2 or higher)
 * Python setuptools (pytyon3-setuptools), to install get\_iplayer\_downloader
 * GNOME libraries for Python (mainly GTK+ 3). In most cases, already installed.  
   For Debian/Ubuntu, check that the following packages are also installed: python3-gi, python3-gi-cairo 
@@ -177,9 +177,9 @@ The keyboard shortcuts are:
 Extra
 -----
 
-Want to group downloaded programmes automatically by category or week?
+Want to group downloaded programmes automatically by category or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer subdir output option. The script supports additional property substitutions (category, week, ...) in the output subdirectory names. For more information, run:
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer subdir output option. The script supports additional property substitutions (maincategory, category, week) in the output subdirectory names. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 
