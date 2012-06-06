@@ -1751,7 +1751,7 @@ class MainWindowController:
 
         self.log_dialog = ExtendedMessageDialog(self.main_window, 0,
                                 Gtk.MessageType.INFO, None, #Gtk.ButtonsType.CLOSE,
-                                "", title="log - " + get_iplayer_downloader.PROGRAM_NAME)
+                                "", title="download log - " + get_iplayer_downloader.PROGRAM_NAME)
 
         label = self.log_dialog.get_scrolled_label()
         label.set_valign(Gtk.Align.START)
@@ -1768,8 +1768,8 @@ class MainWindowController:
 
         self.log_dialog.add_button("Clear log and cache", CLEAR_CACHE_BUTTON_ID)
         self.log_dialog.add_button("Reset error count", RESET_ERROR_COUNT_BUTTON_ID)
-        self.log_dialog.add_button("Full log", FULL_LOG_BUTTON_ID)
-        self.log_dialog.add_button("Summary log", SUMMARY_LOG_BUTTON_ID)
+        self.log_dialog.add_button("Detailed log", FULL_LOG_BUTTON_ID)
+        self.log_dialog.add_button("Log", SUMMARY_LOG_BUTTON_ID)
         self.log_dialog.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
         
         # Dialog buttons are layed out from right to left
@@ -1786,8 +1786,8 @@ class MainWindowController:
         #self.log_dialog.format_secondary_text("")
         self.log_dialog.get_content_area().set_size_request(WINDOW_LARGE_WIDTH, WINDOW_LARGE_HEIGHT)
 
+        button_id_prev = Gtk.ResponseType.CLOSE
         button_id = SUMMARY_LOG_BUTTON_ID
-        button_id_prev = button_id
         full = False
         while True:
             if button_id == FULL_LOG_BUTTON_ID or button_id == SUMMARY_LOG_BUTTON_ID:
@@ -1795,7 +1795,7 @@ class MainWindowController:
             if full:
                 message_format = "Detailed Download Log"
             else:
-                message_format = "Summary Download Log"
+                message_format = "Download Log"
             markup = not full
             log_output = command_util.download_log(full=full, markup=markup, sort_by_mtime=True)
 
@@ -1806,18 +1806,23 @@ class MainWindowController:
                 self.log_dialog.format_tertiary_scrolled_markup(log_output)
             else:
                 self.log_dialog.format_tertiary_scrolled_text(log_output)
-                
-            # Scroll to top
-            label = self.log_dialog.get_scrolled_label()
-            adjustment = label.get_parent().get_vadjustment()
-            adjustment.set_value(0.0)
-            adjustment.value_changed()
-            #adjustment = label.get_parent().set_vadjustment(adjustment)
+
+            if button_id == FULL_LOG_BUTTON_ID or button_id == SUMMARY_LOG_BUTTON_ID:
+                if button_id_prev != button_id:
+                    # Log view changed (different log view type or log files removed)
+                    # Scroll to top
+                    label = self.log_dialog.get_scrolled_label()
+                    adjustment = label.get_parent().get_vadjustment()
+                    adjustment.set_value(0.0)
+                    adjustment.value_changed()
+                    #adjustment = label.get_parent().set_vadjustment(adjustment)
             
+            if button_id != RESET_ERROR_COUNT_BUTTON_ID:
+                # No need to track RESET_ERROR_COUNT_BUTTON_ID because it doesn't affect the log view
+                button_id_prev = button_id
+                
             button_id = self.log_dialog.run()
 
-            if button_id_prev != button_id:
-                button_id_prev = button_id
             if button_id == CLEAR_CACHE_BUTTON_ID:
                 command_util.clear_cache()
             elif button_id == RESET_ERROR_COUNT_BUTTON_ID:
