@@ -1,6 +1,8 @@
 from configparser import ConfigParser
 
-""" The in-memory section header that contains properties that will not be part of a section in the configuration file. """
+""" The in-memory section header that contains properties that will not be part 
+    of a section in the configuration file.
+"""
 NOSECTION = "nosection"
 
 class PropertiesConfigParser(ConfigParser):

@@ -39,9 +39,11 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         # Add commands to run in a terminal window
         if os.name == "posix":
             if log_level == logging.DEBUG:
+                # Linux specific
                 #cmd_exec = "gnome-terminal --geometry=131x41 --title=\"" + str(terminal_title) + "\" --command=\"sh -c '" + cmd_exec + " ; cd ; sh'\" ; exit 0"
                 cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
             else:
+                # Linux specific
                 cmd_exec = terminal_prog + " -e \"$SHELL -c '( set -x ; " + cmd_exec + " ) ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
                 
     if not quiet:
@@ -51,7 +53,7 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         if terminal_prog:
             # Log this now. Log statements after subprocess.check_output() will
             # only be printed after the terminal window has been closed
-            logger.debug("run(): process_output logged in %s", cmd_logname)
+            logger.debug("run(): process_output logged to %s", cmd_logname)
 
     process_output = ""
     try:
@@ -59,6 +61,10 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
     except subprocess.CalledProcessError as exc:
         #logger.warning("(return code " + str(exc.returncode) + ") " + exc.output)
         logger.warning(exc.output)
+        
+        # Write log message also to the command log file, so the message will show up in the download log viewer
+        with open(cmd_logname, "a") as file:
+            file.write("WARNING:%s" % exc.output)
 
     if not quiet:
         logger.debug("run(): process_output=%s", process_output)

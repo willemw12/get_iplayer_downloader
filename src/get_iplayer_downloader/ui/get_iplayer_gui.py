@@ -195,10 +195,7 @@ class UIManager():
       <menuitem action="ToolsPvrQueue"/>
       <menuitem action="ToolsClear"/>
       <menuitem action="ToolsRefresh"/>
-      <!--
-      BUG? the separator causes the "SearchGoToFind" menu item to have a different left/right padding when not in focus
       <separator/>
-      -->
       <menuitem action="SearchGoToFind"/>
     </menu>
     <menu action="HelpMenu">
@@ -1322,6 +1319,7 @@ class PreferencesDialogWrapper(object):
         self.general_show_menubar_check_button = self.builder.get_object("PrefsGeneralShowMenuBarCheckButton")
         self.general_show_tooltip_check_button = self.builder.get_object("PrefsGeneralShowTooltipCheckButton")
         self.general_start_maximized_check_button = self.builder.get_object("PrefsGeneralStartMaximizedCheckButton")
+        self.general_terminal_emulator_entry = self.builder.get_object("PrefsGeneralTerminalEmulatorEntry")
 
         self.radio_channels_entry = self.builder.get_object("PrefsRadioChannelsEntry")
         self.radio_download_path_entry = self.builder.get_object("PrefsRadioDownloadPathEntry")
@@ -1364,6 +1362,12 @@ class PreferencesDialogWrapper(object):
         self.general_show_tooltip_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
         self.general_start_maximized_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
+        value = settings.config().get(config.NOSECTION, "terminal-emulator")
+        if not value:
+            # Get default value (as an example value) if stored value is empty
+            settings.revert_option(config.NOSECTION, "terminal-emulator")
+        self.general_terminal_emulator_entry.set_text(settings.config().get(config.NOSECTION, "terminal-emulator"))
+
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
         download_path = settings.config().get("radio", "download-path")
         self.radio_download_path_entry.set_text(download_path)
@@ -1396,7 +1400,8 @@ class PreferencesDialogWrapper(object):
         settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_check_button.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_check_button.get_active()))
-        
+        settings.config().set(config.NOSECTION, "terminal-emulator", self.general_terminal_emulator_entry.get_text())
+
         settings.config().set("radio", "channels", self.radio_channels_entry.get_text())
         settings.config().set("radio", "download-path", self.radio_download_path_entry.get_text())
         settings.config().set("radio", "run-in-terminal", str(self.radio_run_in_terminal_check_button.get_active()))
@@ -1419,6 +1424,7 @@ class PreferencesDialogWrapper(object):
         settings.revert_option(config.NOSECTION, "show-menubar")
         settings.revert_option(config.NOSECTION, "show-tooltip")
         settings.revert_option(config.NOSECTION, "start-maximized")
+        settings.revert_option(config.NOSECTION, "terminal-emulator")
 
         settings.revert_option("radio", "channels")
         settings.revert_option("radio", "download-path")

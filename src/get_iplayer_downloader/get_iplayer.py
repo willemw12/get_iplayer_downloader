@@ -26,7 +26,6 @@ VALUE_INDEX = 1
 ####
 
 _GET_IPLAYER_PROG = "get_iplayer"
-_TERMINAL_PROG = settings.config().get(config.NOSECTION, "terminal-emulator")
 
 _SINCE_HOUR_MARGIN = 6
 
@@ -276,7 +275,7 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
         output_path = TV_DOWNLOAD_PATH
 
     if string.str2bool(preset and settings.config().get(preset, "run-in-terminal")):
-        terminal_prog = _TERMINAL_PROG 
+        terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
     else:
         terminal_prog = None
 

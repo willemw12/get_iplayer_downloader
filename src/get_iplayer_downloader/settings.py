@@ -128,6 +128,7 @@ def get_log_level():
 #    return download_path
 
 def revert_option(section, option):
+    """ Revert in memory @option in @section to the default value. """
     default_value = default_config().get(section, option)
     config().set(section, option, default_value)
 

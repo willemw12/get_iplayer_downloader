@@ -5,9 +5,7 @@ get\_iplayer\_downloader is a download utility for the BBC get\_iplayer program.
 
 It is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
-This program is a graphical version of the command `get_iplayer --tree`, followed by `get_iplayer --pid` or `get_iplayer --info`. It displays programmes in a large tree view with two main columns: serie title, episode title plus episode description. This program works best with a screen resolution of 1024x768 or higher.
-
-You can continue using the program, while get\_iplayer is downloading in the background. I let the downloads run in one or more terminal windows, so I can see when a download hangs or fails. Note that get\_iplayer has a fixed download list size (info\_limit = 40).
+This program is a graphical version of the command `get_iplayer --tree`, followed by `get_iplayer --pid` or `get_iplayer --info`. It displays programmes in a large tree view with two main columns: serie title, episode title plus episode description. This program works best with a screen resolution of 1024x768 or higher. You can continue using the program, while get\_iplayer is downloading in the background. Note that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window, when it is downloading programmes.
 
 Some screenshots:
 
@@ -40,8 +38,7 @@ The dependencies are:
 * Python setuptools (pytyon3-setuptools), to install get\_iplayer\_downloader
 * GNOME libraries for Python (mainly GTK+ 3). In most cases, already installed.  
   For Debian/Ubuntu, check that the following packages are also installed: python3-gi, python3-gi-cairo 
-* Linux. Only required to run get\_iplayer in a terminal window.  
-  This program may work on other platforms, however, that has not been tested
+* Linux. This program may work on other platforms (with a few minor software changes), however, that has not been tested
 
 
 
@@ -85,7 +82,7 @@ Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued p
 
 Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/.config/get\_iplayer\_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Before downloading programmes for the first time, verify the download paths and terminal emulator program name in the GUI or in the configuration file. To use the default download path specified in get\_iplayer, leave the download path empty.
+Before downloading programmes for the first time, verify the download paths and optionally the terminal emulator program name and options. To use the default download path specified in get\_iplayer, leave the download path empty.
 
 The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs or "substring search term"-"GUI label" pairs). To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
