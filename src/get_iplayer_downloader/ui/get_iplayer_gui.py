@@ -38,8 +38,8 @@ TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Disabled when
 TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the search cache. Disabled when filter label is 'Since' or empty"
 
 TOOLTIP_OPTION_FORCE = "Set force mode. Force download or refresh programme cache"
-TOOLTIP_OPTION_HD_TV = "Set alternative TV download and queue mode. Overrides the default TV mode"
-TOOLTIP_OPTION_FULL_PROXY = "Set full proxy mode when viewing programme properties. Useful outside the UK. When enabled, displayed properties will include the available tv mode and tv mode size"
+TOOLTIP_OPTION_ALT_RECORDING_MODE = "Select alternative recording modes"
+TOOLTIP_OPTION_FULL_PROXY = "Set full proxy mode when viewing programme properties. Useful outside the UK. When enabled, displayed properties will include the available TV mode and TV mode size"
 TOOLTIP_OPTION_FIND_ALL = "Set search all mode. Search in all available programme types and channels"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Set queue mode. Queue selected programmes for one-off downloading by get_iplayer --pvr"
@@ -708,10 +708,10 @@ class ToolBarBox(Gtk.Box):
         self.force_check_button.set_focus_on_click(False)
         grid.add(self.force_check_button)
         
-        self.hd_tv_check_button = Gtk.CheckButton("HD")
-        self.hd_tv_check_button.set_tooltip_text(TOOLTIP_OPTION_HD_TV)
-        self.hd_tv_check_button.set_focus_on_click(False)
-        grid.attach_next_to(self.hd_tv_check_button, self.force_check_button, Gtk.PositionType.RIGHT, 1, 1)
+        self.alt_recording_mode_check_button = Gtk.CheckButton("Alt")
+        self.alt_recording_mode_check_button.set_tooltip_text(TOOLTIP_OPTION_ALT_RECORDING_MODE)
+        self.alt_recording_mode_check_button.set_focus_on_click(False)
+        grid.attach_next_to(self.alt_recording_mode_check_button, self.force_check_button, Gtk.PositionType.RIGHT, 1, 1)
         
         self.proxy_check_button = Gtk.CheckButton("Proxy")
         self.proxy_check_button.set_tooltip_text(TOOLTIP_OPTION_FULL_PROXY)
@@ -1324,11 +1324,13 @@ class PreferencesDialogWrapper(object):
         self.radio_channels_entry = self.builder.get_object("PrefsRadioChannelsEntry")
         self.radio_download_path_entry = self.builder.get_object("PrefsRadioDownloadPathEntry")
         self.radio_download_file_chooser_button = self.builder.get_object("PrefsRadioDownloadFileChooserButton")
+        self.radio_recording_modes_entry = self.builder.get_object("PrefsRadioRecordingModesEntry")
         self.radio_run_in_terminal_check_button = self.builder.get_object("PrefsRadioRunInTerminalCheckButton")
 
         self.tv_channels_entry = self.builder.get_object("PrefsTvChannelsEntry")
         self.tv_download_path_entry = self.builder.get_object("PrefsTvDownloadPathEntry")
         self.tv_download_file_chooser_button = self.builder.get_object("PrefsTvDownloadFileChooserButton")
+        self.tv_recording_modes_entry = self.builder.get_object("PrefsTvRecordingModesEntry")
         self.tv_run_in_terminal_check_button = self.builder.get_object("PrefsTvRunInTerminalCheckButton")
 
         ####
@@ -1368,6 +1370,8 @@ class PreferencesDialogWrapper(object):
             settings.revert_option(config.NOSECTION, "terminal-emulator")
         self.general_terminal_emulator_entry.set_text(settings.config().get(config.NOSECTION, "terminal-emulator"))
 
+        #
+        
         self.radio_channels_entry.set_text(settings.config().get("radio", "channels"))
         download_path = settings.config().get("radio", "download-path")
         self.radio_download_path_entry.set_text(download_path)
@@ -1378,7 +1382,10 @@ class PreferencesDialogWrapper(object):
         else:
             # Set to root path
             self.radio_download_file_chooser_button.set_filename(os.sep)
+        self.radio_recording_modes_entry.set_text(settings.config().get("radio", "recording-modes"))
         self.radio_run_in_terminal_check_button.set_active(string.str2bool(settings.config().get("radio", "run-in-terminal")))
+        
+        #
         
         self.tv_channels_entry.set_text(settings.config().get("tv", "channels"))
         download_path = settings.config().get("tv", "download-path")
@@ -1390,6 +1397,7 @@ class PreferencesDialogWrapper(object):
         else:
             # Set to root path
             self.tv_download_file_chooser_button.set_filename(os.sep)
+        self.tv_recording_modes_entry.set_text(settings.config().get("tv", "recording-modes"))
         self.tv_run_in_terminal_check_button.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
     def _capture_settings(self):
@@ -1404,10 +1412,12 @@ class PreferencesDialogWrapper(object):
 
         settings.config().set("radio", "channels", self.radio_channels_entry.get_text())
         settings.config().set("radio", "download-path", self.radio_download_path_entry.get_text())
+        settings.config().set("radio", "recording-modes", self.radio_recording_modes_entry.get_text())
         settings.config().set("radio", "run-in-terminal", str(self.radio_run_in_terminal_check_button.get_active()))
         
         settings.config().set("tv", "channels", self.tv_channels_entry.get_text())
         settings.config().set("tv", "download-path", self.tv_download_path_entry.get_text())
+        settings.config().set("tv", "recording-modes", self.tv_recording_modes_entry.get_text())
         settings.config().set("tv", "run-in-terminal", str(self.tv_run_in_terminal_check_button.get_active()))
 
     #def _on_map_event(self, user_data):
@@ -1428,10 +1438,12 @@ class PreferencesDialogWrapper(object):
 
         settings.revert_option("radio", "channels")
         settings.revert_option("radio", "download-path")
+        settings.revert_option("radio", "recording-modes")
         settings.revert_option("radio", "run-in-terminal")
         
         settings.revert_option("tv", "channels")
         settings.revert_option("tv", "download-path")
+        settings.revert_option("tv", "recording-modes")
         settings.revert_option("tv", "run-in-terminal")
 
         self._display_settings()
@@ -1574,7 +1586,9 @@ class MainWindowController:
 
     def on_button_download_clicked(self, button, pvr_queue=False):
         # button can be None
-        hd_tv_modes = False
+        preset = None
+        prog_type = None
+        alt_recording_mode = False
         combo = self.tool_bar_box.preset_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
@@ -1582,12 +1596,11 @@ class MainWindowController:
             preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
             #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
-            if preset == get_iplayer.Preset.TV:
-                hd_tv_modes = self.tool_bar_box.hd_tv_check_button.get_active()
 
-        if prog_type == get_iplayer.ProgType.ITV:
-            hd_tv_modes = "itvnormal,itvhigh"
-
+            alt_recording_mode = self.tool_bar_box.alt_recording_mode_check_button.get_active()
+            if prog_type == get_iplayer.ProgType.ITV:
+                alt_recording_mode = "itvnormal,itvhigh"
+    
         force = self.tool_bar_box.force_check_button.get_active()
         if button is not None and not pvr_queue:
             # If event was raised from the tool bar download button and not from a keyboard shortcut,
@@ -1621,7 +1634,7 @@ class MainWindowController:
         if len(pid_list) > 0:
             self.main_window.display_busy_mouse_cursor(True)
             launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset,
-                                                       prog_type=prog_type, hd_tv_modes=hd_tv_modes,
+                                                       prog_type=prog_type, alt_recording_mode=alt_recording_mode,
 													   force=force, future=future)
             self.main_window.display_busy_mouse_cursor(False)
             
@@ -1805,14 +1818,20 @@ class MainWindowController:
             markup = not full
             log_output = command_util.download_log(full=full, markup=markup, sort_by_mtime=True)
 
-            # Set dialog content title and text
+            # Set dialog content title
             self.log_dialog.set_property("text", message_format)
+            # Set dialog content text
             #NOTE if full download log text is too large, it won't be displayed
             if markup:
                 self.log_dialog.format_tertiary_scrolled_markup(log_output)
             else:
                 self.log_dialog.format_tertiary_scrolled_text(log_output)
-
+            
+            # Grab focus to enable immediate page-up/page-down scrolling with the keyboard
+            #label = self.log_dialog.get_scrolled_label()
+            #scrolled_window = label.get_parent().get_parent()
+            #scrolled_window.grab_focus()
+            
             if button_id == FULL_LOG_BUTTON_ID or button_id == SUMMARY_LOG_BUTTON_ID:
                 if button_id_prev != button_id:
                     # Log view changed (different log view type or log files removed)

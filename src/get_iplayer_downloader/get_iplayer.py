@@ -262,7 +262,7 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
     return output_lines
 
 def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=None,
-        hd_tv_modes=False, force=False, output_path=None, categories=None, future=False):
+        alt_recording_mode=False, force=False, output_path=None, categories=None, future=False):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
         @search_term_table has columns listed in SearchTermColumn.
         If @pid is true, then the first column of @search_term_table contains pids.
@@ -289,12 +289,15 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
         
         if preset:
             cmd += " --preset=" + preset
-            if hd_tv_modes and preset == Preset.TV:
-                cmd += " --tvmode=\"" + settings.config().get(preset, "hd-modes") + "\""
+            if alt_recording_mode:
+                if preset == Preset.RADIO:
+                    cmd += " --radiomode=\"" + settings.config().get(preset, "recording-modes") + "\""
+                elif preset == Preset.TV:
+                    cmd += " --tvmode=\"" + settings.config().get(preset, "recording-modes") + "\""
         if prog_type:
             cmd += " --type=" + prog_type
         if force:
-            cmd += " --force"
+            cmd += " --force --overwrite"
         if output_path:
             cmd += " --output=\"" + output_path + "\""
         #if pvr_queue or future:
@@ -336,7 +339,7 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
     # Cannot do a search on pid
     # Only from outside the UK and partial_proxy enabled in get_iplayer(?):
     #     If proxy_enabled is false then info retrieval will be faster but the info 
-    #     will not contain proper values for "modes" and "tvmodes" (the available tv download file sizes)
+    #     will not contain proper values for "modes" and "tvmodes" (the available TV download file sizes)
 
     cmd = _GET_IPLAYER_PROG + " --nocopyright --info"
     if preset:

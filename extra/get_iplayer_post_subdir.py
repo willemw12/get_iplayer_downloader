@@ -39,14 +39,19 @@ args = None
 def _init_argparser():
     argparser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                         description="""This is a get_iplayer post-processing script. It is an extension to the
-get_iplayer subdir output option. In addition to the substitution of the
+get_iplayer "subdir" output option. In addition to the substitution of the
 standard properties listed by "get_iplayer --info ...", this script supports:
 
   <category>            last and most specific category from --categories
   <categorymain>        first and most general category from --categories
   <week>                current week number
 
-get_iplayer command option example (one line):
+Arguments --categories, --dir and --filename are there to transfer values from 
+get_iplayer to this script and are usually always specified as:
+
+  --categories="<categories>" --dir="<dir>" --filename="<filename>"
+
+A get_iplayer "command" option example (one line):
 
   command get_iplayer_post_subdir.py 
                         --categories="<categories>"
@@ -63,10 +68,10 @@ get_iplayer command option example (one line):
     argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
     argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")
-    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, help="programme categories (comma-separated list) of the downloaded file")
-    argparser.add_argument("--dir", dest="dir", metavar="<pathname>", nargs=1, default=None, required=True, help="output directory. Usually --dir=<dir>, which is the get_iplayer output directory plus the get_iplayer subdir directory, if enabled")
+    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, help="programme categories (comma-separated list) of the downloaded file. Expected when <category> or <categorymain> is in --subdir-format")
+    argparser.add_argument("--dir", dest="dir", metavar="<pathname>", nargs=1, default=None, required=True, help="output directory")
     argparser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="downloaded file to be moved")
-    argparser.add_argument("--subdir-format", dest="subdir_format", metavar="<format>", nargs=1, default=None, required=True, help="subdirectory path, optionally containing property substitution strings.")
+    argparser.add_argument("--subdir-format", dest="subdir_format", metavar="<format>", nargs=1, default=None, required=True, help="subdirectory path")
     #argparser.add_argument("filename", nargs=1)
     #argparser.add_argument("categories", nargs=1)
     global args
@@ -192,6 +197,10 @@ def _move_file(categories, dirname, filename, subdir_format):
             subdir_format = subdir_format.replace("<categorymain>_<category>", main_category)
         subdir_format = subdir_format.replace("<category>", specific_category)
         subdir_format = subdir_format.replace("<categorymain>", main_category)
+    else:
+        if "<category>" in subdir_format or "<categorymain>" in subdir_format:
+            logger.warning("move_file(): --categories expected when <category> and/or <categorymain> is in --subdir-format")
+            #sys.exit(1)
 
     # Sanitize everything in subdir again, to sanitize the substituted values and unrecognized substitutions
     subdir_format = _sanitize_path(subdir_format, True)
