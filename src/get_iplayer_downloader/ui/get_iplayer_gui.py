@@ -63,6 +63,7 @@ WINDOW_MEDIUM_WIDTH = 600
 WINDOW_MEDIUM_HEIGHT = 500
 
 WIDGET_BORDER_WIDTH = 4
+WIDGET_BORDER_WIDTH_COMPACT = 2
 
 #### Main window
 
@@ -934,10 +935,12 @@ class MainTreeView(Gtk.TreeView):
     def _init_columns(self):
         if string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")):
             widget = Gtk.Label()
+            (unused_minimum_height, natural_height) = widget.get_preferred_height()
+            row_height = natural_height + WIDGET_BORDER_WIDTH_COMPACT
         else:
             widget = Gtk.CheckButton()
-        (unused_minimum_height, natural_height) = widget.get_preferred_height()
-        row_height = natural_height
+            (unused_minimum_height, natural_height) = widget.get_preferred_height()
+            row_height = natural_height
         
         #### First column
         
