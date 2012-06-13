@@ -6,3 +6,8 @@ def str2float(string):
         return float(string)
     except ValueError:
         return 0.0
+
+#def decode(string):
+#    # Simple decoding
+#    #return string.decode("LATIN-1", "replace")
+#    return string.decode("UTF-8", "replace")

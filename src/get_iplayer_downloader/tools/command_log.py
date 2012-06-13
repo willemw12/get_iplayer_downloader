@@ -15,7 +15,10 @@ def _log_text(string, markup):
 def _log_file(dirpath, filename, full=False, markup=False):
     log_output = ""
     filepathname = os.path.join(dirpath, filename)
-    with open(filepathname, "r", encoding="UTF-8") as file:
+
+    #WORKAROUND non-UTF-8 command output from BBC Alba programmes: encoding "LATIN-1"
+    #with open(filepathname, "r", encoding="UTF-8") as file:
+    with open(filepathname, "r", encoding="LATIN-1") as file:
         #NOTE readline() reads one character
         lines = file.readlines()
         for i, line in enumerate(lines):
@@ -93,7 +96,8 @@ def download_errors(temp_pathname):
     for dirpath, unused_dirnames, filenames in os.walk(temp_pathname):
         for filename in filenames:
             if filename.endswith("-cmd.log") and timestamp in filename:
-                with open(os.path.join(dirpath, filename), "r", encoding="UTF-8") as file:
+                #with open(os.path.join(dirpath, filename), "r", encoding="UTF-8") as file:
+                with open(os.path.join(dirpath, filename), "r", encoding="latin1") as file:
                     lines = file.readlines()
                     for line in lines:
                         if "get_iplayer " in line:
@@ -101,7 +105,7 @@ def download_errors(temp_pathname):
                                 # Skip log file if not a get_iplayer "get" command.
                                 # Assumption: if the first get_iplayer command is not a "get" command,
                                 # then other get_iplayer commands in the same file are also not "get" commands
-                                continue
+                                break
                         elif line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
                             errors += 1
                             

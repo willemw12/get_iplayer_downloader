@@ -244,7 +244,10 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
                     # Serie title is copied from the previous line (root level, level 0, a serie)
                     # Categories, channels and thumbnail url, etc. are copied from the current line (level 1, an episode)
                     # No pid or index available for a serie from the output of get_iplayer --tree
-                    output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
+                    try:
+                        output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
+                    except IndexError as exc:
+                        pass
             if level == 1 and not l[0].isspace():
                 # Going from level 1 (an episode) to root level (level 0, a serie)
                 level = 0

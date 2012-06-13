@@ -37,10 +37,10 @@ TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Disabled 
 TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Disabled when filter label is 'Channels' or empty"
 TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the search cache. Disabled when filter label is 'Since' or empty"
 
-TOOLTIP_OPTION_FORCE = "Set force mode. Force download or refresh programme cache"
-TOOLTIP_OPTION_ALT_RECORDING_MODE = "Select alternative recording modes"
-TOOLTIP_OPTION_FULL_PROXY = "Set full proxy mode when viewing programme properties. Useful outside the UK. When enabled, displayed properties will include the available TV mode and TV mode size"
-TOOLTIP_OPTION_FIND_ALL = "Set search all mode. Search in all available programme types and channels"
+TOOLTIP_OPTION_FORCE = "Set 'force' mode. Force download or refresh programme cache"
+TOOLTIP_OPTION_ALT_RECORDING_MODES = "Set 'alternative recording' modes. Try to download or queue programmes with the alternative set of recording modes"
+TOOLTIP_OPTION_FULL_PROXY = "Set 'full proxy' mode when viewing programme properties. Useful outside the UK. When enabled, displayed properties will include the available TV mode and TV mode size"
+TOOLTIP_OPTION_FIND_ALL = "Set 'search all' mode. Search in all available programme types and channels. Retrieving the programme list may take a long time"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Set queue mode. Queue selected programmes for one-off downloading by get_iplayer --pvr"
 TOOLTIP_TOOLS_FUTURE = "Set future search mode. Include future programmes in the search. Click 'Refresh' to update the list of future programmes in the search cache. The category filter is disabled in future search mode"
@@ -710,7 +710,7 @@ class ToolBarBox(Gtk.Box):
         grid.add(self.force_check_button)
         
         self.alt_recording_mode_check_button = Gtk.CheckButton("Alt")
-        self.alt_recording_mode_check_button.set_tooltip_text(TOOLTIP_OPTION_ALT_RECORDING_MODE)
+        self.alt_recording_mode_check_button.set_tooltip_text(TOOLTIP_OPTION_ALT_RECORDING_MODES)
         self.alt_recording_mode_check_button.set_focus_on_click(False)
         grid.attach_next_to(self.alt_recording_mode_check_button, self.force_check_button, Gtk.PositionType.RIGHT, 1, 1)
         
@@ -1167,7 +1167,7 @@ class PropertiesWindow(Gtk.Window):
         #scrolled_window.set_vexpand(True)
         self.add(scrolled_window)
 
-        self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
+        self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, margin=WIDGET_BORDER_WIDTH)
         ##self.grid.set_row_homogeneous(False)
         ##self.grid.set_column_homogeneous(False)
         scrolled_window.add_with_viewport(self.grid)
@@ -1310,6 +1310,15 @@ class PropertiesWindow(Gtk.Window):
         #label1.set_selectable(False)
         frame.add(label1)
 
+        ####
+        
+        box = Gtk.Box(spacing=WIDGET_BORDER_WIDTH)
+        self.grid.add(box)
+        
+        button = Gtk.Button(stock=Gtk.STOCK_CLOSE, margin=WIDGET_BORDER_WIDTH)
+        button.connect("clicked", lambda user_data: self.destroy())
+        box.pack_end(button, False, False, 0)
+        
 class PreferencesDialogWrapper(object):
 
     def __init__(self, main_window):
@@ -2086,8 +2095,8 @@ class MainWindowController:
             except ValueError:
                 since = 0
 
-            # If empty string or None (in case of an error), then set the default value
-            if not prog_type:
+            # If empty string or None (in case of an error) or itv has been disabled, then set the default value
+            if not prog_type or (prog_type == "itv" and not string.str2bool(settings.config().get(config.NOSECTION, "enable-itv"))):
                 prog_type = get_iplayer.ProgType.RADIO
             if not categories:
                 categories = ""

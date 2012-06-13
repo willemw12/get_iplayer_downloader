@@ -12,6 +12,7 @@ def load_url(url, pathname, **urlopen_keywords):
     
     filename = pathname + os.sep + os.path.basename(urllib.parse.urlsplit(url).path)
     if not os.path.isfile(filename):
+        stream = None
         try:
             stream = urllib.request.urlopen(url, **urlopen_keywords)
         #NOTE some timeout exceptions are not caught by URLError:
@@ -24,13 +25,14 @@ def load_url(url, pathname, **urlopen_keywords):
         #except ValueError: invalid URL
             
         #NOTE Do not add "os." at the beginning of these I/O methods
-        file = open(filename, "wb")
-        file.write(stream.read())
-        file.close()
+        with open(filename, "wb") as file:
+            file.write(stream.read())
         #ALTERNATIVE
-        #with open(filename, "w") as file:
-        #    file.write(stream.read())
-        #b = file.closed()
-        
-        stream.close()
+        #file = open(filename, "wb")
+        #file.write(stream.read())
+        #file.close()
+
+        if stream is not None:
+            stream.close()
+
     return filename
