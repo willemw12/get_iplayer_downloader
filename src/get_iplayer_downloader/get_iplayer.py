@@ -334,14 +334,14 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
 
     return (launched, process_output)
 
-def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=False):
+def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=False):
     """ Run get_iplayer --info.
         Return table with columns: serie title, episode title plus description.
     """
     
     # Cannot do a search on pid
-    # Only from outside the UK and partial_proxy enabled in get_iplayer(?):
-    #     If proxy_enabled is false then info retrieval will be faster but the info 
+    # Only useful from outside the UK:
+    #     If proxy_disabled is true then info retrieval may be faster but the info 
     #     will not contain proper values for "modes" and "tvmodes" (the available TV download file sizes)
 
     cmd = _GET_IPLAYER_PROG + " --nocopyright --info"
@@ -349,8 +349,7 @@ def info(search_term, preset=None, prog_type=None, proxy_enabled=False, future=F
         cmd += " --preset=" + preset
     if prog_type:
         cmd += " --type=" + prog_type
-    if not proxy_enabled:
-        # Disable proxy setting
+    if proxy_disabled:
         cmd += " --proxy=0"
     if future:
         cmd += " --future"

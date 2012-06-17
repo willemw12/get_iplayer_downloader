@@ -89,7 +89,7 @@ The radio and tv category lists and the radio channel list are very long and hav
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet
 
-If the program crashes immediately on startup or when the mouse cursor moves over the first column in the programme search result, disable the "show-tooltip" option or update the GNOME libraries (in particular GTK+ 3).
+If the program crashes immediately on startup or when the mouse cursor moves over the first column in the programme search result, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
 
 
 
@@ -167,6 +167,11 @@ The keyboard shortcuts are:
     ctrl+t                  Type          Select programme type (radio, podcast, tv)
     f1                      Help          View keyboard shortcuts
 
+    ctrl+1                  Type
+    ctrl+2                  Category
+    ctrl+3                  Channel
+    ctrl+4, ctrl+5          Since
+
     down-arrow                            Go from tool bar to the search result
     space or enter                        Toggle programme selection in the search result
 
@@ -185,4 +190,4 @@ The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /us
 
 To configure, put for example in ~/.get\_iplayer/presets/tv:
 
-    command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+    command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --force --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"

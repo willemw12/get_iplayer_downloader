@@ -39,7 +39,7 @@ def _log_file(dirpath, filename, full=False, markup=False):
                 #for j in range(2, 0, -1):
                 try:
                     prev_line = lines[i - 1]
-                    if not prev_line.startswith("FATAL") and not prev_line.startswith("ERROR") and not prev_line.startswith("WARNING"):
+                    if prev_line and prev_line != "\n" and not prev_line.startswith("FATAL") and not prev_line.startswith("ERROR") and not prev_line.startswith("WARNING"):
                         log_output += _log_text(prev_line, markup)
                 except IndexError:
                     pass
@@ -66,7 +66,7 @@ def _log_file(dirpath, filename, full=False, markup=False):
     return log_header + log_output + "\n"
 
 def download_log(temp_pathname, full=False, markup=False, sort_by_mtime=False):
-    """ Return full download log if @full if True, otherwise return summary download log. """
+    """ Return full download log if @full is true, otherwise return summary download log. """
     
     log_output = ""
     # Restrict to today's download log

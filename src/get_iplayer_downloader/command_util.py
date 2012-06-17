@@ -27,8 +27,9 @@ def download_errors():
 
 def clear_cache():
     """ Remove all temporary files (download log files and image cache files). """
-    try:
-        shutil.rmtree(settings.TEMP_PATHNAME)
-    except OSError:
-        # [Errno 2] No such file or directory: '/tmp/get_iplayer_downloader'
-        pass
+    #try:
+    #    shutil.rmtree(settings.TEMP_PATHNAME)
+    #except OSError:
+    #    # [Errno 2] No such file or directory: '/tmp/get_iplayer_downloader'
+    #    pass
+    shutil.rmtree(settings.TEMP_PATHNAME, ignore_errors=True)

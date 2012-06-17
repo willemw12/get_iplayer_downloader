@@ -20,35 +20,36 @@ TOOLTIP_VIEW_LOG = "View download log"
 
 #TOOLTIP_EDIT_PREFERENCES
 
-TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes or queue programmes if PVR checked"
+TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes, or queue programmes if PVR checked"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
 TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
-TOOLTIP_TOOLS_REFRESH = "Refresh search cache of the selected programme type (radio, podcast, tv)"
+TOOLTIP_TOOLS_REFRESH = "Refresh programme cache, restricted of the selected programme type (radio, podcast, tv)"
 
 TOOLTIP_SEARCH_FIND = "Find programmes"
 TOOLTIP_SEARCH_CLEAR = "Clear search text"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
-TOOLTIP_SEARCH_ROTATE_SINCE = "Select since programmes were added to the search cache"
+TOOLTIP_SEARCH_ROTATE_SINCE = "Select since programmes were added to the cache"
 TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast, tv)"
+TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select category"
+TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
 TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
 TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Disabled when filter label is 'Categories' or empty"
 TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Disabled when filter label is 'Channels' or empty"
-TOOLTIP_FILTER_SINCE = "Limit search to recently added programmes to the search cache. Disabled when filter label is 'Since' or empty"
+TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. Disabled when filter label is 'Since' or empty"
 
-TOOLTIP_OPTION_FORCE = "Set 'force' mode. Force download or refresh programme cache"
-TOOLTIP_OPTION_ALT_RECORDING_MODES = "Set 'alternative recording' modes. Try to download or queue programmes with the alternative set of recording modes"
-TOOLTIP_OPTION_FULL_PROXY = "Set 'full proxy' mode when viewing programme properties. Useful outside the UK. When enabled, displayed properties will include the available TV mode and TV mode size"
-TOOLTIP_OPTION_FIND_ALL = "Set 'search all' mode. Search in all available programme types and channels. Retrieving the programme list may take a long time"
+TOOLTIP_OPTION_FORCE = "Force download or force refresh programme cache"
+TOOLTIP_OPTION_ALT_RECORDING_MODES = "Try to download or queue programmes with the alternative set of recording modes"
+TOOLTIP_OPTION_FIND_ALL = "Search in all available programme types and channels. Retrieving the programme list may take a long time"
 
-TOOLTIP_TOOLS_PVR_QUEUE = "Set queue mode. Queue selected programmes for one-off downloading by get_iplayer --pvr"
-TOOLTIP_TOOLS_FUTURE = "Set future search mode. Include future programmes in the search. Click 'Refresh' to update the list of future programmes in the search cache. The category filter is disabled in future search mode"
+TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer --pvr"
+TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Click 'Refresh' to update the list of future programmes in the cache. The category filter is disabled in 'future search' mode"
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
 
-TOOLTIP_PROGRESS_BAR = "Downloading / Errors. Click to view the download log, reset the error count or clear log and cache files"
+TOOLTIP_PROGRESS_BAR = "Downloading / Errors. Click to view the download log, reset the error count or remove log and image cache files"
 
 TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click on the main window"
 
@@ -64,6 +65,10 @@ WINDOW_MEDIUM_HEIGHT = 500
 
 WIDGET_BORDER_WIDTH = 4
 WIDGET_BORDER_WIDTH_COMPACT = 2
+
+####
+
+PROGRESS_BAR_TIMEOUT_MILLISECONDS = 5000
 
 #### Main window
 
@@ -229,9 +234,21 @@ class UIManager():
     <menuitem action="FileQuit"/>
   </popup>
   <popup name="Hidden">
+    <menuitem action="SearchRotateProgrammeType"/>
+    <!--
+    <menuitem action="SearchRotateCategory"/>
+    <menuitem action="SearchRotateChannel"/>
+    -->
     <menuitem action="SearchRotateForwardSince"/>
     <menuitem action="SearchRotateBackwardSince"/>
-    <menuitem action="SearchRotateProgrammeType"/>
+
+    <!-- Alternative key bindings -->
+    <menuitem action="SearchRotateProgrammeType_1"/>
+    <menuitem action="SearchRotateCategory_2"/>
+    <menuitem action="SearchRotateChannel_3"/>
+    <menuitem action="SearchRotateForwardSince_4"/>
+    <!-- <menuitem action="SearchRotateBackwardSince_SHIFT_4"/> -->
+    <menuitem action="SearchRotateBackwardSince_5"/>
   </popup>
 </ui>
 """
@@ -290,9 +307,17 @@ class UIManager():
         action_group.add_actions([
             ("SearchMenu", None, "Search"),
             ("SearchGoToFind", Gtk.STOCK_FIND, "_Find", "<control>F", TOOLTIP_SEARCH_GO_TO_FIND, self._on_menu_others),
+            ("SearchRotateProgrammeType", None, None, "<control>T", TOOLTIP_SEARCH_ROTATE_PROG_TYPE, self._on_menu_others),
             ("SearchRotateForwardSince", None, None, "<control>S", TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
             ("SearchRotateBackwardSince", None, None, "<control><shift>S", TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
-            ("SearchRotateProgrammeType", None, None, "<control>T", TOOLTIP_SEARCH_ROTATE_PROG_TYPE, self._on_menu_others)
+
+            # Alternative key bindings
+            ("SearchRotateProgrammeType_1", None, None, "<control>1", TOOLTIP_SEARCH_ROTATE_PROG_TYPE, self._on_menu_others),
+            ("SearchRotateCategory_2", None, None, "<control>2", TOOLTIP_SEARCH_ROTATE_CATEGORY, self._on_menu_others),
+            ("SearchRotateChannel_3", None, None, "<control>3", TOOLTIP_SEARCH_ROTATE_CHANNEL, self._on_menu_others),
+            ("SearchRotateForwardSince_4", None, None, "<control>4", TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
+            #("SearchRotateBackwardSince_SHIFT_4", None, None, "<control><shift>4", TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
+            ("SearchRotateBackwardSince_5", None, None, "<control>5", TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others)
         ])
 
     def _add_tools_menu_actions(self, action_group):
@@ -300,7 +325,7 @@ class UIManager():
             ("ToolsMenu", None, "Programme"),
             #Gtk.STOCK_GO_DOWN
             ("ToolsDownload", Gtk.STOCK_GOTO_BOTTOM, "_Download", "<control>D", TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
-            ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", TOOLTIP_TOOLS_PVR_QUEUE, self._on_menu_others),
+            ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", "Queue mode. " + TOOLTIP_TOOLS_PVR_QUEUE, self._on_menu_others),
             ("ToolsClear", Gtk.STOCK_CLEAR, "_Clear", "<control>C", TOOLTIP_TOOLS_CLEAR, self._on_menu_others),
             ("ToolsRefresh", Gtk.STOCK_REFRESH, "_Refresh", "<control>R", TOOLTIP_TOOLS_REFRESH, self._on_menu_others)
         ])
@@ -312,7 +337,7 @@ class UIManager():
             ("HelpAbout", Gtk.STOCK_ABOUT, "_About", None, TOOLTIP_HELP_ABOUT, self._on_menu_others)
         ])
 
-    #NOTE The underscore (alt-<character) mnemonic only works when the widget is shown
+    #NOTE The underscore (alt-character) mnemonic only works when the widget is shown
     #NOTE An accelerator does not override the desktop accelerator (global desktop keyboard shortcut)
     #NOTE Use glade or the global desktop keyboard shortcuts configration tool to find "undocumented" keys (Return, ...)
     def _create_ui_manager(self):
@@ -342,12 +367,17 @@ class UIManager():
             self.main_window.controller().on_progress_bar_button_press_event(None, None)
         elif name == "SearchGoToFind":
             self.main_window.controller().on_accel_go_to_find()
-        elif name == "SearchRotateForwardSince":
+        elif name == "SearchRotateForwardSince" or name == "SearchRotateForwardSince_4":
             self.main_window.controller().on_accel_rotate_since(False)
-        elif name == "SearchRotateBackwardSince":
+        #elif name == "SearchRotateBackwardSince" or name == "SearchRotateBackwardSince_SHIFT_4":
+        elif name == "SearchRotateBackwardSince" or name == "SearchRotateBackwardSince_5":
             self.main_window.controller().on_accel_rotate_since(True)
-        elif name == "SearchRotateProgrammeType":
+        elif name == "SearchRotateProgrammeType" or name == "SearchRotateProgrammeType_1":
             self.main_window.controller().on_accel_rotate_programme_type()
+        elif name == "SearchRotateCategory_2":
+            self.main_window.controller().on_accel_rotate_category()
+        elif name == "SearchRotateChannel_3":
+            self.main_window.controller().on_accel_rotate_channel()
         elif name == "ToolsDownload":
             self.main_window.controller().on_button_download_clicked(None)
         elif name == "ToolsPvrQueue":
@@ -390,6 +420,12 @@ class UIManager():
                               ["ctrl+r", "Refresh", TOOLTIP_TOOLS_REFRESH],
                               ["ctrl+s, ctrl+shift+s", "Since", TOOLTIP_SEARCH_ROTATE_SINCE],
                               ["ctrl+t", "Type", TOOLTIP_SEARCH_ROTATE_PROG_TYPE],
+                              [" ", None, None],
+                              ["ctrl+1", "Type", None],
+                              ["ctrl+2", "Category", None],
+                              ["ctrl+3", "Channel", None],
+                              #["ctrl+4, ctrl+shift+4", "Since", None],
+                              ["ctrl+4, ctrl+5", "Since", None],
                               [" ", None, None],
                               ["down-arrow", None, "Go from tool bar to search result"],
                               ["space or enter", None, "Toggle programme selection in search result"]]
@@ -576,25 +612,25 @@ class ToolBarBox(Gtk.Box):
         for categories in get_iplayer.Categories.TV:
             self.cat_tv_store.append(categories)
 
-        #self.categories_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
-        self.categories_combo = Gtk.ComboBox()
+        #self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
+        self.category_combo = Gtk.ComboBox()
         # Mark as unselected, to allow it to be set automatically (by session restore) 
         #WORKAROUND set to 99 (out of bounds) instead of -1 to avoid this error message:
         #    Gtk-CRITICAL **: gtk_cell_view_set_displayed_row: assertion `GTK_IS_TREE_MODEL (cell_view->priv->model)' failed
-        #self.categories_combo.set_active(-1)
-        self.categories_combo.set_active(99)
+        #self.category_combo.set_active(-1)
+        self.category_combo.set_active(99)
         
-        self.categories_combo.set_valign(Gtk.Align.CENTER)
-        self.categories_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CATEGORIES)
-        self.categories_combo.set_focus_on_click(False)
+        self.category_combo.set_valign(Gtk.Align.CENTER)
+        self.category_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CATEGORIES)
+        self.category_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
-        self.categories_combo.pack_start(renderer_text, True)
+        self.category_combo.pack_start(renderer_text, True)
         # Render second store column 
-        self.categories_combo.add_attribute(renderer_text, "text", 1)
+        self.category_combo.add_attribute(renderer_text, "text", 1)
 
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-category-filter")):
-            self.pack_start(self.categories_combo, False, False, 0)
-            focus_chain.append(self.categories_combo)
+            self.pack_start(self.category_combo, False, False, 0)
+            focus_chain.append(self.category_combo)
 
         ####
 
@@ -652,23 +688,23 @@ class ToolBarBox(Gtk.Box):
                         label = label[len("ITV "):]
                 self.chan_itv_store.append([key, label])
 
-        #self.channels_combo = Gtk.ComboBox.new_with_model(self.chan_radio_store)
-        self.channels_combo = Gtk.ComboBox()
+        #self.channel_combo = Gtk.ComboBox.new_with_model(self.chan_radio_store)
+        self.channel_combo = Gtk.ComboBox()
         # Mark as unselected, to allow it to be set automatically (by session restore) 
-        #self.categories_combo.set_active(-1)
-        self.channels_combo.set_active(99)
+        #self.category_combo.set_active(-1)
+        self.channel_combo.set_active(99)
 
-        self.channels_combo.set_valign(Gtk.Align.CENTER)
-        self.channels_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CHANNELS)
-        self.channels_combo.set_focus_on_click(False)
+        self.channel_combo.set_valign(Gtk.Align.CENTER)
+        self.channel_combo.set_tooltip_text(TOOLTIP_FILTER_PROGRAMME_CHANNELS)
+        self.channel_combo.set_focus_on_click(False)
         renderer_text = Gtk.CellRendererText()
-        self.channels_combo.pack_start(renderer_text, True)
+        self.channel_combo.pack_start(renderer_text, True)
         # Render second store column 
-        self.channels_combo.add_attribute(renderer_text, "text", 1)
+        self.channel_combo.add_attribute(renderer_text, "text", 1)
 
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-channel-filter")):
-            self.pack_start(self.channels_combo, False, False, 0)
-            focus_chain.append(self.channels_combo)
+            self.pack_start(self.channel_combo, False, False, 0)
+            focus_chain.append(self.channel_combo)
 
         ####
 
@@ -704,25 +740,26 @@ class ToolBarBox(Gtk.Box):
         self.pack_start(grid, False, False, 0)
         focus_chain.append(grid)
 
-        self.force_check_button = Gtk.CheckButton("Force")
-        self.force_check_button.set_tooltip_text(TOOLTIP_OPTION_FORCE)
-        self.force_check_button.set_focus_on_click(False)
-        grid.add(self.force_check_button)
-        
-        self.alt_recording_mode_check_button = Gtk.CheckButton("Alt")
-        self.alt_recording_mode_check_button.set_tooltip_text(TOOLTIP_OPTION_ALT_RECORDING_MODES)
-        self.alt_recording_mode_check_button.set_focus_on_click(False)
-        grid.attach_next_to(self.alt_recording_mode_check_button, self.force_check_button, Gtk.PositionType.RIGHT, 1, 1)
-        
-        self.proxy_check_button = Gtk.CheckButton("Proxy")
-        self.proxy_check_button.set_tooltip_text(TOOLTIP_OPTION_FULL_PROXY)
-        self.proxy_check_button.set_focus_on_click(False)
-        grid.attach_next_to(self.proxy_check_button, self.force_check_button, Gtk.PositionType.BOTTOM, 1, 1)
-        
         self.search_all_check_button = Gtk.CheckButton("All")
         self.search_all_check_button.set_tooltip_text(TOOLTIP_OPTION_FIND_ALL)
         self.search_all_check_button.set_focus_on_click(False)
-        grid.attach_next_to(self.search_all_check_button, self.proxy_check_button, Gtk.PositionType.RIGHT, 1, 1)
+        grid.add(self.search_all_check_button)
+        
+        self.force_check_button = Gtk.CheckButton("Force")
+        self.force_check_button.set_tooltip_text(TOOLTIP_OPTION_FORCE)
+        self.force_check_button.set_focus_on_click(False)
+        grid.attach_next_to(self.force_check_button, self.search_all_check_button, Gtk.PositionType.RIGHT, 1, 1)
+
+        self.alt_recording_mode_check_button = Gtk.CheckButton("Alt")
+        self.alt_recording_mode_check_button.set_tooltip_text(TOOLTIP_OPTION_ALT_RECORDING_MODES)
+        self.alt_recording_mode_check_button.set_focus_on_click(False)
+        grid.attach_next_to(self.alt_recording_mode_check_button, self.search_all_check_button, Gtk.PositionType.BOTTOM, 1, 1)
+        
+        self.future_check_button = Gtk.CheckButton("Future")
+        self.future_check_button.set_tooltip_text(TOOLTIP_TOOLS_FUTURE)
+        self.future_check_button.set_focus_on_click(False)
+        self.future_check_button.connect("clicked", self.main_window.controller().on_check_button_future_clicked)
+        grid.attach_next_to(self.future_check_button, self.force_check_button, Gtk.PositionType.BOTTOM, 1, 1)
 
         ####
         
@@ -732,17 +769,6 @@ class ToolBarBox(Gtk.Box):
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(grid, False, False, 0)
         focus_chain.append(grid)
-
-        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
-        self.pvr_queue_check_button.set_tooltip_text(TOOLTIP_TOOLS_PVR_QUEUE)
-        self.pvr_queue_check_button.set_focus_on_click(False)
-        grid.add(self.pvr_queue_check_button)
-
-        self.future_check_button = Gtk.CheckButton("Future")
-        self.future_check_button.set_tooltip_text(TOOLTIP_TOOLS_FUTURE)
-        self.future_check_button.set_focus_on_click(False)
-        self.future_check_button.connect("clicked", self.main_window.controller().on_check_button_future_clicked)
-        grid.attach_next_to(self.future_check_button, self.pvr_queue_check_button, Gtk.PositionType.BOTTOM, 1, 1)
 
         ##
         
@@ -756,12 +782,12 @@ class ToolBarBox(Gtk.Box):
 
         event_box = Gtk.EventBox()
         event_box.connect("button-press-event", self.main_window.controller().on_progress_bar_button_press_event)
-        grid.attach_next_to(event_box, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
+        grid.add(event_box)
 
         ##halign="start", min_horizontal_bar_width=16
         self.progress_bar = Gtk.ProgressBar()
         # Set minimal size: self.progress_bar.set_size_request(90, -1)
-        self.progress_bar.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
+        #self.progress_bar.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         self.progress_bar.set_show_text(True)
         self.progress_bar.set_valign(Gtk.Align.START)
         self.progress_bar.set_fraction(0.0)
@@ -786,10 +812,17 @@ class ToolBarBox(Gtk.Box):
         ##
 
         # Timeout in milliseconds
-        self.timeout_id = GObject.timeout_add(5000, self.main_window.controller().on_progress_bar_update, None)
+        self.timeout_id = GObject.timeout_add(PROGRESS_BAR_TIMEOUT_MILLISECONDS, self.main_window.controller().on_progress_bar_update, None)
         
         # Initialize label text
         #self.main_window.controller().on_progress_bar_update(None)
+
+        ##
+        
+        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
+        self.pvr_queue_check_button.set_tooltip_text("Queue mode. " + TOOLTIP_TOOLS_PVR_QUEUE)
+        self.pvr_queue_check_button.set_focus_on_click(False)
+        grid.attach_next_to(self.pvr_queue_check_button, event_box, Gtk.PositionType.BOTTOM, 1, 1)
 
         ####
 
@@ -1328,6 +1361,7 @@ class PreferencesDialogWrapper(object):
 
         self.general_compact_toolbar_check_button = self.builder.get_object("PrefsGeneralCompactToolBarCheckButton")
         self.general_compact_treeview_check_button = self.builder.get_object("PrefsGeneralCompactTreeViewCheckButton")
+        self.general_disable_proxy_check_button = self.builder.get_object("PrefsGeneralDisableProxyCheckButton")
         self.general_show_menubar_check_button = self.builder.get_object("PrefsGeneralShowMenuBarCheckButton")
         self.general_show_tooltip_check_button = self.builder.get_object("PrefsGeneralShowTooltipCheckButton")
         self.general_start_maximized_check_button = self.builder.get_object("PrefsGeneralStartMaximizedCheckButton")
@@ -1372,6 +1406,7 @@ class PreferencesDialogWrapper(object):
 
         self.general_compact_toolbar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
         self.general_compact_treeview_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
+        self.general_disable_proxy_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy")))
         self.general_show_menubar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")))
         self.general_show_tooltip_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
         self.general_start_maximized_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
@@ -1417,6 +1452,7 @@ class PreferencesDialogWrapper(object):
 
         settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "disable-proxy", str(self.general_disable_proxy_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_check_button.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_check_button.get_active()))
@@ -1443,6 +1479,7 @@ class PreferencesDialogWrapper(object):
 
         settings.revert_option(config.NOSECTION, "compact-toolbar")
         settings.revert_option(config.NOSECTION, "compact-treeview")
+        settings.revert_option(config.NOSECTION, "disable-proxy")
         settings.revert_option(config.NOSECTION, "show-menubar")
         settings.revert_option(config.NOSECTION, "show-tooltip")
         settings.revert_option(config.NOSECTION, "start-maximized")
@@ -1551,7 +1588,7 @@ class MainWindowController:
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
 
         categories = None
-        combo = self.tool_bar_box.categories_combo
+        combo = self.tool_bar_box.category_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
@@ -1562,7 +1599,7 @@ class MainWindowController:
             categories = model[tree_iter][KEY_INDEX]
 
         channels = None
-        combo = self.tool_bar_box.channels_combo
+        combo = self.tool_bar_box.channel_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
@@ -1696,8 +1733,8 @@ class MainWindowController:
             preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
  
-        proxy_enabled = self.tool_bar_box.proxy_check_button.get_active()
-        
+        proxy_disabled = string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy"))
+
         future = self.tool_bar_box.future_check_button.get_active()
 
         model, tree_iter = self.main_tree_view.get_selection().get_selected()
@@ -1707,7 +1744,7 @@ class MainWindowController:
                 self.main_window.display_busy_mouse_cursor(True)
                 get_iplayer_output_lines = get_iplayer.info(
                                                 index, preset=preset, prog_type=prog_type,
-                                                proxy_enabled=proxy_enabled, future=future)
+                                                proxy_disabled=proxy_disabled, future=future)
                 self.main_window.display_busy_mouse_cursor(False)
 
                 window = PropertiesWindow(get_iplayer_output_lines)
@@ -1809,9 +1846,9 @@ class MainWindowController:
         button = self.log_dialog.get_action_area().get_children()[3]
         button.set_tooltip_text("Reset error count in the progress bar")
         button = self.log_dialog.get_action_area().get_children()[2]
-        button.set_tooltip_text("View today's full download log. When the download log is very large, it will not be displayed")
+        button.set_tooltip_text("Refresh today's full download log. When the download log is very large, it will not be displayed")
         button = self.log_dialog.get_action_area().get_children()[1]
-        button.set_tooltip_text("View today's summary download log. Error and warning messages are displayed in bold")
+        button.set_tooltip_text("Refresh today's summary download log. Error and warning messages are displayed in bold")
         
         self.log_dialog.set_default_response(Gtk.ResponseType.CLOSE)
         #self.log_dialog.format_secondary_text("")
@@ -1874,14 +1911,16 @@ class MainWindowController:
     def on_accel_go_to_find(self):
         self.tool_bar_box.search_entry.grab_focus()
 
-    def on_accel_rotate_since(self, backward):
-        combo = self.tool_bar_box.since_combo
+    ####
+    
+    def _rotate_combo(self, combo, backward):
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             active = combo.get_active()
             if backward:
                 if active == 0:
-                    combo.set_active(len(get_iplayer.SINCE_LIST) - 1)
+                    length = len(combo.get_model())
+                    combo.set_active(length - 1)
                 else:
                     combo.set_active(active - 1)
             else:
@@ -1890,18 +1929,22 @@ class MainWindowController:
                 if active == -1:
                     combo.set_active(0)
 
-    def on_accel_rotate_programme_type(self):
-        combo = self.tool_bar_box.preset_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            active = combo.get_active()
-            combo.set_active(active + 1)
-            active = combo.get_active()
-            if active == -1:
-                combo.set_active(0)
-            #NOTE combo.set_active() already causes the invocation of on_combo_preset_changed()
-            #self.tool_bar_box.on_combo_preset_changed(combo)
+    def on_accel_rotate_since(self, backward):
+        self._rotate_combo(self.tool_bar_box.since_combo, backward)
 
+    def on_accel_rotate_programme_type(self):
+        self._rotate_combo(self.tool_bar_box.preset_combo, False)
+        #NOTE combo.set_active() already causes the invocation of on_combo_preset_changed()
+        #self.tool_bar_box.on_combo_preset_changed(combo)
+
+    def on_accel_rotate_category(self):
+        self._rotate_combo(self.tool_bar_box.category_combo, False)
+
+    def on_accel_rotate_channel(self):
+        self._rotate_combo(self.tool_bar_box.channel_combo, False)
+
+    ####
+    
     def on_button_clear_clicked(self, button):
         # button can be None
         model = self.main_tree_view.get_model()
@@ -1939,7 +1982,7 @@ class MainWindowController:
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
 
         channels = None
-        combo = self.tool_bar_box.channels_combo
+        combo = self.tool_bar_box.channel_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
@@ -1966,37 +2009,38 @@ class MainWindowController:
             
             # Synchronize category filter
             if prog_type == get_iplayer.ProgType.RADIO:
-                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_radio_store)
+                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_radio_store)
             elif prog_type == get_iplayer.ProgType.PODCAST:
-                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_podcast_store)
+                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_podcast_store)
             elif prog_type == get_iplayer.ProgType.TV:
-                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_tv_store)
+                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
             elif prog_type == get_iplayer.ProgType.ITV:
-                #self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_tv_store)
-                self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_disabled_store)
-            self.tool_bar_box.categories_combo.set_active(0)
+                #self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
+                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_disabled_store)
+            self.tool_bar_box.category_combo.set_active(0)
 
             # Synchronize channel filter
             if preset == get_iplayer.Preset.RADIO:
-                self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_radio_store)
+                self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_radio_store)
             elif preset == get_iplayer.Preset.TV:
                 if prog_type == get_iplayer.ProgType.ITV:
-                    self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_itv_store)
+                    self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_itv_store)
                 else:
-                    self.tool_bar_box.channels_combo.set_model(self.tool_bar_box.chan_tv_store)
-            self.tool_bar_box.channels_combo.set_active(0)
+                    self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_tv_store)
+            self.tool_bar_box.channel_combo.set_active(0)
 
             # Limit the initial podcast search result by enabling the since filter
             combo = self.tool_bar_box.since_combo
+            model = combo.get_model()
             if prog_type == get_iplayer.ProgType.PODCAST:
                 tree_iter = combo.get_active_iter()
                 if tree_iter is not None:
-                    model = combo.get_model()
+                    #model = combo.get_model()
                     since = model[tree_iter][KEY_INDEX]
                     if since == 0:
-                        # Set to longest by not unlimited since filter
-                        combo.set_active(len(get_iplayer.SINCE_LIST) - 1)
-            elif combo.get_active() == len(get_iplayer.SINCE_LIST) - 1:
+                        # Set to longest, but not unlimited, since filter
+                        combo.set_active(len(model) - 1)
+            elif combo.get_active() == len(model) - 1:
                 # Disable since filter
                 combo.set_active(SinceListIndex.FOREVER)
 
@@ -2010,8 +2054,8 @@ class MainWindowController:
 
             # Disable the category filter. Get_iplayer doesn't support it 
             # and future programme data sometimes lacks the categories property
-            self.tool_bar_box.categories_combo.set_model(self.tool_bar_box.cat_disabled_store)
-            self.tool_bar_box.categories_combo.set_active(0)
+            self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_disabled_store)
+            self.tool_bar_box.category_combo.set_active(0)
         else:
             self.tool_bar_box.pvr_queue_check_button.set_active(False)
 
@@ -2046,7 +2090,7 @@ class MainWindowController:
             categories = None
             if string.str2bool(settings.config().get(config.NOSECTION, "enable-category-filter")):
                 categories = ""
-                combo = self.tool_bar_box.categories_combo
+                combo = self.tool_bar_box.category_combo
                 tree_iter = combo.get_active_iter()
                 if tree_iter is not None:
                     model = combo.get_model()
@@ -2055,7 +2099,7 @@ class MainWindowController:
             channels = None
             if string.str2bool(settings.config().get(config.NOSECTION, "enable-channel-filter")):
                 channels = ""
-                combo = self.tool_bar_box.channels_combo
+                combo = self.tool_bar_box.channel_combo
                 tree_iter = combo.get_active_iter()
                 if tree_iter is not None:
                     model = combo.get_model()
@@ -2131,7 +2175,7 @@ class MainWindowController:
                 self.on_combo_preset_changed(combo)
 
             if categories:
-                combo = self.tool_bar_box.categories_combo
+                combo = self.tool_bar_box.category_combo
                 model = combo.get_model()
                 if model is not None:
                     # Default
@@ -2146,7 +2190,7 @@ class MainWindowController:
                         tree_iter = model.iter_next(tree_iter)
 
             if channels:
-                combo = self.tool_bar_box.channels_combo
+                combo = self.tool_bar_box.channel_combo
                 model = combo.get_model()
                 if model is not None:
                     # Default

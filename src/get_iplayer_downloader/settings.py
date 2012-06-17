@@ -37,8 +37,6 @@ def _reload_config(config):
         
         #ALTERNATIVE read from string
         #    default_config = """
-        #notify = True
-        #debug-level = DEBUG
         #...
         #"""
         #config.read_file(io.BytesIO(default_config))
@@ -110,7 +108,7 @@ def get_log_level():
         level = "WARNING"
     else:
         #NOTE ConfigParser already trims spaces
-        level = config().get(Config.NOSECTION, "debug-level")
+        level = config().get(Config.NOSECTION, "log-level")
         if not level:
             level = None
     return level

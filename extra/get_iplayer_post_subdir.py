@@ -57,6 +57,7 @@ A get_iplayer "command" option example (one line):
                         --categories="<categories>"
                         --dir="<dir>" 
                         --filename="<filename>" 
+                        --force
                         --subdir-format=
                             "bbc.<week>/<categorymain>_<category>/<longname>"
 """)
@@ -71,6 +72,7 @@ A get_iplayer "command" option example (one line):
     argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, help="programme categories (comma-separated list) of the downloaded file. Expected when <category> or <categorymain> is in --subdir-format")
     argparser.add_argument("--dir", dest="dir", metavar="<pathname>", nargs=1, default=None, required=True, help="output directory")
     argparser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="downloaded file to be moved")
+    argparser.add_argument("--force", dest="force", action="store_const", const=True, default=False, help="overwrite existing destination file")
     argparser.add_argument("--subdir-format", dest="subdir_format", metavar="<format>", nargs=1, default=None, required=True, help="subdirectory path")
     #argparser.add_argument("filename", nargs=1)
     #argparser.add_argument("categories", nargs=1)
@@ -153,8 +155,8 @@ def _sanitize_path(path, include_substition_markers):
 
     return path
 
-def _move_file(categories, dirname, filename, subdir_format):
-    logger.debug("move_file(): Move \"{0}\" (categories = \"{1}\", dirname = \"{2}\", subdir_format = \"{3}\"".format(filename, categories, dirname, subdir_format))
+def _move_file(categories, dirname, filename, force, subdir_format):
+    logger.debug("move_file(): Move \"{0}\" (categories = \"{1}\", dirname = \"{2}\", force = {3}, subdir_format = \"{4}\"".format(filename, categories, dirname, force, subdir_format))
 
     src_dirname = os.path.dirname(filename)
 
@@ -211,6 +213,14 @@ def _move_file(categories, dirname, filename, subdir_format):
         logger.info("move_file(): Move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         if not os.path.exists(dest_dirname):
             os.makedirs(dest_dirname)
+        if force:
+            try:
+                basename = os.path.basename(filename)
+                dest_filename = os.path.join(dest_dirname, basename)
+                os.remove(dest_filename)
+                logger.info("move_file(): Overwriting destination file \"{0}\"".format(dest_filename))
+            except OSError:
+                pass
         shutil.move(filename, dest_dirname)
     #NOTE Combined exception handling
     except (IOError, os.error, shutil.Error) as exc:
@@ -228,7 +238,7 @@ def main():
     _init_loggers()
     
     categories = args.categories[0] if args.categories is not None else None
-    _move_file(categories, args.dir[0], args.filename[0], args.subdir_format[0])
+    _move_file(categories, args.dir[0], args.filename[0], args.force, args.subdir_format[0])
 
 if __name__ == "__main__":
     main()
