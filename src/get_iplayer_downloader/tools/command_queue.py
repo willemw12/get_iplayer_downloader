@@ -6,10 +6,10 @@ from threading import Thread
 
 from . import command
 
-#ISSUE if TOTAL_WORKER_THREADS is 1:
+#NOTE Thread lock if TOTAL_WORKER_THREADS is 1:
 #    In Queue.put(), the new worker thread blocks, if the last worker thread in the _queue is still running --> 
 #    the _queue is not full and therefore Queue.put() does not time-out and a Queue.Full exception is not raised.
-TOTAL_WORKER_THREADS = 2
+TOTAL_WORKER_THREADS = 8
 
 logger = logging.getLogger(__name__)
 

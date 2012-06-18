@@ -89,10 +89,6 @@ class SinceListIndex:
     FOREVER = 0
     #FUTURE = 1
 
-class SearchTermColumn:
-    PID_OR_INDEX = 0
-    CATEGORIES = 1
-
 class SearchResultColumn:
     DOWNLOAD = 0
     PID = 1
@@ -246,7 +242,7 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
                     # No pid or index available for a serie from the output of get_iplayer --tree
                     try:
                         output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
-                    except IndexError as exc:
+                    except IndexError:    # as exc:
                         pass
             if level == 1 and not l[0].isspace():
                 # Going from level 1 (an episode) to root level (level 0, a serie)
@@ -264,11 +260,10 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
 
     return output_lines
 
-def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=None,
+def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None,
         alt_recording_mode=False, force=False, output_path=None, categories=None, future=False):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
-        @search_term_table has columns listed in SearchTermColumn.
-        If @pid is true, then the first column of @search_term_table contains pids.
+        If @pid is true, then @search_term_list contains pids.
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
     
@@ -283,11 +278,11 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
         terminal_prog = None
 
     #cmd = "( for i in"
-    #for search_term_row in search_term_table:
+    #for search_term_row in search_term_list:
     #    cmd += " " + search_term_row[SearchTermColumn.PID_OR_INDEX]
     #cmd += "; do " + _GET_IPLAYER_PROG
     cmd = ""
-    for i, search_term_row in enumerate(search_term_table):
+    for i, search_term in enumerate(search_term_list):
         cmd += _GET_IPLAYER_PROG + " --nocopyright --hash"
         
         if preset:
@@ -314,14 +309,13 @@ def get(search_term_table, pid=True, pvr_queue=False, preset=None, prog_type=Non
         else:
             cmd += " --get "        
     
-    ##cmd += "\"$i\" ; done"
-    #cmd += "$i; done )"
-        search_term = search_term_row[SearchTermColumn.PID_OR_INDEX]
+        ##cmd += "\"$i\" ; done"
+        #cmd += "$i; done )"
         if search_term:
             # search_term_list could be a set of programme indices, so don't surround them with quotes
             cmd += search_term
         
-        if (i < len(search_term_table[:]) - 1):
+        if (i < len(search_term_list) - 1):
             cmd += "; "
 
     if pvr_queue:

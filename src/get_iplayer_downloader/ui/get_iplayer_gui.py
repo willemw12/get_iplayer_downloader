@@ -10,7 +10,7 @@ import get_iplayer_downloader
 
 from get_iplayer_downloader import command_util, get_iplayer, settings
 from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX
-from get_iplayer_downloader.tools import command, config, file, markup, string
+from get_iplayer_downloader.tools import command, command_queue, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
 #TOOLTIP_FILE_QUIT
@@ -68,7 +68,7 @@ WIDGET_BORDER_WIDTH_COMPACT = 2
 
 ####
 
-PROGRESS_BAR_TIMEOUT_MILLISECONDS = 5000
+PROGRESS_BAR_TIMEOUT_MILLISECONDS = 4000
 
 #### Main window
 
@@ -1562,8 +1562,23 @@ class MainWindowController:
     def __init__(self, main_window):
         self.main_window = main_window
         self.log_dialog = None
+        
+        self.processes = 0
         self.errors_offset = 0
+        self.downloaded_pid_set = None
 
+    def _update_processes_count(self):
+        """ Update the number of running get_iplayer processes. """
+        try:
+            if os.name == "posix":
+                self.processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True))
+            else:
+                self.processes = 0
+        except ValueError:
+            # On occasion, processes is not a valid int (empty string?)
+            #NOTE Variable "processes" remains 0 after the try-except compound statement
+            self.processes = 0
+    
     def init(self):
         """ Complete initialization, after the main window has completed its initialization. """
 
@@ -1665,7 +1680,7 @@ class MainWindowController:
             row = model[root_iter]
             if row[SearchResultColumn.DOWNLOAD] and row[SearchResultColumn.PID]:
                 #indices += row[SearchResultColumn.INDEX] + " "
-                pid_list.append([row[SearchResultColumn.PID], row[SearchResultColumn.CATEGORIES]])
+                pid_list.append(row[SearchResultColumn.PID])
             
             #if model.iter_has_child(root_iter):
             child_iter = model.iter_children(root_iter)
@@ -1673,52 +1688,91 @@ class MainWindowController:
                 row = model[child_iter]
                 if row[SearchResultColumn.DOWNLOAD]:
                     #indices += row[SearchResultColumn.INDEX] + " "
-                    pid_list.append([row[SearchResultColumn.PID], row[SearchResultColumn.CATEGORIES]])
+                    pid_list.append(row[SearchResultColumn.PID])
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
 
         future = self.tool_bar_box.future_check_button.get_active()
 
-        #if indices:
-        if len(pid_list) > 0:
-            self.main_window.display_busy_mouse_cursor(True)
-            launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset,
-                                                       prog_type=prog_type, alt_recording_mode=alt_recording_mode,
-													   force=force, future=future)
-            self.main_window.display_busy_mouse_cursor(False)
-            
-            if not launched:
-                dialog = Gtk.MessageDialog(self.main_window, 0,
-                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "get_iplayer not launched")
-                #dialog.format_secondary_text("")
-                dialog.run()
-                dialog.destroy()
-            elif pvr_queue:
-                dialog = ExtendedMessageDialog(self.main_window, 0,
-                                               Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                               "Queued Programmes")
-                #dialog.format_secondary_text("")
-                dialog.set_default_response(Gtk.ResponseType.CLOSE)
-                dialog.get_content_area().set_size_request(WINDOW_MEDIUM_WIDTH, WINDOW_MEDIUM_HEIGHT)
-                dialog.format_tertiary_scrolled_text(process_output)
-                label = dialog.get_scrolled_label()
-                label.set_valign(Gtk.Align.START)
-                label.set_halign(Gtk.Align.START)
-                label.set_selectable(True)
-                #label.override_font(Pango.FontDescription("monospace small"))
-                label.override_font(Pango.FontDescription("monospace 10"))
-                dialog.run()
-                dialog.destroy()
-            #else:
-            #    self.main_window.main_tree_view.grab_focus()
-        else:
+        #if not indices:
+        if len(pid_list) == 0:
             dialog = Gtk.MessageDialog(self.main_window, 0,
                                        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
                                        "No programmes selected")
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
+            #return True
+            return
+        
+        ####
+        
+        # Avoid downloading a programme twice in parallel, otherwise continue downloading
+        # twice and let get_iplayer generate an "Already in history" INFO log message.
+        # The user can download programmes in parallel without having
+        # to clear the previous download selection and therefore avoiding
+        # download errors because of two threads trying to download the same programme
+
+        pid_set = set(pid_list)
+        # Update self.processes now, to avoid any progress bar update delay
+        self._update_processes_count()
+        if self.processes > 0:
+            if force or self.downloaded_pid_set is None:
+                # Create new download PID list
+                self.downloaded_pid_set = pid_set
+            else:
+                # Remove already downloaded PIDs from the PID list
+                pid_list = list(pid_set.difference(self.downloaded_pid_set))
+                # Add PIDs to the downloaded PID list
+                #.union(set(pid_list))
+                self.downloaded_pid_set = self.downloaded_pid_set.union(pid_set)
+        #elif self.processes == 0:
+        else:
+            self.downloaded_pid_set = pid_set
+            
+        if len(pid_list) == 0:
+            dialog = Gtk.MessageDialog(self.main_window, 0,
+                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                       "Already downloading all the selected programmes")
+            #dialog.format_secondary_text("")
+            dialog.run()
+            dialog.destroy()
+            #return True
+            return        
+        
+        ####
+        
+        self.main_window.display_busy_mouse_cursor(True)
+        launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset,
+                                                   prog_type=prog_type, alt_recording_mode=alt_recording_mode,
+												   force=force, future=future)
+        self.main_window.display_busy_mouse_cursor(False)
+        
+        if not launched:
+            dialog = Gtk.MessageDialog(self.main_window, 0,
+                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                       "get_iplayer not launched")
+            #dialog.format_secondary_text("")
+            dialog.run()
+            dialog.destroy()
+        elif pvr_queue:
+            dialog = ExtendedMessageDialog(self.main_window, 0,
+                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                           "Queued Programmes")
+            #dialog.format_secondary_text("")
+            dialog.set_default_response(Gtk.ResponseType.CLOSE)
+            dialog.get_content_area().set_size_request(WINDOW_MEDIUM_WIDTH, WINDOW_MEDIUM_HEIGHT)
+            dialog.format_tertiary_scrolled_text(process_output)
+            label = dialog.get_scrolled_label()
+            label.set_valign(Gtk.Align.START)
+            label.set_halign(Gtk.Align.START)
+            label.set_selectable(True)
+            #label.override_font(Pango.FontDescription("monospace small"))
+            label.override_font(Pango.FontDescription("monospace 10"))
+            dialog.run()
+            dialog.destroy()
+        #else:
+        #    self.main_window.main_tree_view.grab_focus()
 
     def on_button_pvr_queue_clicked(self):
         self.on_button_download_clicked(None, pvr_queue=True)
@@ -1765,19 +1819,8 @@ class MainWindowController:
             dialog.destroy()
 
     def on_progress_bar_update(self, user_data):
-        try:
-            if os.name == "posix":
-                processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True))
-            else:
-                processes = 0
-        except ValueError:
-            # On occasion, processes is not a valid int (empty string?)
-            #NOTE Variable "processes" remains initialized after the try-except compound statement
-            processes = 0
-
-        ##self.processes_label.set_label("D: " + str(processes))
-        ##self.queue_size_label.set_label("Q: " + str(command_queue.size()))
-
+        self._update_processes_count()
+        
         errors = command_util.download_errors()
         if self.errors_offset < 0:
             # Display zero errors by raising the error count offset
@@ -1787,14 +1830,17 @@ class MainWindowController:
             # Reset error count. Log files were probably removed
             errors = 0
             self.errors_offset = 0
-        
+
+        ##self.processes_label.set_label("D: " + str(processes))
+        ##self.queue_size_label.set_label("Q: " + str(command_queue.size()))
+
         #NOTE String formatting: right-aligned (default for int), 4 characters wide: str.format("D:{0:4}  Q:{1:4}", ...)
-        #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(processes), command_queue.size()))
-        self.tool_bar_box.progress_bar.set_text("%s / %s" % (processes, errors))
-        # Full progress bar when 6 get_iplayer processes are running.  % 1 to keep the fraction between 0.0 and 1.0.
-        self.tool_bar_box.progress_bar.set_fraction(processes / 6.0 % 1)
-        #Gray-out
-        #self.tool_bar_box.progress_bar.set_sensitive(processes != 0 or command_queue.size() != 0)
+        #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(self.processes), command_queue.size()))
+        self.tool_bar_box.progress_bar.set_text("%s / %s" % (self.processes, errors))
+        # Full progress bar when TOTAL_WORKER_THREADS get_iplayer processes are running.  % 1 to keep the fraction between 0.0 and 1.0.
+        self.tool_bar_box.progress_bar.set_fraction(self.processes / float(command_queue.TOTAL_WORKER_THREADS) % 1)
+        # Gray-out
+        #self.tool_bar_box.progress_bar.set_sensitive(self.processes != 0 or command_queue.size() != 0)
 
         return True
 
@@ -1848,7 +1894,7 @@ class MainWindowController:
         button = self.log_dialog.get_action_area().get_children()[2]
         button.set_tooltip_text("Refresh today's full download log. When the download log is very large, it will not be displayed")
         button = self.log_dialog.get_action_area().get_children()[1]
-        button.set_tooltip_text("Refresh today's summary download log. Error and warning messages are displayed in bold")
+        button.set_tooltip_text("Refresh today's summary download log. Error and warning log messages are displayed in bold")
         
         self.log_dialog.set_default_response(Gtk.ResponseType.CLOSE)
         #self.log_dialog.format_secondary_text("")
