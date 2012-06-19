@@ -1359,6 +1359,7 @@ class PreferencesDialogWrapper(object):
         
         self.dialog = self.builder.get_object("PreferencesDialog")
 
+        self.general_clear_cache_on_exit_check_button = self.builder.get_object("PrefsGeneralClearCacheOnExitCheckButton")
         self.general_compact_toolbar_check_button = self.builder.get_object("PrefsGeneralCompactToolBarCheckButton")
         self.general_compact_treeview_check_button = self.builder.get_object("PrefsGeneralCompactTreeViewCheckButton")
         self.general_disable_proxy_check_button = self.builder.get_object("PrefsGeneralDisableProxyCheckButton")
@@ -1404,6 +1405,7 @@ class PreferencesDialogWrapper(object):
     def _display_settings(self):
         """ Retrieve in-memory settings and put them in dialog fields. """
 
+        self.general_clear_cache_on_exit_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "clear-cache-on-exit")))
         self.general_compact_toolbar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
         self.general_compact_treeview_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
         self.general_disable_proxy_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy")))
@@ -1450,6 +1452,7 @@ class PreferencesDialogWrapper(object):
     def _capture_settings(self):
         """ Retrieve settings from dialog fields and put them in in-memory settings. """
 
+        settings.config().set(config.NOSECTION, "clear-cache-on-exit", str(self.general_clear_cache_on_exit_check_button.get_active()))
         settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_check_button.get_active()))
         settings.config().set(config.NOSECTION, "disable-proxy", str(self.general_disable_proxy_check_button.get_active()))
@@ -1477,6 +1480,7 @@ class PreferencesDialogWrapper(object):
         # Factory-reset all options
         #settings.revert()
 
+        settings.revert_option(config.NOSECTION, "clear-cache-on-exit")
         settings.revert_option(config.NOSECTION, "compact-toolbar")
         settings.revert_option(config.NOSECTION, "compact-treeview")
         settings.revert_option(config.NOSECTION, "disable-proxy")
@@ -2303,6 +2307,9 @@ def _files2urls(filepath):
 #NOTE session_save() is done from outside the window class and session_restore() is done from inside the window class,
 def _main_quit(main_window, event):
     main_window.controller().session_save()
+
+    if string.str2bool(settings.config().get(config.NOSECTION, "clear-cache-on-exit")):
+        command_util.clear_cache()
 
     #WORKAROUND get_root_window()
     main_window.display_busy_mouse_cursor(False)
