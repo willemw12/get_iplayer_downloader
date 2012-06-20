@@ -84,7 +84,7 @@ Most configuration settings can be managed from the GUI. Other settings can be f
 
 Before downloading programmes for the first time, verify the download paths and optionally the terminal emulator program name and options. To use the default download path specified in get\_iplayer, leave the download path empty.
 
-The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs, i.e. <search term>-<GUI label> pairs). To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
+The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs, i.e. <search term>-<GUI label> pairs). File ./extra/my\_config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet

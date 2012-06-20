@@ -61,7 +61,7 @@ class ProgType:
 ####
 
 # List of key-value pairs
-#NOTE cannot extend a constant list: RADIO = [[None, "Genre"]].extend(...)
+#NOTE Cannot extend a constant list: RADIO = [[None, "Genre"]].extend(...)
 #WORKAROUND see get_iplayer_gui.py (at least in Python 2.7)
 #  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
 
@@ -119,7 +119,7 @@ def check_preset_files(quiet=False):
             
     return log_output
 
-#NOTE logging not fully initialized yet
+#NOTE Logging is not fully initialized yet
 #check_preset_files()
 
 ####

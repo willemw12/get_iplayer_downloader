@@ -29,7 +29,7 @@ def _log_file(dirpath, filename, full=False, markup=False):
                     # then other get_iplayer commands in the same file are also not "get" commands
                     return ""
             if full:
-                #NOTE join all lines at once (list2string): log_output = "".join(lines)
+                #NOTE Join all lines at once (list2string): log_output = "".join(lines)
                 log_output += line
             elif line == "Matches:\n":
                 log_output += _log_text(lines[i + 1], markup)

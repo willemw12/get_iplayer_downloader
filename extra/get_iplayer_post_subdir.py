@@ -222,7 +222,6 @@ def _move_file(categories, dirname, filename, force, subdir_format):
             except OSError:
                 pass
         shutil.move(filename, dest_dirname)
-    #NOTE Combined exception handling
     except (IOError, os.error, shutil.Error) as exc:
         logger.warning("move_file(): Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         logger.warning(exc)

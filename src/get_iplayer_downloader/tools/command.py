@@ -20,17 +20,14 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         #temp_pathname = keywords["temp_pathname"] if "temp_pathname" in keywords else None
         if temp_pathname is not None:
             # Log commands
-            
             if not os.path.exists(temp_pathname):
                 os.makedirs(temp_pathname)
-        
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
             cmd_logname = os.path.join(temp_pathname, timestamp + "-cmd.log")
             cmd_exec = "( set -x ; " + cmd_exec + " ) 2>&1 | tee " + cmd_logname
 
     if terminal_prog:
         # terminal_prog is not None and not empty string
-        
         # Add commands to run in a terminal window
         if os.name == "posix":
             # Linux specific
@@ -41,7 +38,6 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         # If not a silent process, e.g. command to update the progress bar
         logger.debug("run(): cmd_exec=%s", cmd_exec)
         logger.info("run(): cmd=%s", cmd)
-
         if terminal_prog:
             # Log this now. Log statements after subprocess.check_output() will
             # only be printed after the terminal window has been closed
@@ -105,8 +101,9 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
 
     ####
     
-    if not quiet:
+    if not quiet and not terminal_prog:
         # If not a silent process, e.g. command to update the progress bar
+        # If running inside a terminal window then the log message was already generated before command execution
         logger.debug("run(): process_output=%s", process_output)
         #print "Ready"
 

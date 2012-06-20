@@ -85,6 +85,6 @@ PLATFORMS = "Linux"
 
 ####
 
-#NOTE logging not fully initialized yet
+#NOTE Logging is not fully initialized yet
 #import get_iplayer_downloader.get_iplayer
 #get_iplayer.check_preset_files()

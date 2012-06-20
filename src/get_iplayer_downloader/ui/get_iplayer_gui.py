@@ -339,7 +339,7 @@ class UIManager():
 
     #NOTE The underscore (alt-character) mnemonic only works when the widget is shown
     #NOTE An accelerator does not override the desktop accelerator (global desktop keyboard shortcut)
-    #NOTE Use glade or the global desktop keyboard shortcuts configration tool to find "undocumented" keys (Return, ...)
+    #NOTE Use glade or the global desktop keyboard shortcuts configuration tool to find "undocumented" keys (Return, ...)
     def _create_ui_manager(self):
         ui_manager = Gtk.UIManager()
 
@@ -459,16 +459,17 @@ class UIManager():
         dialog.set_version(get_iplayer_downloader.VERSION)
         dialog.set_website(get_iplayer_downloader.URL)
         dialog.set_website_label(get_iplayer_downloader.URL)
-        #NOTE [""] means char** in C
+        #NOTE [""] is char** in C
         dialog.set_authors([get_iplayer_downloader.AUTHORS])
 
         dialog.connect("response", lambda dialog, response: dialog.destroy())
         dialog.run()
         dialog.destroy()
 
-#NOTE Glade generates the following deprecated Grid property: 
-#         <property name="n_rows">1</property>
-#     It causes a Gtk warning. This property can be removed from the generated .ui file.
+#NOTE  
+#Glade generates the following deprecated Grid property: 
+#    <property name="n_rows">1</property>
+#It causes a Gtk warning. This property can be removed from the generated .ui file.
 
 #class Builder(Gtk.Builder):
 class Builder(object):
@@ -827,26 +828,15 @@ class ToolBarBox(Gtk.Box):
         ####
 
         #if not compact_toolbar:
-        grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL)
-        #NOTE: To have end-alignment of grid child widget:
-        #      - grid: fill argument set to True
-        #      - grid child: hexpand_set=True, hexpand=True, halign=Gtk.Align.END
-        self.pack_start(grid, False, True, 0)
-        #KEYBOARD FOCUS:
-        #focus_chain.append(grid)
-
         #KEYBOARD FOCUS:
         #event_box = Gtk.EventBox(can_focus=True)
-        event_box = Gtk.EventBox()
+        event_box = Gtk.EventBox(hexpand_set=True, halign=Gtk.Align.END, valign=Gtk.Align.START)
         event_box.connect("button-press-event", self._on_menu_button_press_event)
         #KEYBOARD FOCUS:
         #event_box.connect("key-release-event", self._on_menu_button_key_release_event)
-        grid.add(event_box)
+        self.pack_end(event_box, False, False, 0)
 
-        #margin_left=WIDGET_BORDER_WIDTH
-        #image.set_alignment(0, 0.2)
-        #grid.attach_next_to(image, self.progress_bar, Gtk.PositionType.RIGHT, 1, 1)
-        image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES, hexpand_set=True, hexpand=True, halign=Gtk.Align.END)
+        image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES)
         image.set_tooltip_text(TOOLTIP_MENU_BUTTON)
         event_box.add(image)
         
@@ -1579,8 +1569,7 @@ class MainWindowController:
             else:
                 self.processes = 0
         except ValueError:
-            # On occasion, processes is not a valid int (empty string?)
-            #NOTE Variable "processes" remains 0 after the try-except compound statement
+            # On occasion, self.processes is not a valid int (empty string?)
             self.processes = 0
     
     def init(self):
@@ -1861,7 +1850,7 @@ class MainWindowController:
 
         # Display download log dialog window
         
-        #NOTE positive ID numbers for user-defined buttons
+        #NOTE Positive ID numbers are for user-defined buttons
         CLEAR_CACHE_BUTTON_ID = 1
         RESET_ERROR_COUNT_BUTTON_ID = 2
         FULL_LOG_BUTTON_ID = 3
@@ -1920,7 +1909,7 @@ class MainWindowController:
             # Set dialog content title
             self.log_dialog.set_property("text", message_format)
             # Set dialog content text
-            #NOTE if full download log text is too large, it won't be displayed
+            #NOTE If full download log text is too large, it won't be displayed
             if markup:
                 self.log_dialog.format_tertiary_scrolled_markup(log_output)
             else:
@@ -2184,6 +2173,7 @@ class MainWindowController:
             prog_type = settings.config().get("session", "programme-type")
             categories = settings.config().get("session", "categories")
             channels = settings.config().get("session", "channels")
+            #NOTE Variables created in the try clause or except clause remain allocated after the try-except statement
             try:
                 since = int(settings.config().get("session", "since"))
             except ValueError:

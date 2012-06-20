@@ -15,9 +15,9 @@ def load_url(url, pathname, **urlopen_keywords):
         stream = None
         try:
             stream = urllib.request.urlopen(url, **urlopen_keywords)
-        #NOTE some timeout exceptions are not caught by URLError:
+        #NOTE Some timeout exceptions are not caught by URLError:
         #    File "/usr/lib/python3.2/socket.py", line 276, in readinto
-        #except urllib.error.URLError as exc:
+        #NOTE Combined exception handling
         except (urllib.error.URLError, socket.timeout): # as exc:
             #sys.stderr.write("%s:load_url(): %s\n" % (__name__, exc))
             traceback.print_exc(file=sys.stderr)
