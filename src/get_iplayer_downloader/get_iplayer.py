@@ -272,7 +272,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
     elif preset == Preset.TV:
         output_path = TV_DOWNLOAD_PATH
 
-    if string.str2bool(preset and settings.config().get(preset, "run-in-terminal")):
+    if preset and string.str2bool(settings.config().get(preset, "run-in-terminal")):
         terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
     else:
         terminal_prog = None

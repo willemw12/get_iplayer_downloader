@@ -44,7 +44,7 @@ TOOLTIP_OPTION_ALT_RECORDING_MODES = "Try to download or queue programmes with t
 TOOLTIP_OPTION_FIND_ALL = "Search in all available programme types and channels. Retrieving the programme list may take a long time"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer --pvr"
-TOOLTIP_TOOLS_FUTURE = "Include future programmes in the search. Click 'Refresh' to update the list of future programmes in the cache. The category filter is disabled in 'future search' mode"
+TOOLTIP_TOOLS_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Enable 'PVR' to queue future programmes for downloading"
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
@@ -1569,7 +1569,7 @@ class MainWindowController:
             else:
                 self.processes = 0
         except ValueError:
-            # On occasion, self.processes is not a valid int (empty string?)
+            # Sometmies self.processes is not a valid int (empty string?)
             self.processes = 0
     
     def init(self):
@@ -1706,32 +1706,48 @@ class MainWindowController:
         # to clear the previous download selection and therefore avoiding
         # download errors because of two threads trying to download the same programme
 
-        pid_set = set(pid_list)
-        # Update self.processes now, to avoid any progress bar update delay
-        self._update_processes_count()
-        if self.processes > 0:
-            if force or self.downloaded_pid_set is None:
-                # Create new download PID list
-                self.downloaded_pid_set = pid_set
+        try:
+            if os.name == "posix":
+                #gipd_processes = int(command.run("echo -n $(ps xo cmd | grep 'get_iplayer_downloader | grep python' | wc -l) ; exit 0", quiet=True))
+                gipd_processes = int(command.run("echo -n $(ps xo cmd | grep 'get_iplayer_downloader' | wc -l) ; exit 0", quiet=True))
             else:
-                # Remove already downloaded PIDs from the PID list
-                pid_list = list(pid_set.difference(self.downloaded_pid_set))
-                # Add PIDs to the downloaded PID list
-                #.union(set(pid_list))
-                self.downloaded_pid_set = self.downloaded_pid_set.union(pid_set)
-        #elif self.processes == 0:
-        else:
-            self.downloaded_pid_set = pid_set
-            
-        if len(pid_list) == 0:
-            dialog = Gtk.MessageDialog(self.main_window, 0,
-                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "Already downloading all the selected programmes")
-            #dialog.format_secondary_text("")
-            dialog.run()
-            dialog.destroy()
-            #return True
-            return        
+                gipd_processes = 1
+        except ValueError:
+            # Sometimes gipd_processes is not a valid int (empty string?)
+            gipd_processes = 1
+
+        # If there are more than one get_iplayer_downloader processes running,
+        # then don't perform the 'running in parallel' check (self.processes is
+        # the number of >all< the get_iplayer processes on the system)
+        # (TODO Limit self.processes to the get_iplayer processes which belong
+        # to the current get_iplayer_downloader process)
+        if gipd_processes == 1:
+            pid_set = set(pid_list)
+            # Update self.processes now, to avoid any progress bar update delay
+            self._update_processes_count()
+            if self.processes > 0:
+                if force or self.downloaded_pid_set is None:
+                    # Create new download PID list
+                    self.downloaded_pid_set = pid_set
+                else:
+                    # Remove already downloaded PIDs from the PID list
+                    pid_list = list(pid_set.difference(self.downloaded_pid_set))
+                    # Add PIDs to the downloaded PID list
+                    #.union(set(pid_list))
+                    self.downloaded_pid_set = self.downloaded_pid_set.union(pid_set)
+            #elif self.processes == 0:
+            else:
+                self.downloaded_pid_set = pid_set
+                
+            if len(pid_list) == 0:
+                dialog = Gtk.MessageDialog(self.main_window, 0,
+                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                           "Already downloading all the selected programmes")
+                #dialog.format_secondary_text("")
+                dialog.run()
+                dialog.destroy()
+                #return True
+                return        
         
         ####
         
@@ -1748,14 +1764,16 @@ class MainWindowController:
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
-        elif pvr_queue:
+        elif pvr_queue or future:
+            # If pvr_queue is false and future is true, then future programmes won't be queued.
+            # In that case, to notify the user, show a dialog window in which future programmes are not listed
             dialog = ExtendedMessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
                                            "Queued Programmes")
             #dialog.format_secondary_text("")
             dialog.set_default_response(Gtk.ResponseType.CLOSE)
             dialog.get_content_area().set_size_request(WINDOW_MEDIUM_WIDTH, WINDOW_MEDIUM_HEIGHT)
-            dialog.format_tertiary_scrolled_text(process_output)
+            dialog.format_tertiary_scrolled_text("" if process_output is None else process_output)
             label = dialog.get_scrolled_label()
             label.set_valign(Gtk.Align.START)
             label.set_halign(Gtk.Align.START)
@@ -1888,6 +1906,10 @@ class MainWindowController:
         button.set_tooltip_text("Refresh today's full download log. When the download log is very large, it will not be displayed")
         button = self.log_dialog.get_action_area().get_children()[1]
         button.set_tooltip_text("Refresh today's summary download log. Error and warning log messages are displayed in bold")
+        #button.grab_focus()
+        # Close button
+        button = self.log_dialog.get_action_area().get_children()[0]
+        button.grab_focus()
         
         self.log_dialog.set_default_response(Gtk.ResponseType.CLOSE)
         #self.log_dialog.format_secondary_text("")
