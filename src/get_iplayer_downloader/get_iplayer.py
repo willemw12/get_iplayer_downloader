@@ -75,7 +75,6 @@ class Categories:
     #@staticmethod
     def _merge_keys(key_value_list):
         key_list = [row[KEY_INDEX] for row in key_value_list]
-        #keys = "".join(key_list)
         keys = ""
         for i, key in enumerate(key_list):
             if i == 0:
@@ -83,8 +82,11 @@ class Categories:
             keys += key
             if (i < len(key_list) - 1):
                 keys += ","
+        # Use set to avoid duplicates
+        key_set = set(keys.split(","))
+        keys = ",".join(key_set)
         return keys
-
+    
     # No filter
     ALL = [["", _ALL_CATEGORIES_LABEL]]
 

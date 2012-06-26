@@ -511,7 +511,7 @@
                       <object class="GtkLabel" id="label4">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Limit programme search to matched channels. Comma-separated list. Use get_iplayer's default if empty</property>
+                        <property name="tooltip_text" translatable="yes">Limit programme search to matched channels. Comma-separated list. Use get_iplayer's default if empty. Change takes effect after restart of this program</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -777,7 +777,7 @@
                       <object class="GtkLabel" id="label7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Limit programme search to matched channels. Comma-separated list. Use get_iplayer default if empty</property>
+                        <property name="tooltip_text" translatable="yes">Limit programme search to matched channels. Comma-separated list. Use get_iplayer's default if empty. Change takes effect after restart of this program</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -796,7 +796,7 @@
                       <object class="GtkLabel" id="label8">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Download file path. Use get_iplayer default if empty</property>
+                        <property name="tooltip_text" translatable="yes">Download file path. Use get_iplayer's default if empty</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>

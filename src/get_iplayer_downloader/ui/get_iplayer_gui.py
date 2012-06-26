@@ -40,7 +40,7 @@ TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on 'al
 TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. Disabled when filter label is 'Since' or empty"
 
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue programmes with the alternative set of recording modes"
-TOOLTIP_OPTION_ALL_SEARCH = "Search in all the available categories and/or channels when the filter is set to 'all' (when the filter label is 'Categories'/'Channels' or empty)"
+TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is set to 'all' (when the filter label is 'Categories'/'Channels' or empty)"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh programme cache"
 TOOLTIP_TOOLS_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Enable 'PVR' to queue future programmes for downloading"
 
@@ -784,7 +784,7 @@ class ToolBarBox(Gtk.Box):
         focus_chain.append(grid)
 
         self.search_all_check_button = Gtk.CheckButton("All")   # "Any"
-        self.search_all_check_button.set_tooltip_text(TOOLTIP_OPTION_ALL_SEARCH)
+        self.search_all_check_button.set_tooltip_text(TOOLTIP_OPTION_SEARCH_ALL)
         self.search_all_check_button.set_focus_on_click(False)
         #if disable_presets:
         #    self.search_all_check_button.set_sensitive(False)
@@ -2257,6 +2257,8 @@ class MainWindowController:
                     model = combo.get_model()
                     since = model[tree_iter][KEY_INDEX]
 
+            search_all = self.tool_bar_box.search_all_check_button.get_active()
+
             # Save values
 
             # If not an empty string (and not None)
@@ -2268,6 +2270,7 @@ class MainWindowController:
                 settings.config().set("session", "channels", channels)
             if since >= 0:
                 settings.config().set("session", "since", str(since))
+            settings.config().set("session", "search-all", str(search_all))
             
             settings.save()
     
@@ -2282,6 +2285,7 @@ class MainWindowController:
                 since = int(settings.config().get("session", "since"))
             except ValueError:
                 since = 0
+            search_all = string.str2bool(settings.config().get("session", "search-all"))
 
             # If empty string or None (in case of an error) or itv has been disabled, then set the default value
             if not prog_type or (prog_type == "itv" and not string.str2bool(settings.config().get(config.NOSECTION, "enable-itv"))):
@@ -2361,6 +2365,8 @@ class MainWindowController:
                             combo.set_active_iter(tree_iter)
                             break
                         tree_iter = model.iter_next(tree_iter)
+
+            self.tool_bar_box.search_all_check_button.set_active(search_all)
 
 ####
 
