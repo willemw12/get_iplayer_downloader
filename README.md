@@ -47,11 +47,14 @@ Configuration
 
 ### get\_iplayer
 
-Currently, get\_iplayer\_downloader uses two get\_iplayer presets: one for radio programmes and podcasts and one for television programmes. The default preset names used by get\_iplayer\_downloader are: radio and tv. The preset file names are configurable.
+get\_iplayer\_downloader's default configuration has two get\_iplayer presets defined:
 
-Either reuse existing preset files or create new presets files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc. or edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly. 
+* radio - for radio programmes and podcasts
+* tv - for television programmes
 
-Here are two preset file examples. Lines starting with # are commented out.
+The preset names are configurable.
+
+To configure get\_iplayer, either reuse existing preset files or create new presets files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc. or edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly. Here are two preset file examples. Lines starting with # are commented out.
 
 File ~/.get\_iplayer/presets/radio:
 
@@ -62,7 +65,7 @@ File ~/.get\_iplayer/presets/radio:
     isodate 1
     #listformat <index>:   <name>: <episode> (<pid>)
     output /home/willemw12/Music/bbc
-    radiomode flashaudio,realaudio,flashaac,wma
+    radiomode flashaudio,flashaac,wma,realaudio
 
 File ~/.get\_iplayer/presets/tv:
 
@@ -74,15 +77,19 @@ File ~/.get\_iplayer/presets/tv:
     tvmode flashhigh,flashstd,flashnormal
 
 Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` work properly from the command line.
-	
+
+There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the aactomp3 option in that case.
+
 Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued programmes. Check the get\_iplayer documentation on how to do that.
 
 
 ### get\_iplayer\_downloader
 
-Most configuration settings can be managed from the GUI. Other settings can be found in the configuration file (~/.config/get\_iplayer\_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
+Most configuration options can be managed from the GUI. Other options can be found in the configuration file (~/.config/get\_iplayer\_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Before downloading programmes for the first time, verify the download paths and optionally the terminal emulator program name and options. To use the default download path specified in get\_iplayer, leave the download path empty.
+Leave options, such as Channels and Download folder, empty in Preferences to use the default value specified in get\_iplayer.
+
+Before downloading programmes for the first time, verify the download paths and optionally the terminal emulator program name and options.
 
 The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs, i.e. <search term>-<GUI label> pairs). File ./extra/my\_config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 

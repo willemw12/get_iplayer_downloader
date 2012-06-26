@@ -52,7 +52,8 @@ class Preset:
     TV = settings.config().get("tv", "preset-file")
     
 class ProgType:
-    #ALL = "all"
+    ##ALL = "all"
+    #ALL = "radio,podcast,tv"
     RADIO = "radio"
     PODCAST = "podcast"
     TV = "tv"
@@ -71,17 +72,32 @@ class Channels:
     ITV = _ALL_CHANNELS_LABEL
 
 class Categories:
+    #@staticmethod
+    def _merge_keys(key_value_list):
+        key_list = [row[KEY_INDEX] for row in key_value_list]
+        #keys = "".join(key_list)
+        keys = ""
+        for i, key in enumerate(key_list):
+            if i == 0:
+                continue
+            keys += key
+            if (i < len(key_list) - 1):
+                keys += ","
+        return keys
+
     # No filter
     ALL = [["", _ALL_CATEGORIES_LABEL]]
 
-    RADIO = [["", _ALL_CATEGORIES_LABEL]]
-    RADIO.extend(ast.literal_eval(settings.config().get("radio", "categories-radio")))
-
-    PODCAST = [["", _ALL_CATEGORIES_LABEL]]
-    PODCAST.extend(ast.literal_eval(settings.config().get("radio", "categories-podcast")))
-
-    TV = [["", _ALL_CATEGORIES_LABEL]]
-    TV.extend(ast.literal_eval(settings.config().get("tv", "categories")))
+    # The lists consists of all categories in the first item, followed by the categories separately
+    
+    RADIO = ast.literal_eval(settings.config().get("radio", "categories-radio"))
+    RADIO.insert(0, [_merge_keys(RADIO) , _ALL_CATEGORIES_LABEL])
+    
+    PODCAST = ast.literal_eval(settings.config().get("radio", "categories-podcast"))
+    PODCAST.insert(0, [_merge_keys(PODCAST) , _ALL_CATEGORIES_LABEL])
+    
+    TV = ast.literal_eval(settings.config().get("tv", "categories"))
+    TV.insert(0, [_merge_keys(TV) , _ALL_CATEGORIES_LABEL])
 
 ####
 
@@ -134,7 +150,7 @@ def categories(search_text, preset=None, prog_type=None):
         cmd += " --preset=" + preset
     if prog_type:
         cmd += " --type=" + prog_type
-    cmd += " --list=categories"
+    cmd += " --list=categories --nocopyright"
     if search_text:
         cmd += " \"" + search_text + "\""
     
@@ -162,7 +178,7 @@ def channels(search_text, preset=None, prog_type=None, compact=False):
         cmd += " --preset=" + preset
     if prog_type:
         cmd += " --type=" + prog_type
-    cmd += " --list=channel"
+    cmd += " --list=channel --nocopyright"
     if search_text:
         cmd += " \"" + search_text + "\""
     
@@ -187,30 +203,32 @@ def channels(search_text, preset=None, prog_type=None, compact=False):
     return output_line
 
 def search(search_text, preset=None, prog_type=None, channels=None, categories=None,
-           since=0, search_all=False, future=False):
+            since=0, future=False):
     """ Run get_iplayer (--search).
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
     
-    cmd = _GET_IPLAYER_PROG
-    if search_all:
-        cmd += " --type=all"
-        # If type=all then preset is ignored
-    else:
-        cmd += " --nocopyright --long"
-        if preset:
-            cmd += " --preset=" + preset
-        if prog_type:
-            cmd += " --type=" + prog_type
-        if channels:
-            cmd += " --channel=\"" + channels + "\""
+    cmd = _GET_IPLAYER_PROG + " --tree"
+    #if not preset:
+    #    #cmd += " --type=all"
+    #    cmd += " --type=" + ProgType.ALL
+    #else:
+    if preset:
+        cmd += " --preset=" + preset
+    if prog_type:
+        cmd += " --type=" + prog_type
+    if channels:
+        cmd += " --channel=\"" + channels + "\""
+
     if categories:
         cmd += " --category=\"" + categories + "\""
     if since:
         cmd += " --since=" + str(since)
     if future:
         cmd += " --future"
-    cmd += " --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\" --tree"
+    cmd += " --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\""
+    # --fields: perform the same search as with --long plus on pid
+    cmd += " --fields=\"name,episode,desc,pid\" --nocopyright"
     if search_text:
         cmd += " \"" + search_text + "\""
     
@@ -264,40 +282,72 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         alt_recording_mode=False, force=False, output_path=None, categories=None, future=False):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
         If @pid is true, then @search_term_list contains pids.
-        Return table with columns: download (False), followed by columns listed in SearchResultColumn.
+        Return tuple: launched boolean, process output string.
     """
     
     if preset == Preset.RADIO:
         output_path = RADIO_DOWNLOAD_PATH
     elif preset == Preset.TV:
         output_path = TV_DOWNLOAD_PATH
-
-    if preset and string.str2bool(settings.config().get(preset, "run-in-terminal")):
-        terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
+    else:
+        output_path = None
+        
+    #WORKAROUND Preset can be None: disable-presets is true AND models and configuration are based on presets, not on programme types
+    #if preset and string.str2bool(settings.config().get(preset, "run-in-terminal")):
+    #    terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
+    #else:
+    #    terminal_prog = None
+    preset_fallback = None
+    if preset:
+        preset_fallback = preset
+    else:
+        # Determine preset from programem type
+        if prog_type == ProgType.RADIO or prog_type == ProgType.PODCAST:
+            preset_fallback = Preset.RADIO
+        elif prog_type == ProgType.TV:
+            preset_fallback = Preset.RADIO
+    if prog_type and string.str2bool(settings.config().get(preset_fallback, "run-in-terminal")):
+            terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
     else:
         terminal_prog = None
 
+    if alt_recording_mode:
+        alt_radio_modes = settings.config().get(Preset.RADIO, "recording-modes")
+        alt_tv_modes = settings.config().get(Preset.TV, "recording-modes")
+    
     #cmd = "( for i in"
     #for search_term_row in search_term_list:
     #    cmd += " " + search_term_row[SearchTermColumn.PID_OR_INDEX]
     #cmd += "; do " + _GET_IPLAYER_PROG
     cmd = ""
     for i, search_term in enumerate(search_term_list):
-        cmd += _GET_IPLAYER_PROG + " --nocopyright --hash"
-        
+        cmd += _GET_IPLAYER_PROG + " --hash"
         if preset:
             cmd += " --preset=" + preset
-            if alt_recording_mode:
-                if preset == Preset.RADIO:
-                    cmd += " --radiomode=\"" + settings.config().get(preset, "recording-modes") + "\""
-                elif preset == Preset.TV:
-                    cmd += " --tvmode=\"" + settings.config().get(preset, "recording-modes") + "\""
+        #WORKAROUND Preset can be None: disable-presets is true AND models and configuration are based on presets, not on programme types
+        #    if alt_recording_mode:
+        #        if preset == Preset.RADIO and alt_radio_modes:
+        #            #cmd += " --modes=\"" + alt_radio_modes + "\""
+        #            cmd += " --radiomode=\"" + alt_radio_modes + "\""
+        #        elif preset == Preset.TV and alt_tv_modes:
+        #            #cmd += " --modes=\"" + alt_tv_modes + "\""
+        #            cmd += " --tvmode=\"" + alt_tv_modes + "\""
+        if alt_recording_mode:
+            if preset_fallback == Preset.RADIO and alt_radio_modes:
+                #cmd += " --modes=\"" + alt_radio_modes + "\""
+                cmd += " --radiomode=\"" + alt_radio_modes + "\""
+            elif preset_fallback == Preset.TV and alt_tv_modes:
+                #cmd += " --modes=\"" + alt_tv_modes + "\""
+                cmd += " --tvmode=\"" + alt_tv_modes + "\""
+
         if prog_type:
             cmd += " --type=" + prog_type
         if force:
             cmd += " --force --overwrite"
         if output_path:
             cmd += " --output=\"" + output_path + "\""
+        cmd += " --nocopyright"
+    
         #if pvr_queue or future:
         if pvr_queue:
             if not preset:
@@ -308,7 +358,6 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
             cmd += " --pid="
         else:
             cmd += " --get "        
-    
         ##cmd += "\"$i\" ; done"
         #cmd += "$i; done )"
         if search_term:
@@ -333,12 +382,11 @@ def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=
         Return table with columns: serie title, episode title plus description.
     """
     
-    # Cannot do a search on pid
     # Only useful from outside the UK:
     #     If proxy_disabled is true then info retrieval may be faster but the info 
     #     will not contain proper values for "modes" and "tvmodes" (the available TV download file sizes)
 
-    cmd = _GET_IPLAYER_PROG + " --nocopyright --info"
+    cmd = _GET_IPLAYER_PROG + " --info"
     if preset:
         cmd += " --preset=" + preset
     if prog_type:
@@ -347,6 +395,8 @@ def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=
         cmd += " --proxy=0"
     if future:
         cmd += " --future"
+    # --fields: perform the same search as with --long plus on pid
+    cmd += " --fields=\"name,episode,desc,pid\" --nocopyright"
     if search_term:
         cmd += " \"" + search_term + "\""
 
@@ -371,19 +421,20 @@ def refresh(preset=None, prog_type=None, channels=None, force=False, future=Fals
     #    #preset = Preset.RADIO + "," + Preset.TV
     #    preset = "all"
 
-    cmd = _GET_IPLAYER_PROG + " --nocopyright --refresh"
+    cmd = _GET_IPLAYER_PROG + " --refresh"
+    if future:
+        cmd += " --refresh-future"
+    if channels:
+        #cmd += " --channel=\"" + channel + "\""
+        cmd += " --refresh-include=\"" + channels + "\""
     #if preset:
     #    cmd += " --preset=" + preset
     if prog_type:
         cmd += " --type=" + prog_type
     if force:
         cmd += " --force"
-    if future:
-        cmd += " --refresh-future"
-    if channels:
-        #cmd += " --channel=\"" + channel + "\""
-        cmd += " --refresh-include=\"" + channels + "\""
-
+    cmd += " --nocopyright"
+    
     if preset is None:
         ret1 = command.run(cmd + " --preset=" + Preset.RADIO, temp_pathname=settings.TEMP_PATHNAME)
         ret2 = command.run(cmd + " --preset=" + Preset.TV, temp_pathname=settings.TEMP_PATHNAME)

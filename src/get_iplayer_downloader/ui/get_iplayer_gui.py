@@ -9,7 +9,7 @@ from gi.repository import Gdk, GObject, Gtk, Pango
 import get_iplayer_downloader
 
 from get_iplayer_downloader import command_util, get_iplayer, settings
-from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX
+from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX    #, VALUE_INDEX
 from get_iplayer_downloader.tools import command, command_queue, config, file, markup, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
@@ -33,18 +33,18 @@ TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast, tv)"
 TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select category"
 TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
-TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description. Press 'Enter' to search"
+TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description or on PID. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
-TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Disabled when filter label is 'Categories' or empty"
-TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Disabled when filter label is 'Channels' or empty"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on 'all' listed categories, when the filter label is 'Categories' or empty"
+TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on 'all' listed channels, when the filter label is 'Channels' or empty"
 TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. Disabled when filter label is 'Since' or empty"
 
+TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue programmes with the alternative set of recording modes"
+TOOLTIP_OPTION_ALL_SEARCH = "Search in all the available categories and/or channels when the filter is set to 'all' (when the filter label is 'Categories'/'Channels' or empty)"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh programme cache"
-TOOLTIP_OPTION_ALT_RECORDING_MODES = "Try to download or queue programmes with the alternative set of recording modes"
-TOOLTIP_OPTION_FIND_ALL = "Search in all available programme types and channels. Retrieving the programme list may take a long time"
+TOOLTIP_TOOLS_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Enable 'PVR' to queue future programmes for downloading"
 
 TOOLTIP_TOOLS_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer --pvr"
-TOOLTIP_TOOLS_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Enable 'PVR' to queue future programmes for downloading"
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"
@@ -145,7 +145,7 @@ class MainWindow(Gtk.Window):
     def controller(self):
         return self._main_controller
     
-    def set_window_title(self, prog_type=get_iplayer.ProgType.RADIO):
+    def set_window_title(self, prog_type=None):
         if prog_type:
             self.set_title(prog_type + " - " + get_iplayer_downloader.PROGRAM_NAME)
         else:
@@ -489,6 +489,10 @@ class ToolBarBox(Gtk.Box):
         Gtk.Box.__init__(self, spacing=WIDGET_BORDER_WIDTH)
         self.main_window = main_window
 
+        #disable_presets = string.str2bool(settings.config().get(config.NOSECTION, "disable-presets"))
+
+        focus_chain = []
+        
         ####
         
         compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
@@ -497,8 +501,6 @@ class ToolBarBox(Gtk.Box):
         else:
             show_button_labels = string.str2bool(settings.config().get(config.NOSECTION, "show-button-labels"))
 
-        focus_chain = []
-        
         ####
         
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
@@ -567,12 +569,21 @@ class ToolBarBox(Gtk.Box):
         if not compact_toolbar:
             label = Gtk.Label(" Type:")
             self.pack_start(label, False, False, 0)
-        
+
+        #NOTE Preset can be None. However cannot set presets in the model to None: 
+        #     the toolbar models and configuration are based on presets, not programme types
+        #(TODO Group programmes in programme types (radio, podcasts, tv), not on presets (radio, tv))
+        #if disable_presets:
+        #    presets = [[None, get_iplayer.ProgType.RADIO, "Radio"],
+        #               [None, get_iplayer.ProgType.PODCAST, "Podcast"],
+        #               [None, get_iplayer.ProgType.TV, "TV"]]
+        #else:
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, "Radio"],
                    [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, "Podcast"],
                    [get_iplayer.Preset.TV, get_iplayer.ProgType.TV, "TV"]]
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
             presets.append([get_iplayer.Preset.TV, get_iplayer.ProgType.ITV, "ITV"])
+
         store = Gtk.ListStore(str, str, str)
         for preset in presets:
             store.append(preset)
@@ -588,6 +599,10 @@ class ToolBarBox(Gtk.Box):
         # Render third store column 
         self.preset_combo.add_attribute(renderer_text, "text", 2)
         self.preset_combo.connect("changed", self.main_window.controller().on_combo_preset_changed)
+        
+        #if disable_presets:
+        #    self.preset_combo.set_sensitive(False)
+        
         self.pack_start(self.preset_combo, False, False, 0)
         focus_chain.append(self.preset_combo)
 
@@ -604,14 +619,20 @@ class ToolBarBox(Gtk.Box):
         self.cat_radio_store = Gtk.ListStore(str, str)
         for categories in get_iplayer.Categories.RADIO:
             self.cat_radio_store.append(categories)
+        ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.RADIO[1:]]:
+        #self.cat_radio_store.append([None, "ANY"])
 
         self.cat_podcast_store = Gtk.ListStore(str, str)
         for categories in get_iplayer.Categories.PODCAST:
             self.cat_podcast_store.append(categories)
+        ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.PODCAST[1:]]:
+        #self.cat_podcast_store.append([None, "ANY"])
 
         self.cat_tv_store = Gtk.ListStore(str, str)
         for categories in get_iplayer.Categories.TV:
             self.cat_tv_store.append(categories)
+        ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.TV[1:]]:
+        #self.cat_tv_store.append([None, "ANY"])
 
         #self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
         self.category_combo = Gtk.ComboBox()
@@ -629,6 +650,9 @@ class ToolBarBox(Gtk.Box):
         # Render second store column 
         self.category_combo.add_attribute(renderer_text, "text", 1)
 
+        #if disable_presets:
+        #    self.category_combo.set_sensitive(False) 
+        
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-category-filter")):
             self.pack_start(self.category_combo, False, False, 0)
             focus_chain.append(self.category_combo)
@@ -639,55 +663,70 @@ class ToolBarBox(Gtk.Box):
             label = Gtk.Label(" Channels:")
             self.pack_start(label, False, False, 0)
 
-        # First in the list the label for all listed channels, the rest are keys
-        channels = (get_iplayer.Channels.RADIO).split(",")
+        # Create radio model list
+        channels = get_iplayer.Channels.RADIO
+        channel_list = channels.split(",")
         self.chan_radio_store = Gtk.ListStore(str, str)
         first = True
-        for channel in channels:
+        for channel in channel_list:
             key = label = channel.strip()
             if first:
+                # The first item in the list represents all configured channels
                 #key = settings.config().get("radio", "channels")
-                key = ",".join(channels[1:])
+                key = ",".join(channel_list[1:])
                 first = False
             else:
                 if compact_toolbar and label.startswith("BBC "):
                     # Remove leading "BBC " substring
                     label = label[len("BBC "):]
             self.chan_radio_store.append([key, label])
+        ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.RADIO[1:]]:
+        #if channels:
+        #    self.chan_radio_store.append([None, "ANY"])
         
-        # First in the list the label for all listed channels, the rest are keys
-        channels = (get_iplayer.Channels.TV).split(",")
+        # Create tv model list
+        channels = get_iplayer.Channels.TV
+        channel_list = channels.split(",")
         self.chan_tv_store = Gtk.ListStore(str, str)
         first = True
-        for channel in channels:
+        for channel in channel_list:
             key = label = channel.strip()
             if first:
+                # The first item in the list represents all configured channels
                 #key = settings.config().get("tv", "channels")
-                key = ",".join(channels[1:])
+                key = ",".join(channel_list[1:])
                 first = False
             else:
                 if compact_toolbar and label.startswith("BBC "):
                     # Remove leading "BBC " substring
                     label = label[len("BBC "):]
             self.chan_tv_store.append([key, label])
+        ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.TV[1:]]:
+        #if channels:
+        #    self.chan_tv_store.append([None, "ANY"])
 
         self.chan_itv_store = None
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
-            # First in the list the label for all listed channels, the rest are keys
-            channels = (get_iplayer.Channels.ITV).split(",")
+            # Create itv model list
+            channels = get_iplayer.Channels.ITV
+            channel_list = channels.split(",")
             self.chan_itv_store = Gtk.ListStore(str, str)
             first = True
-            for channel in channels:
+            for channel in channel_list:
                 key = label = channel.strip()
                 if first:
+                    # The first item in the list represents all configured channels
                     #key = settings.config().get("tv", "channels")
-                    key = ",".join(channels[1:])
+                    key = ",".join(channel_list[1:])
                     first = False
                 else:
                     if compact_toolbar and label.startswith("ITV "):
                         # Remove leading "ITV " string
                         label = label[len("ITV "):]
                 self.chan_itv_store.append([key, label])
+            ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.ITV[1:]]:
+            #if channels:
+            #    self.chan_itv_store.append([None, "ANY"])
 
         #self.channel_combo = Gtk.ComboBox.new_with_model(self.chan_radio_store)
         self.channel_combo = Gtk.ComboBox()
@@ -702,6 +741,9 @@ class ToolBarBox(Gtk.Box):
         self.channel_combo.pack_start(renderer_text, True)
         # Render second store column 
         self.channel_combo.add_attribute(renderer_text, "text", 1)
+
+        #if disable_presets:
+        #    self.channel_combo.set_sensitive(False)
 
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-channel-filter")):
             self.pack_start(self.channel_combo, False, False, 0)
@@ -741,21 +783,24 @@ class ToolBarBox(Gtk.Box):
         self.pack_start(grid, False, False, 0)
         focus_chain.append(grid)
 
-        self.search_all_check_button = Gtk.CheckButton("All")
-        self.search_all_check_button.set_tooltip_text(TOOLTIP_OPTION_FIND_ALL)
+        self.search_all_check_button = Gtk.CheckButton("All")   # "Any"
+        self.search_all_check_button.set_tooltip_text(TOOLTIP_OPTION_ALL_SEARCH)
         self.search_all_check_button.set_focus_on_click(False)
+        #if disable_presets:
+        #    self.search_all_check_button.set_sensitive(False)
+        #    self.search_all_check_button.set_active(True)
         grid.add(self.search_all_check_button)
+        
+        self.alt_recording_mode_check_button = Gtk.CheckButton("Alt")
+        self.alt_recording_mode_check_button.set_tooltip_text(TOOLTIP_OPTION_ALT_RECORDING_MODES)
+        self.alt_recording_mode_check_button.set_focus_on_click(False)
+        grid.attach_next_to(self.alt_recording_mode_check_button, self.search_all_check_button, Gtk.PositionType.BOTTOM, 1, 1)
         
         self.force_check_button = Gtk.CheckButton("Force")
         self.force_check_button.set_tooltip_text(TOOLTIP_OPTION_FORCE)
         self.force_check_button.set_focus_on_click(False)
         grid.attach_next_to(self.force_check_button, self.search_all_check_button, Gtk.PositionType.RIGHT, 1, 1)
 
-        self.alt_recording_mode_check_button = Gtk.CheckButton("Alt")
-        self.alt_recording_mode_check_button.set_tooltip_text(TOOLTIP_OPTION_ALT_RECORDING_MODES)
-        self.alt_recording_mode_check_button.set_focus_on_click(False)
-        grid.attach_next_to(self.alt_recording_mode_check_button, self.search_all_check_button, Gtk.PositionType.BOTTOM, 1, 1)
-        
         self.future_check_button = Gtk.CheckButton("Future")
         self.future_check_button.set_tooltip_text(TOOLTIP_TOOLS_FUTURE)
         self.future_check_button.set_focus_on_click(False)
@@ -785,12 +830,11 @@ class ToolBarBox(Gtk.Box):
         event_box.connect("button-press-event", self.main_window.controller().on_progress_bar_button_press_event)
         grid.add(event_box)
 
-        ##halign="start", min_horizontal_bar_width=16
+        ##halign=Gtk.Align.START, valign=Gtk.Align.START, min_horizontal_bar_width=16
         self.progress_bar = Gtk.ProgressBar()
         # Set minimal size: self.progress_bar.set_size_request(90, -1)
         #self.progress_bar.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
         self.progress_bar.set_show_text(True)
-        self.progress_bar.set_valign(Gtk.Align.START)
         self.progress_bar.set_fraction(0.0)
         #self.progress_bar.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
         #self.progress_bar.connect("button-press-event", self.main_window.controller().on_progress_bar_button_press_event)
@@ -798,6 +842,13 @@ class ToolBarBox(Gtk.Box):
         self.progress_bar.set_tooltip_text(TOOLTIP_PROGRESS_BAR)
         #grid.attach_next_to(self.progress_bar, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
         event_box.add(self.progress_bar)
+
+        ##
+        
+        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
+        self.pvr_queue_check_button.set_tooltip_text("Queue mode. " + TOOLTIP_TOOLS_PVR_QUEUE)
+        self.pvr_queue_check_button.set_focus_on_click(False)
+        grid.attach_next_to(self.pvr_queue_check_button, event_box, Gtk.PositionType.BOTTOM, 1, 1)
 
         ##
 
@@ -817,13 +868,6 @@ class ToolBarBox(Gtk.Box):
         
         # Initialize label text
         #self.main_window.controller().on_progress_bar_update(None)
-
-        ##
-        
-        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
-        self.pvr_queue_check_button.set_tooltip_text("Queue mode. " + TOOLTIP_TOOLS_PVR_QUEUE)
-        self.pvr_queue_check_button.set_focus_on_click(False)
-        grid.attach_next_to(self.pvr_queue_check_button, event_box, Gtk.PositionType.BOTTOM, 1, 1)
 
         ####
 
@@ -1352,6 +1396,7 @@ class PreferencesDialogWrapper(object):
         self.general_clear_cache_on_exit_check_button = self.builder.get_object("PrefsGeneralClearCacheOnExitCheckButton")
         self.general_compact_toolbar_check_button = self.builder.get_object("PrefsGeneralCompactToolBarCheckButton")
         self.general_compact_treeview_check_button = self.builder.get_object("PrefsGeneralCompactTreeViewCheckButton")
+        self.general_disable_presets_check_button = self.builder.get_object("PrefsGeneralDisablePresetsCheckButton")
         self.general_disable_proxy_check_button = self.builder.get_object("PrefsGeneralDisableProxyCheckButton")
         self.general_show_menubar_check_button = self.builder.get_object("PrefsGeneralShowMenuBarCheckButton")
         self.general_show_tooltip_check_button = self.builder.get_object("PrefsGeneralShowTooltipCheckButton")
@@ -1361,12 +1406,14 @@ class PreferencesDialogWrapper(object):
         self.radio_channels_entry = self.builder.get_object("PrefsRadioChannelsEntry")
         self.radio_download_path_entry = self.builder.get_object("PrefsRadioDownloadPathEntry")
         self.radio_download_file_chooser_button = self.builder.get_object("PrefsRadioDownloadFileChooserButton")
+        self.radio_preset_file_entry = self.builder.get_object("PrefsRadioPresetFileEntry")
         self.radio_recording_modes_entry = self.builder.get_object("PrefsRadioRecordingModesEntry")
         self.radio_run_in_terminal_check_button = self.builder.get_object("PrefsRadioRunInTerminalCheckButton")
 
         self.tv_channels_entry = self.builder.get_object("PrefsTvChannelsEntry")
         self.tv_download_path_entry = self.builder.get_object("PrefsTvDownloadPathEntry")
         self.tv_download_file_chooser_button = self.builder.get_object("PrefsTvDownloadFileChooserButton")
+        self.tv_preset_file_entry = self.builder.get_object("PrefsTvPresetFileEntry")
         self.tv_recording_modes_entry = self.builder.get_object("PrefsTvRecordingModesEntry")
         self.tv_run_in_terminal_check_button = self.builder.get_object("PrefsTvRunInTerminalCheckButton")
 
@@ -1398,6 +1445,7 @@ class PreferencesDialogWrapper(object):
         self.general_clear_cache_on_exit_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "clear-cache-on-exit")))
         self.general_compact_toolbar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
         self.general_compact_treeview_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
+        self.general_disable_presets_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")))
         self.general_disable_proxy_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy")))
         self.general_show_menubar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")))
         self.general_show_tooltip_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
@@ -1421,6 +1469,7 @@ class PreferencesDialogWrapper(object):
         else:
             # Set to root path
             self.radio_download_file_chooser_button.set_filename(os.sep)
+        self.radio_preset_file_entry.set_text(settings.config().get("radio", "preset-file"))
         self.radio_recording_modes_entry.set_text(settings.config().get("radio", "recording-modes"))
         self.radio_run_in_terminal_check_button.set_active(string.str2bool(settings.config().get("radio", "run-in-terminal")))
         
@@ -1436,6 +1485,7 @@ class PreferencesDialogWrapper(object):
         else:
             # Set to root path
             self.tv_download_file_chooser_button.set_filename(os.sep)
+        self.tv_preset_file_entry.set_text(settings.config().get("tv", "preset-file"))
         self.tv_recording_modes_entry.set_text(settings.config().get("tv", "recording-modes"))
         self.tv_run_in_terminal_check_button.set_active(string.str2bool(settings.config().get("tv", "run-in-terminal")))
 
@@ -1445,6 +1495,7 @@ class PreferencesDialogWrapper(object):
         settings.config().set(config.NOSECTION, "clear-cache-on-exit", str(self.general_clear_cache_on_exit_check_button.get_active()))
         settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "disable-presets", str(self.general_disable_presets_check_button.get_active()))
         settings.config().set(config.NOSECTION, "disable-proxy", str(self.general_disable_proxy_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_check_button.get_active()))
@@ -1453,11 +1504,13 @@ class PreferencesDialogWrapper(object):
 
         settings.config().set("radio", "channels", self.radio_channels_entry.get_text())
         settings.config().set("radio", "download-path", self.radio_download_path_entry.get_text())
+        settings.config().set("radio", "preset-file", self.radio_preset_file_entry.get_text())
         settings.config().set("radio", "recording-modes", self.radio_recording_modes_entry.get_text())
         settings.config().set("radio", "run-in-terminal", str(self.radio_run_in_terminal_check_button.get_active()))
         
         settings.config().set("tv", "channels", self.tv_channels_entry.get_text())
         settings.config().set("tv", "download-path", self.tv_download_path_entry.get_text())
+        settings.config().set("tv", "preset-file", self.tv_preset_file_entry.get_text())
         settings.config().set("tv", "recording-modes", self.tv_recording_modes_entry.get_text())
         settings.config().set("tv", "run-in-terminal", str(self.tv_run_in_terminal_check_button.get_active()))
 
@@ -1473,6 +1526,7 @@ class PreferencesDialogWrapper(object):
         settings.revert_option(config.NOSECTION, "clear-cache-on-exit")
         settings.revert_option(config.NOSECTION, "compact-toolbar")
         settings.revert_option(config.NOSECTION, "compact-treeview")
+        settings.revert_option(config.NOSECTION, "disable-presets")
         settings.revert_option(config.NOSECTION, "disable-proxy")
         settings.revert_option(config.NOSECTION, "show-menubar")
         settings.revert_option(config.NOSECTION, "show-tooltip")
@@ -1481,11 +1535,13 @@ class PreferencesDialogWrapper(object):
 
         settings.revert_option("radio", "channels")
         settings.revert_option("radio", "download-path")
+        settings.revert_option("radio", "preset-file")
         settings.revert_option("radio", "recording-modes")
         settings.revert_option("radio", "run-in-terminal")
         
         settings.revert_option("tv", "channels")
         settings.revert_option("tv", "download-path")
+        settings.revert_option("tv", "preset-file")
         settings.revert_option("tv", "recording-modes")
         settings.revert_option("tv", "run-in-terminal")
 
@@ -1585,35 +1641,44 @@ class MainWindowController:
     def on_button_find_clicked(self, button):
         # button can be None
         search_text = self.tool_bar_box.search_entry.get_text()
-
+        search_all = self.tool_bar_box.search_all_check_button.get_active()
+        disable_presets = string.str2bool(settings.config().get(config.NOSECTION, "disable-presets"))
+        
         preset = None
         prog_type = None
         combo = self.tool_bar_box.preset_combo
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            if disable_presets:
+                preset = None
+            else:
+                preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
 
         categories = None
         combo = self.tool_bar_box.category_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            #WORKAROUND see also get_iplayer.py (at least in Python 2.7)
-            #    On some systems, when model[tree_iter][KEY_INDEX] == None, the following exception is raised:
-            #    AttributeError: 'NoneType' object has no attribute 'decode'
-            #    In the debugger, model[tree_iter][KEY_INDEX] is displayed as a unicode string.
-            categories = model[tree_iter][KEY_INDEX]
+        if not search_all or combo.get_active() > 0:
+            # A specific set of categories is selected
+            tree_iter = combo.get_active_iter()
+            if tree_iter is not None:
+                model = combo.get_model()
+                #WORKAROUND see also get_iplayer.py (at least in Python 2.7)
+                #    On some systems, when model[tree_iter][KEY_INDEX] == None, the following exception is raised:
+                #    AttributeError: 'NoneType' object has no attribute 'decode'
+                #    In the debugger, model[tree_iter][KEY_INDEX] is displayed as a unicode string.
+                categories = model[tree_iter][KEY_INDEX]
 
         channels = None
         combo = self.tool_bar_box.channel_combo
-        tree_iter = combo.get_active_iter()
-        if tree_iter is not None:
-            model = combo.get_model()
-            channels = model[tree_iter][KEY_INDEX]
-            #ALTERNATIVE
-            #channels = model.get_value(tree_iter, KEY_INDEX)
+        if not search_all or combo.get_active() > 0:
+            # A specific set of channels is selected
+            tree_iter = combo.get_active_iter()
+            if tree_iter is not None:
+                model = combo.get_model()
+                channels = model[tree_iter][KEY_INDEX]
+                #ALTERNATIVE
+                #channels = model.get_value(tree_iter, KEY_INDEX)
 
         since = 0
         combo = self.tool_bar_box.since_combo
@@ -1622,14 +1687,12 @@ class MainWindowController:
             model = combo.get_model()
             since = model[tree_iter][KEY_INDEX]
 
-        search_all = self.tool_bar_box.search_all_check_button.get_active()
-
         future = self.tool_bar_box.future_check_button.get_active()
 
         self.main_window.display_busy_mouse_cursor(True)
         output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
-                                          channels=channels, categories=categories, since=since,
-                                          search_all=search_all, future=future)
+                                          channels=channels, categories=categories,
+                                          since=since, future=future)
         self.main_window.display_busy_mouse_cursor(False)
 
         self.main_tree_view.set_store(output_lines)
@@ -1639,6 +1702,8 @@ class MainWindowController:
         adjustment.value_changed()
         #adjustment = self.main_window.main_tree_view_scrollbar.set_vadjustment(adjustment)
 
+        #if disable_presets:
+        #    prog_type = None
         self.main_window.set_window_title(prog_type=prog_type)
 
     def on_button_download_clicked(self, button, pvr_queue=False):
@@ -1650,9 +1715,19 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            
+            #NOTE Downloading in "All" preset mode will not even work when all settings (radiomode, tvmode,
+            #     outputradio, outputtv, etc.) are in one file (in the options file or a single preset file).
+            #     Get_iplayer.get() cannot (easily) determine the prog_type for eash programme and
+            #     get_iplayer does not determine the prog type by it self
+            #search_all = self.tool_bar_box.search_all_presets_check_button.get_active()
+            #if search_all_presets:
+            if string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
+                preset = None
+            else:
+                preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
-            #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
+            #channel = model[tree_iter][self.PresetComboModelColumn.CHANNEL]
 
             alt_recording_mode = self.tool_bar_box.alt_recording_mode_check_button.get_active()
             if prog_type == get_iplayer.ProgType.ITV:
@@ -1708,8 +1783,7 @@ class MainWindowController:
 
         try:
             if os.name == "posix":
-                #gipd_processes = int(command.run("echo -n $(ps xo cmd | grep 'get_iplayer_downloader | grep python' | wc -l) ; exit 0", quiet=True))
-                gipd_processes = int(command.run("echo -n $(ps xo cmd | grep 'get_iplayer_downloader' | wc -l) ; exit 0", quiet=True))
+                gipd_processes = int(command.run("echo -n $(ps xo cmd | grep 'get_iplayer_downloader' | grep 'python' | grep -v 'grep' | wc -l) ; exit 0", quiet=True))
             else:
                 gipd_processes = 1
         except ValueError:
@@ -1795,20 +1869,28 @@ class MainWindowController:
         tree_iter = combo.get_active_iter()
         if tree_iter is not None:
             model = combo.get_model()
-            preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
+            #search_all = self.tool_bar_box.search_all_presets_check_button.get_active()
+            #if search_all_presets:
+            if string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
+                preset = None
+            else:
+                preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
- 
+
         proxy_disabled = string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy"))
 
         future = self.tool_bar_box.future_check_button.get_active()
 
         model, tree_iter = self.main_tree_view.get_selection().get_selected()
         if tree_iter is not None:
-            index = model[tree_iter][SearchResultColumn.INDEX]
-            if index:
+            #index = model[tree_iter][SearchResultColumn.INDEX]
+            #if index:
+            pid = model[tree_iter][SearchResultColumn.PID]
+            if pid:
                 self.main_window.display_busy_mouse_cursor(True)
                 get_iplayer_output_lines = get_iplayer.info(
-                                                index, preset=preset, prog_type=prog_type,
+                                                #index, ...
+                                                pid, preset=preset, prog_type=prog_type,
                                                 proxy_disabled=proxy_disabled, future=future)
                 self.main_window.display_busy_mouse_cursor(False)
 
@@ -1926,7 +2008,7 @@ class MainWindowController:
             else:
                 message_format = "Download Log"
             markup = not full
-            log_output = command_util.download_log(full=full, markup=markup, sort_by_mtime=True)
+            log_output = command_util.download_log(full=full, markup=markup)
 
             # Set dialog content title
             self.log_dialog.set_property("text", message_format)
@@ -2329,7 +2411,9 @@ def _main_quit(main_window, event):
     Gtk.main_quit(main_window, event)
 
 def main():
-    get_iplayer.check_preset_files()
+    #if not string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
+    if not string.str2bool(get_iplayer_downloader.settings.config().get(config.NOSECTION, "disable-presets")):
+        get_iplayer.check_preset_files()
 
     # Load css file. Do this before window.show_all() since some themes don't resize after a css update
     screen = Gdk.Screen.get_default()
