@@ -49,7 +49,7 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
     
     # Run command. Command output is expected to be UTF-8
     #try:
-    #    #NOTE check_output() and Popen() expect a UTF-8 text output and uses the "strict" encoding option (string.decode("utf8", "strict"))
+    #    #NOTE check_output() and Popen() expect a UTF-8 text output and uses the "strict" encoding option (string.decode("UTF-8", "strict"))
     #    process_output = subprocess.check_output(cmd_exec, shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
     #    #
     #    #ALTERNATIVE subprocess.Popen() instead of subprocess.check_output() 

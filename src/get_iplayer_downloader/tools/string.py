@@ -7,6 +7,7 @@ def str2float(string):
     except ValueError:
         return 0.0
 
+# Python 2
 #def decode(string):
 #    # Simple decoding
 #    #return string.decode("LATIN-1", "replace")

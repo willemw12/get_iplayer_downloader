@@ -91,7 +91,7 @@ Leave options, such as Channels and Download folder, empty in Preferences to use
 
 Before downloading programmes for the first time, verify the download paths and optionally the terminal emulator program name and options.
 
-The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs, i.e. <search term>-<GUI label> pairs). File ./extra/my\_config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
+The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs, i.e. <search term\>-<GUI label\> pairs). File ./extra/my\_config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet
@@ -187,7 +187,7 @@ The keyboard shortcuts are:
 Extra
 -----
 
-Want to group downloaded programmes automatically by main category or by week?
+Want to group downloaded programmes by their specific category or by week?
 
 File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. The script supports additional property substitutions (category, categorymain, week) in the output subdirectory names. For more information, run:
 

@@ -35,12 +35,12 @@ TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
 TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description or on PID. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
-TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on 'all' listed categories, when the filter label is 'Categories' or empty"
-TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on 'all' listed channels, when the filter label is 'Channels' or empty"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter label is 'Categories' or empty"
+TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on all listed (configured) channels, when the filter label is 'Channels' or empty"
 TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. Disabled when filter label is 'Since' or empty"
 
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue programmes with the alternative set of recording modes"
-TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is set to 'all' (when the filter label is 'Categories'/'Channels' or empty)"
+TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter label is 'Categories'/'Channels' or empty"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh programme cache"
 TOOLTIP_TOOLS_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Enable 'PVR' to queue future programmes for downloading"
 
@@ -1695,6 +1695,8 @@ class MainWindowController:
                                           since=since, future=future)
         self.main_window.display_busy_mouse_cursor(False)
 
+        self.on_progress_bar_update(None)
+
         self.main_tree_view.set_store(output_lines)
         # Scroll to top
         adjustment = self.main_window.main_tree_view_scrollbar.get_vadjustment()
@@ -1831,6 +1833,8 @@ class MainWindowController:
 												   force=force, future=future)
         self.main_window.display_busy_mouse_cursor(False)
         
+        self.on_progress_bar_update(None)
+
         if not launched:
             dialog = Gtk.MessageDialog(self.main_window, 0,
                                        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
@@ -1893,6 +1897,8 @@ class MainWindowController:
                                                 pid, preset=preset, prog_type=prog_type,
                                                 proxy_disabled=proxy_disabled, future=future)
                 self.main_window.display_busy_mouse_cursor(False)
+
+                self.on_progress_bar_update(None)
 
                 window = PropertiesWindow(get_iplayer_output_lines)
                 window.show_all()
@@ -1985,9 +1991,9 @@ class MainWindowController:
         button = self.log_dialog.get_action_area().get_children()[3]
         button.set_tooltip_text("Reset error count in the progress bar")
         button = self.log_dialog.get_action_area().get_children()[2]
-        button.set_tooltip_text("Refresh today's full download log. When the download log is very large, it will not be displayed")
+        button.set_tooltip_text("Refresh today's full download and error log. When the download log is very large, it will not be displayed")
         button = self.log_dialog.get_action_area().get_children()[1]
-        button.set_tooltip_text("Refresh today's summary download log. Error and warning log messages are displayed in bold")
+        button.set_tooltip_text("Refresh today's summary download and error log. Error and warning log messages are displayed in bold")
         #button.grab_focus()
         # Close button
         button = self.log_dialog.get_action_area().get_children()[0]
@@ -2042,9 +2048,11 @@ class MainWindowController:
 
             if button_id == CLEAR_CACHE_BUTTON_ID:
                 command_util.clear_cache()
+                self.on_progress_bar_update(None)
             elif button_id == RESET_ERROR_COUNT_BUTTON_ID:
                 # Invalidate download errors offset
                 self.errors_offset = -1
+                self.on_progress_bar_update(None)
             elif button_id == Gtk.ResponseType.CLOSE or button_id == Gtk.ResponseType.DELETE_EVENT:
                 break
             

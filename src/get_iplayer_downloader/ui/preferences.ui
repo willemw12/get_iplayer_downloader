@@ -224,7 +224,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Disable full web proxy mode when viewing programme properties. May improve property download speed. Useful outside the UK. When enabled, some properties may not have values (the available TV modes and TV mode sizes)</property>
+                        <property name="tooltip_text" translatable="yes">Disable full web proxy mode when viewing programme properties. May improve property download speed. Useful outside the UK. When full proxy is disabled, some properties may not have values (the available TV modes and TV mode sizes)</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
