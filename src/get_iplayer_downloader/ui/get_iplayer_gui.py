@@ -1736,10 +1736,12 @@ class MainWindowController:
                 alt_recording_mode = "itvnormal,itvhigh"
     
         force = self.tool_bar_box.force_check_button.get_active()
+        
+        pvr_queue_chechbox_state = self.tool_bar_box.pvr_queue_check_button.get_active()
         if button is not None and not pvr_queue:
             # If event was raised from the tool bar download button and not from a keyboard shortcut,
             # then the PVR check button determines the download/queue mode
-            pvr_queue = self.tool_bar_box.pvr_queue_check_button.get_active()
+            pvr_queue = pvr_queue_chechbox_state
         
         # Search selected leaf nodes (the second level) two levels deep
         model = self.main_tree_view.get_model()
@@ -1797,7 +1799,7 @@ class MainWindowController:
         # the number of >all< the get_iplayer processes on the system)
         # (TODO Limit self.processes to the get_iplayer processes which belong
         # to the current get_iplayer_downloader process)
-        if gipd_processes == 1:
+        if gipd_processes == 1 and not pvr_queue:
             pid_set = set(pid_list)
             # Update self.processes now, to avoid any progress bar update delay
             self._update_processes_count()
@@ -1842,9 +1844,9 @@ class MainWindowController:
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
-        elif pvr_queue or future:
-            # If pvr_queue is false and future is true, then future programmes won't be queued.
-            # In that case, to notify the user, show a dialog window in which future programmes are not listed
+        elif pvr_queue_chechbox_state or pvr_queue or future:
+            # If implicitly or explicitly queuing, always show the Queued Programmes dialog window,
+            # even if nothing will be queued
             dialog = ExtendedMessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
                                            "Queued Programmes")

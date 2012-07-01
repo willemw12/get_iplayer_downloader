@@ -77,7 +77,9 @@ class Categories:
         key_list = [row[KEY_INDEX] for row in key_value_list]
         keys = ""
         for i, key in enumerate(key_list):
-            if i == 0:
+            #if i == 0 or not key:
+            if not key:
+                # Skip predefined or user-defined "all" filters
                 continue
             keys += key
             if (i < len(key_list) - 1):
@@ -87,10 +89,10 @@ class Categories:
         keys = ",".join(key_set)
         return keys
     
-    # No filter
+    # No filter list
     ALL = [["", _ALL_CATEGORIES_LABEL]]
 
-    # The lists consists of all categories in the first item, followed by the categories separately
+    # The filter lists below consists of all categories in the first item, followed by the categories separately
     
     RADIO = ast.literal_eval(settings.config().get("radio", "categories-radio"))
     RADIO.insert(0, [_merge_keys(RADIO) , _ALL_CATEGORIES_LABEL])
