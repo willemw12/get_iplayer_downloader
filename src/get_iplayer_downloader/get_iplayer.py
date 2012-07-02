@@ -84,9 +84,11 @@ class Categories:
             keys += key
             if (i < len(key_list) - 1):
                 keys += ","
+                
         # Use set to avoid duplicates
         key_set = set(keys.split(","))
         keys = ",".join(key_set)
+        
         return keys
     
     # No filter list

@@ -35,7 +35,7 @@ recording-modes =
 run-in-terminal = True
 
 [tv]
-categories = [["Arts,Films", "Art"], ["Comedy,Games,Quizzes,Satire,Sitcoms,Sketch,Standup", "Comedy"], ["Crime,Thriller", "Crime"], ["Action,Adventure,Animation,Classic & Period,Drama,Films,Historical,Thriller", "Drama"], ["Films", "Film"], ["History", "History"], ["Learning", "Learning"], ["Antiques,Lifestyle & Leisure", "Lifestyle"], ["Country,Gardens,Nature", "Nature"], ["Science,Factual", "Science"], ["Fantasy,SciFi", "Scifi"], ["Cars & Motors,Travel", "Travel"]]
+categories = [["Arts,Films", "Art"], ["Comedy,Games,Quizzes,Satire,Sitcoms,Sketch,Standup", "Comedy"], ["Crime,Thriller", "Crime"], ["Action,Adventure,Animation,Classic & Period,Drama,Films,Historical,Thriller", "Drama"], ["Entertainment", "Entertainment"], ["Films", "Film"], ["History", "History"], ["Learning", "Learning"], ["Antiques,Lifestyle & Leisure", "Lifestyle"], ["Country,Gardens,Nature", "Nature"], ["Science,Factual", "Science"], ["Fantasy,SciFi", "Scifi"], ["Cars & Motors,Travel", "Travel"]]
 channels = BBC One,BBC Two,BBC Three,BBC Four,BBC HD,BBC Web Only
 download-path = 
 preset-file = tv

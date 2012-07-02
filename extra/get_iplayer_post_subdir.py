@@ -39,8 +39,8 @@ args = None
 def _init_argparser():
     argparser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                         description="""This is a get_iplayer post-processing script. It is an extension to the
-get_iplayer "subdir" output option. In addition to the substitution of the
-standard properties listed by "get_iplayer --info ...", this script supports:
+get_iplayer "subdir" output option. In addition to the formatting fields
+listed by "get_iplayer --info ...", this script supports:
 
   <category>            last and most specific category from --categories
   <categorymain>        first and most general category from --categories
@@ -98,8 +98,8 @@ def _init_loggers():
     elif args.quiet:
         logger.setLevel(logging.FATAL)
 
-def _sanitize_path(path, include_substition_markers):
-    # Sanitize directory path, optionally including substition marker 
+def _sanitize_path(path, include_substitution_markers):
+    # Sanitize directory path, optionally including substitution marker 
     # characters < and >, i.e. collapse adjacent invalid characters into a 
     # single _ character or remove invalid characters
 
@@ -129,7 +129,7 @@ def _sanitize_path(path, include_substition_markers):
     #PERL get_iplayer
     #$string =~ s/[^\w_\-\.\/\s]//gi if ! $opt->{whitespace};
     #
-    # Similar to Perl code, however, also exclude matching substition marker
+    # Similar to Perl code, however, also exclude matching substitution marker
     # characters < and >
     p = re.compile(r"([^\w_\-\.\/\s<>]+)")
     path = p.sub("", path)
@@ -138,12 +138,12 @@ def _sanitize_path(path, include_substition_markers):
     #$string =~ s/[\|\\\?\*\<\"\:\>\+\[\]\/]//gi if $opt->{fatfilename};
     #
     # Similar to Perl code, however, exclude matching forward slash and 
-    # substition marker characters < and >
+    # substitution marker characters < and >
     p = re.compile(r"([\|\\\?\*\"\:\+\[\]]+)")
     path = p.sub("", path)
 
     # Replace substitution marker characters < and >
-    if include_substition_markers:
+    if include_substitution_markers:
         p = re.compile(r"([<>]+)")
         path = p.sub("_", path)
 
@@ -160,7 +160,7 @@ def _move_file(categories, dirname, filename, force, subdir_format):
 
     src_dirname = os.path.dirname(filename)
 
-    # Perform additional substitution
+    # Perform additional substitution (field formatting)
     #NOTE Find substring
     if "<week>" in subdir_format:
         week_number = datetime.today().isocalendar()[1]
@@ -176,7 +176,7 @@ def _move_file(categories, dirname, filename, force, subdir_format):
         specific_category = category_list[len(category_list) - 1].lstrip()
         main_category = category_list[0].lstrip()
  
-        # Perform additional substitutions
+        # Perform additional substitutions (field formatting)
         if main_category == specific_category:
             # Merge duplicate string values
             subdir_format = subdir_format.replace("<category><categorymain>", main_category)
@@ -191,7 +191,7 @@ def _move_file(categories, dirname, filename, force, subdir_format):
             #     --> use non-consuming, fixed-length lookaheads (?=...) and lookbehinds (?<=...)
             p = re.compile(r"(?<=<category>)([_-]+)(?=<categorymain>)|(?<=(?<=<categorymain>))([_-]+)(?=<category>)")
             subdir_format = p.sub(r"_", subdir_format)
-            #ALTERNATIVE use only one group (the start/end pos won't be correct after the first substitution)
+            #ALTERNATIVE use only one group (the start/end pos won't be correct after the first substitution (field formatting))
             #m = re.search(pattern, str)
             #if m and m.groups() > 0:
             #    str = str[0:m.start(1)] + replacement_str + str[m.end(1):len(str)]
@@ -204,7 +204,7 @@ def _move_file(categories, dirname, filename, force, subdir_format):
             logger.warning("move_file(): --categories expected when <category> and/or <categorymain> is in --subdir-format")
             #sys.exit(1)
 
-    # Sanitize everything in subdir again, to sanitize the substituted values and unrecognized substitutions
+    # Sanitize everything in subdir again, to sanitize the substituted values and unrecognized substitutions (field formatting)
     subdir_format = _sanitize_path(subdir_format, True)
 
     # Move the file

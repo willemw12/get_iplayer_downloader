@@ -189,7 +189,7 @@ Extra
 
 Want to group downloaded programmes by their specific category or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. The script supports additional property substitutions (category, categorymain, week) in the output subdirectory names. For more information, run:
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 
