@@ -208,7 +208,9 @@ def channels(search_text, preset=None, prog_type=None, compact=False):
 
     return output_line
 
-def search(search_text, preset=None, prog_type=None, channels=None, categories=None,
+def search(search_text, preset=None, prog_type=None,
+            channels=None, exclude_channels=None,
+            categories=None, exclude_categories=None,
             since=0, future=False):
     """ Run get_iplayer (--search).
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
@@ -225,9 +227,12 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
         cmd += " --type=" + prog_type
     if channels:
         cmd += " --channel=\"" + channels + "\""
-
+    if exclude_channels:
+        cmd += " --exclude-channel=\"" + exclude_channels + "\""
     if categories:
         cmd += " --category=\"" + categories + "\""
+    if exclude_categories:
+        cmd += " --exclude-category=\"" + exclude_categories + "\""
     if since:
         cmd += " --since=" + str(since)
     if future:
@@ -236,7 +241,11 @@ def search(search_text, preset=None, prog_type=None, channels=None, categories=N
     # --fields: perform the same search as with --long plus on pid
     cmd += " --fields=\"name,episode,desc,pid\" --nocopyright"
     if search_text:
-        cmd += " \"" + search_text + "\""
+        # Simple exclude search option
+        if search_text.startswith("-"):
+            cmd += " --exclude=\"" + search_text[1:] + "\""
+        else:
+            cmd += " \"" + search_text + "\""
     
     process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
 
@@ -360,6 +369,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
                 return False
             # Must explicitly specify programme type and pid on the command line in queue mode
             cmd += " --pvrqueue --pid="
+            #cmd += " --pvr-exclude=" + ",".join(exclude_search_term_list)
         elif pid:
             cmd += " --pid="
         else:
@@ -420,8 +430,8 @@ def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=
 
     return output_lines
 
-def refresh(preset=None, prog_type=None, channels=None, force=False, future=False):
-    """ Run get_iplayer --refresh. """
+def refresh(preset=None, prog_type=None, channels=None, exclude_channels=None, force=False, future=False):
+    """ Run get_iplayer --refresh. Return error code. """
     
     #if not preset:
     #    #preset = Preset.RADIO + "," + Preset.TV
@@ -433,6 +443,9 @@ def refresh(preset=None, prog_type=None, channels=None, force=False, future=Fals
     if channels:
         #cmd += " --channel=\"" + channel + "\""
         cmd += " --refresh-include=\"" + channels + "\""
+    if exclude_channels:
+        #cmd += " --exclude-channel=\"" + exclude_channel + "\""
+        cmd += " --refresh-exclude=\"" + exclude_channels + "\""
     #if preset:
     #    cmd += " --preset=" + preset
     if prog_type:

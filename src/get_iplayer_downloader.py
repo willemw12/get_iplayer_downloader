@@ -46,7 +46,7 @@ def main():
     elif args.version:
         print(get_iplayer_downloader.PROGRAM_NAME, get_iplayer_downloader.VERSION)
     else:
-        from get_iplayer_downloader.ui.get_iplayer_gui import main
+        from get_iplayer_downloader.ui.main_window import main
         main()
 
 if __name__ == "__main__":

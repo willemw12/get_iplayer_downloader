@@ -36,3 +36,23 @@ def load_url(url, pathname, **urlopen_keywords):
             stream.close()
 
     return filename
+
+def files2urls(filepath):
+    """ Return a string containing a url to the folder @filepath and the filenames inside @filepath (one level deep), sorted by file name. """
+
+    basename = os.path.basename(filepath)
+    url = "<a href=\"file://" + filepath + "\" title=\"get_iplayer " + basename + " configuration folder\">" + basename + "</a>"
+    for dirpath, unused_dirnames, filenames in os.walk(filepath):
+        # Skip empty and subfolders
+        if len(filenames) > 0 and filepath == dirpath:
+            filenames.sort()
+            url += " ("
+            for i, filename in enumerate(filenames):
+                # Skip filenames created by get_iplayer --pvrqueue
+                if not filename.startswith("ONCE_"):
+                    url += "<a href=\"file://" + os.path.join(filepath, filename) + "\" title=\"get_iplayer " + basename + " configuration file\">" + filename + "</a>"
+                    if (i < len(filenames) - 1):
+                        url += ", "
+            url += ")"
+    return url
+    #ALTERNATIVE ways of sorting a list of filenames in a folder: glob(<filename filter>); listdir()

@@ -1,7 +1,7 @@
 from gi.repository import Gtk
 
 class ExtendedMessageDialog(Gtk.MessageDialog):
-    """ A message dialog with a third scrollable text widget. """
+    """ A message dialog with a third scrolled text widget. """
     
     #NOTE Subclassing a convenience class, a class not always suited for that purpose
     def __init__(self,
