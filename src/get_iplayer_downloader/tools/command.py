@@ -79,13 +79,13 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
                     #NOTE encoding="LATIN-1" (and errors="replace"?) seems OK with non-LATIN-1 characters (from BBC Alba) in get_iplayer.get(),
                     #     but won't always work properly in get_iplayer.get(): not enough columns returned in |-separated string
                     #NOTE Trying LATIN-1 first, to try to avoid unreadable characters (i.e. replacement marker '?' in a diamond shape) in the GUI
-                    logger.warning(exc)
-                    logger.warning("trying 'latin-1' codec")
+                    logger.debug(exc)
+                    logger.debug("trying 'latin-1' codec")
                     process_output = bytes_buffer.decode("LATIN-1", "strict")
                 except (UnicodeDecodeError, ValueError) as exc:
                     try:
-                        logger.warning(exc)
-                        logger.warning("trying 'utf-8' codec and replacing non-utf-8 characters")
+                        logger.debug(exc)
+                        logger.debug("trying 'utf-8' codec and replacing non-utf-8 characters")
                         process_output = bytes_buffer.decode("UTF-8", "replace")
                     except (UnicodeDecodeError, ValueError) as exc:
                         # Should not happen

@@ -120,8 +120,8 @@ class MainWindowController:
             
             #NOTE Downloading in "All" preset mode will not even work when all settings (radiomode, tvmode,
             #     outputradio, outputtv, etc.) are in one file (in the options file or a single preset file).
-            #     Get_iplayer.get() cannot (easily) determine the prog_type for eash programme and
-            #     get_iplayer does not determine the prog type by it self
+            #     Get_iplayer.get() cannot (easily) determine the prog_type for each programme and
+            #     get_iplayer does not determine the programme type by it self
             #search_all = self.tool_bar_box.search_all_presets_check_button.get_active()
             #if search_all_presets:
             if string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):

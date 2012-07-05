@@ -38,7 +38,7 @@ TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast, tv)"
 TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select category"
 TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
-TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description or on PID. Press 'Enter' to search"
+TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description or on PID. Add a minus sign in front of the whole search term to exclude it from the search. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
 TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter label is 'Categories' or empty"
 TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on all listed (configured) channels, when the filter label is 'Channels' or empty"

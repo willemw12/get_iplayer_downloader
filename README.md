@@ -87,7 +87,7 @@ Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued p
 
 Most configuration options can be managed from the GUI. Other options can be found in the configuration file (~/.config/get\_iplayer\_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Add a minus character (-) in front of a channel or a category to exclude it from the search and cache refresh. When searching programmes, add a minus character in front of the whole search term to exclude it from the search.
+Add a minus sign in front of a channel or a category to exclude it from the search and cache refresh. When searching programmes, add a minus sign in front of the whole search term to exclude it from the search.
 
 Leave options, such as Channels and Download folder, empty in Preferences to use the default value specified in get\_iplayer.
 
