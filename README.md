@@ -117,7 +117,7 @@ To execute without installing, run:
 
     <path to this directory>/src/get_iplayer_downloader.py
 
-Or create a symbolic link of get_iplayer_downloader.py in a directory of $PATH. From this directory:
+Or create a symbolic link of get\_iplayer\_downloader.py in a directory of $PATH. From this directory:
 
     ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/get_iplayer_downloader
 
