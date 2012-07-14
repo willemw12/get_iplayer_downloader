@@ -24,6 +24,7 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
 
     is_download_cmd = False
     is_error = False
+    #is_error_cmd = False
 
     #WORKAROUND Non-UTF-8 command output from BBC Alba programmes: encoding "LATIN-1".
     #           However, the copyright character (c) in rtmpdump/flvstreamer output is preceded by ^A.
@@ -36,6 +37,8 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
         for i, line in enumerate(lines):
             if line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
                 is_error = True
+                if is_download_cmd:
+                    is_error_cmd = True
                 
                 if not full:
                     #for j in range(2, 0, -1):
@@ -53,8 +56,10 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                     log_output += line
                 prev_line_index = i
             else:
-                if not is_download_cmd and "get_iplayer " in line and ("--get" in line or "--pid" in line):
-                    is_download_cmd = True
+                if "get_iplayer " in line:
+                    is_error_cmd = False
+                    if "--get" in line or "--pid" in line:
+                        is_download_cmd = True
 
                 if full:
                     log_output += line
@@ -64,8 +69,13 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                         if line == "Matches:\n":
                             log_output += _log_text(lines[i + 1], markup)
                             prev_line_index = i
-                        elif is_error and (line == "Download complete\n" or line.startswith("Resuming download") or line.startswith("INFO: Command exit code")):
-                            log_output += "<b>" + _log_text(line, markup) + "</b>"
+                        elif line.startswith("INFO: No specified modes") or \
+                             (is_error_cmd and (line == "Download complete\n" or line.startswith("Resuming download") or line.startswith("INFO: Command exit code"))):
+                            # Log additional messages when current command has an error
+                            if markup:
+                                log_output += "<b>" + _log_text(line, markup) + "</b>"
+                            else:
+                                log_output += line
                             prev_line_index = i
                         #elif line.startswith("INFO:get_iplayer_post_subdir:move_file(): Move")
                         #    log_output += _log_text(line, markup)
