@@ -141,11 +141,11 @@ To uninstall, run from this directory:
 
 To install the latest git version:
 
-    ./install-pkgbuild-git.sh
+    ./install-pkg-git.sh
 
 To install the latest version:
 
-    ./install-pkgbuild.sh
+    ./install-pkg.sh
 
 ### Installing as a Debian/Ubuntu package
 
