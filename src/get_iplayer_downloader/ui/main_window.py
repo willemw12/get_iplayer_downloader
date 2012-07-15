@@ -195,6 +195,8 @@ class ToolBarBox(Gtk.Box):
         Gtk.Box.__init__(self, spacing=WIDGET_BORDER_WIDTH)
         self.main_window = main_window
 
+        INDENT_STR = "    "
+        
         #disable_presets = string.str2bool(settings.config().get(config.NOSECTION, "disable-presets"))
 
         focus_chain = []
@@ -322,20 +324,32 @@ class ToolBarBox(Gtk.Box):
         for categories in get_iplayer.Categories.ALL:
             self.cat_disabled_store.append(categories)
 
+        #ALTERNATIVE TreeStore combo box instead of ListStore combo box
+        #self.cat_radio_store = Gtk.TreeStore(str, str)
+        #root_iter = self.cat_radio_store.append(None, categories)
+        #for categories in get_iplayer.Categories.RADIO:
+        #    self.cat_radio_store.append(root_iter, categories)
+        
         self.cat_radio_store = Gtk.ListStore(str, str)
-        for categories in get_iplayer.Categories.RADIO:
+        for i, categories in enumerate(get_iplayer.Categories.RADIO):
+            if compact_toolbar and i > 0:
+                categories[1] = INDENT_STR + categories[1]
             self.cat_radio_store.append(categories)
         ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.RADIO[1:]]:
         #self.cat_radio_store.append([None, "ANY"])
 
         self.cat_podcast_store = Gtk.ListStore(str, str)
-        for categories in get_iplayer.Categories.PODCAST:
+        for i, categories in enumerate(get_iplayer.Categories.PODCAST):
+            if compact_toolbar and i > 0:
+                categories[1] = INDENT_STR + categories[1]
             self.cat_podcast_store.append(categories)
         ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.PODCAST[1:]]:
         #self.cat_podcast_store.append([None, "ANY"])
 
         self.cat_tv_store = Gtk.ListStore(str, str)
-        for categories in get_iplayer.Categories.TV:
+        for i, categories in enumerate(get_iplayer.Categories.TV):
+            if compact_toolbar and i > 0:
+                categories[1] = INDENT_STR + categories[1]
             self.cat_tv_store.append(categories)
         ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.TV[1:]]:
         #self.cat_tv_store.append([None, "ANY"])
@@ -375,6 +389,7 @@ class ToolBarBox(Gtk.Box):
         self.chan_radio_store = Gtk.ListStore(str, str)
         first = True
         for channel in channel_list:
+            #NOTE assign to two variables in one statement
             key = label = channel.strip()
             if first:
                 # The first item in the list represents all configured channels
@@ -382,9 +397,14 @@ class ToolBarBox(Gtk.Box):
                 key = ",".join(channel_list[1:])
                 first = False
             else:
-                if compact_toolbar and label.startswith("BBC "):
-                    # Remove leading "BBC " substring
-                    label = label[len("BBC "):]
+                if key.startswith("-"):
+                    # Skip excluded channel
+                    continue
+                if compact_toolbar:
+                    label = INDENT_STR + label
+                    if label.startswith("BBC "):
+                        # Remove leading "BBC " substring
+                        label = label[len("BBC "):]
             self.chan_radio_store.append([key, label])
         ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.RADIO[1:]]:
         #if channels:
@@ -403,9 +423,14 @@ class ToolBarBox(Gtk.Box):
                 key = ",".join(channel_list[1:])
                 first = False
             else:
-                if compact_toolbar and label.startswith("BBC "):
-                    # Remove leading "BBC " substring
-                    label = label[len("BBC "):]
+                if key.startswith("-"):
+                    # Skip excluded channel
+                    continue
+                if compact_toolbar:
+                    label = INDENT_STR + label
+                    if label.startswith("BBC "):
+                        # Remove leading "BBC " substring
+                        label = label[len("BBC "):]
             self.chan_tv_store.append([key, label])
         ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.TV[1:]]:
         #if channels:
@@ -426,9 +451,14 @@ class ToolBarBox(Gtk.Box):
                     key = ",".join(channel_list[1:])
                     first = False
                 else:
-                    if compact_toolbar and label.startswith("ITV "):
-                        # Remove leading "ITV " string
-                        label = label[len("ITV "):]
+                    if key.startswith("-"):
+                        # Skip excluded channel
+                        continue
+                    if compact_toolbar:
+                        label = INDENT_STR + label
+                        if label.startswith("ITV "):
+                            # Remove leading "ITV " string
+                            label = label[len("ITV "):]
                 self.chan_itv_store.append([key, label])
             ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.ITV[1:]]:
             #if channels:
@@ -462,7 +492,9 @@ class ToolBarBox(Gtk.Box):
             self.pack_start(label, False, False, 0)
 
         store = Gtk.ListStore(int, str)
-        for since in get_iplayer.SINCE_LIST:
+        for i, since in enumerate(get_iplayer.SINCE_LIST):
+            if compact_toolbar and i > 0:
+                since[1] = INDENT_STR + since[1]
             store.append(since)
 
         self.since_combo = Gtk.ComboBox.new_with_model(store)

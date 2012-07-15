@@ -36,7 +36,7 @@ run-in-terminal = True
 
 [tv]
 categories = [["Arts,Films", "Art"], ["Comedy,Games,Quizzes,Satire,Sitcoms,Sketch,Standup,-Spoof", "Comedy"], ["Crime,Thriller", "Crime"], ["Action,Adventure,Animation,Classic & Period,Drama,Films,Historical,Thriller", "Drama"], ["Entertainment", "Entertainment"], ["Films", "Film"], ["History", "History"], ["Learning", "Learning"], ["Antiques,Lifestyle & Leisure", "Lifestyle"], ["Country,Gardens,Nature", "Nature"], ["Science,Factual", "Science"], ["Fantasy,SciFi", "Scifi"], ["Cars & Motors,Travel", "Travel"]]
-channels = -BBC Parliament,-BBC Sport,-CBBC,-CBeebies,-Signed
+channels = BBC One,BBC Two,BBC Three,BBC Four,BBC Alba,BBC HD,BBC News,BBC Web Only
 download-path = 
 preset-file = tv
 recording-modes = flashhd,flashvhigh,flashhigh,flashstd,flashnormal
