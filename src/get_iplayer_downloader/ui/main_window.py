@@ -25,7 +25,7 @@ TOOLTIP_VIEW_LOG = "View download log"
 
 #TOOLTIP_EDIT_PREFERENCES
 
-TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes, or queue programmes if PVR checked"
+TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes, or queue programmes if 'PVR' enabled"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
 TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
 TOOLTIP_TOOLS_REFRESH = "Refresh programme cache, restricted of the selected programme type (radio, podcast, tv)"
@@ -195,7 +195,7 @@ class ToolBarBox(Gtk.Box):
         Gtk.Box.__init__(self, spacing=WIDGET_BORDER_WIDTH)
         self.main_window = main_window
 
-        INDENT_STR = "    "
+        INDENT_STR = "   "
         
         #disable_presets = string.str2bool(settings.config().get(config.NOSECTION, "disable-presets"))
 
@@ -324,12 +324,6 @@ class ToolBarBox(Gtk.Box):
         for categories in get_iplayer.Categories.ALL:
             self.cat_disabled_store.append(categories)
 
-        #ALTERNATIVE TreeStore combo box instead of ListStore combo box
-        #self.cat_radio_store = Gtk.TreeStore(str, str)
-        #root_iter = self.cat_radio_store.append(None, categories)
-        #for categories in get_iplayer.Categories.RADIO:
-        #    self.cat_radio_store.append(root_iter, categories)
-        
         self.cat_radio_store = Gtk.ListStore(str, str)
         for i, categories in enumerate(get_iplayer.Categories.RADIO):
             if compact_toolbar and i > 0:
@@ -354,6 +348,12 @@ class ToolBarBox(Gtk.Box):
         ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.TV[1:]]:
         #self.cat_tv_store.append([None, "ANY"])
 
+        #ALTERNATIVE TreeStore combo box instead of ListStore combo box
+        #self.cat_radio_store = Gtk.TreeStore(str, str)
+        #root_iter = self.cat_radio_store.append(None, categories)
+        #for categories in get_iplayer.Categories.RADIO:
+        #    self.cat_radio_store.append(root_iter, categories)
+        
         #self.category_combo = Gtk.ComboBox.new_with_model(self.cat_radio_store)
         self.category_combo = Gtk.ComboBox()
         # Mark as unselected, to allow it to be set automatically (by session restore) 
@@ -868,44 +868,72 @@ class MainTreeView(Gtk.TreeView):
     #DOC BUG?
     def _on_cell_row_toggled(self, widget, path):
         # widget can be None
-        model = self.get_model()
-        
+        model = self.get_model()        
+        tree_iter = model.get_iter(path)
+        toggle_value = model[path][SearchResultColumn.DOWNLOAD]
+        new_toggle_value = not toggle_value
+
+        # Uncheck parent check box, when one of the sibling check boxes or 
+        # the current check box becomes unchecked
+        #if toggle_value:
+        if not new_toggle_value:
+            parent_iter = model.iter_parent(tree_iter)
+            if parent_iter != None:
+                parent_row = model[parent_iter]
+                parent_toggle_value = parent_row[SearchResultColumn.DOWNLOAD]
+                new_parent_toggle_value = not parent_toggle_value
+                # Check expected parent state against current child state
+                if parent_toggle_value == toggle_value:
+                    # Parent should possibly be toggled
+                    # Next, check sibling states against current child state
+                    if model.iter_has_child(parent_iter):
+                        child_iter = model.iter_children(parent_iter)
+                        while child_iter is not None:
+                            row = model[child_iter]
+                            if row[SearchResultColumn.DOWNLOAD] != toggle_value:
+                                break
+                            child_iter = model.iter_next(child_iter)
+                        if child_iter == None:
+                            # All siblings have the same state as the current child (checked)
+                            # Toggle parent
+                            parent_row[SearchResultColumn.DOWNLOAD] = new_parent_toggle_value
+
         # Toggle check box
-        new_toggle_value = not model[path][SearchResultColumn.DOWNLOAD]
+        #new_toggle_value = not model[path][SearchResultColumn.DOWNLOAD]
+        new_toggle_value = not toggle_value
         model[path][SearchResultColumn.DOWNLOAD] = new_toggle_value
 
-        # Toggle children (one level deep) as well
-        tree_iter = model.get_iter(path)
+        # Toggle children check boxes (one level deep)
         if model.iter_has_child(tree_iter):
             child_iter = model.iter_children(tree_iter)
             while child_iter is not None:
                 row = model[child_iter]
+                # Toggle child
                 row[SearchResultColumn.DOWNLOAD] = new_toggle_value
                 child_iter = model.iter_next(child_iter)
 
-        ## Toggle parent (one level up) when all siblings have the same state
-        #parent_iter = model.iter_parent(tree_iter)
-        #if parent_iter != None:
-        #    toggle_parent = True
-        #    iter_next = model.iter_next(tree_iter)
-        #    while iter_next != None:
-        #        row = model[iter_next]
-        #        if row[SearchResultColumn.DOWNLOAD] != new_toggle_value:
-        #            toggle_parent = False
-        #            break
-        #        iter_next = model.iter_next(iter_next)
-        #    if toggle_parent:
-        #        iter_previous = model.iter_previous(tree_iter)
-        #        while iter_previous != None:
-        #            row = model[iter_previous]
-        #            if row[SearchResultColumn.DOWNLOAD] != new_toggle_value:
-        #                toggle_parent = False
-        #                break
-        #            iter_previous = model.iter_previous(iter_previous)
-        #    if toggle_parent:
-        #        print "Toggle parent"
-        #        row = model[parent_iter]
-        #        row[SearchResultColumn.DOWNLOAD] = new_toggle_value
+        # Check (enable) parent check box, when all the sibling check boxes and 
+        # the current check box become checked
+        if new_toggle_value:
+            parent_iter = model.iter_parent(tree_iter)
+            if parent_iter != None:
+                parent_row = model[parent_iter]
+                new_parent_toggle_value = not parent_row[SearchResultColumn.DOWNLOAD]
+                # Check expected parent state against current child state
+                if new_parent_toggle_value == new_toggle_value:
+                    # Parent should possibly be toggled
+                    # Next, check sibling states against current child state
+                    if model.iter_has_child(parent_iter):
+                        child_iter = model.iter_children(parent_iter)
+                        while child_iter is not None:
+                            row = model[child_iter]
+                            if row[SearchResultColumn.DOWNLOAD] != new_toggle_value:
+                                break
+                            child_iter = model.iter_next(child_iter)
+                        if child_iter == None:
+                            # All siblings have the same state as the current child (checked)
+                            # Toggle parent
+                            parent_row[SearchResultColumn.DOWNLOAD] = new_parent_toggle_value
 
     def set_store(self, tree_rows):
         # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn

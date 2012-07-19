@@ -198,9 +198,14 @@ class PreferencesDialogWrapper(object):
         if response_id != Gtk.ResponseType.NONE:    # -1
             self.dialog.hide()
 
+    #def connect(self, ...):
+            
     def run(self):
         self.dialog.run()
             
     def destroy(self):
-        #if self.dialog is not None:
-        self.dialog.destroy()
+        ##if self.dialog is not None:
+        #self.dialog.destroy()
+
+        # Do not destroy widgets returned by Gtk.Builder
+        pass
