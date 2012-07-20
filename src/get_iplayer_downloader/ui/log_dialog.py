@@ -49,13 +49,15 @@ class LogViewerDialogWrapper(object):
         
         # Dialog buttons are layed out from right to left
         button = self.dialog.get_action_area().get_children()[4]
-        button.set_tooltip_text("Remove all log and image cache files")
+        button.set_tooltip_text("Remove log files and image cache files")
         button = self.dialog.get_action_area().get_children()[3]
         button.set_tooltip_text("Reset error count in the progress bar")
         button = self.dialog.get_action_area().get_children()[2]
-        button.set_tooltip_text("Refresh today's full download and error log. When the download log is very large, it will not be displayed")
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
+        button.set_tooltip_text("Refresh today's download log")
         button = self.dialog.get_action_area().get_children()[1]
-        button.set_tooltip_text("Refresh today's summary download and error log. Error and warning log messages are displayed in bold")
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
+        button.set_tooltip_text("Refresh today's summary download log")
         #button.grab_focus()
         # Close button
         button = self.dialog.get_action_area().get_children()[0]

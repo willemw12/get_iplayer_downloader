@@ -14,11 +14,14 @@ from get_iplayer_downloader.ui.tools import image as Image
 
 class PropertiesWindow(Gtk.Window):
 
-    def __init__(self, get_iplayer_output_lines):
+    def __init__(self, get_iplayer_output_lines, icon=None):
         Gtk.Window.__init__(self, title="properties - " + get_iplayer_downloader.PROGRAM_NAME)
         self.set_default_size(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH, get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT)
         self.set_border_width(get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         #self.set_resizable(False)
+        
+        if icon is not None:
+            self.set_icon(icon)
         
         self._init_grid(get_iplayer_output_lines)
 

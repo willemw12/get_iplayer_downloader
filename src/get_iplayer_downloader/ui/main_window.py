@@ -28,26 +28,26 @@ TOOLTIP_VIEW_LOG = "View download log"
 TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes, or queue programmes if 'PVR' enabled"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
 TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
-TOOLTIP_TOOLS_REFRESH = "Refresh programme cache, restricted of the selected programme type (radio, podcast, tv)"
+TOOLTIP_TOOLS_REFRESH = "Refresh programme cache, limited of the selected programme type (radio, podcast or TV)"
 
 TOOLTIP_SEARCH_FIND = "Find programmes"
 TOOLTIP_SEARCH_CLEAR = "Clear search text"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
 TOOLTIP_SEARCH_ROTATE_SINCE = "Select since programmes were added to the cache"
-TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast, tv)"
+TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast or TV)"
 TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select category"
 TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
 TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description or on PID. Add a minus sign in front of the whole search term to exclude it from the search. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
-TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter label is 'Categories' or empty"
-TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on all listed (configured) channels, when the filter label is 'Channels' or empty"
-TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. Disabled when filter label is 'Since' or empty"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter is off (when filter label is 'Categories' or empty)"
+TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on all listed (configured) channels, when the filter is off (when filter label is 'Channels' or empty)"
+TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. The filter is off when filter label is 'Since' or empty"
 
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue programmes with the alternative set of recording modes"
-TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter label is 'Categories'/'Channels' or empty"
+TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off (when filter label is 'Categories', 'Channels' or empty)"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh programme cache"
-TOOLTIP_OPTION_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Enable 'PVR' to queue future programmes for downloading"
+TOOLTIP_OPTION_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Also enable 'PVR' to queue future programmes for downloading"
 
 TOOLTIP_OPTION_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer --pvr"
 
@@ -280,7 +280,7 @@ class ToolBarBox(Gtk.Box):
 
         #NOTE Preset can be None. However cannot set presets in the model to None: 
         #     the toolbar models and configuration are based on presets, not programme types
-        #(TODO Group programmes in programme types (radio, podcasts, tv), not on presets (radio, tv))
+        #(TODO Group programmes in programme types (radio, podcasts or TV), not on presets (radio or TV))
         #if disable_presets:
         #    presets = [[None, get_iplayer.ProgType.RADIO, "Radio"],
         #               [None, get_iplayer.ProgType.PODCAST, "Podcast"],
@@ -1029,10 +1029,13 @@ def main():
 
     window = MainWindow()
     #window.init()
+    # Icon for alt-tab list
+    window.set_icon(Gtk.Image.new_from_file(os.path.dirname(__file__) + "/../" + 
+                            get_iplayer_downloader.PROGRAM_NAME + ".svg").get_pixbuf())
     window.connect("delete-event", _main_quit)
     window.show_all()
     
-    # Force images on buttons
+    # Force images on button widgets
     settings = Gtk.Settings.get_default()
     settings.props.gtk_button_images = True
 

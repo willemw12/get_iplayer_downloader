@@ -10,9 +10,10 @@ from get_iplayer_downloader.tools import config, file, string
 
 class PreferencesDialogWrapper(object):
 
-    def __init__(self, builder):
+    def __init__(self, builder, icon=None):
         self.builder = builder
-        
+        self.icon = icon
+
         self._init_dialog()
         
     def _init_dialog(self):
@@ -55,6 +56,7 @@ class PreferencesDialogWrapper(object):
 
         ####
         
+        self.dialog.set_icon(self.icon)
         self.dialog.set_title("preferences - " + get_iplayer_downloader.PROGRAM_NAME)
         self._display_settings()
 

@@ -91,7 +91,7 @@ class MainWindowController:
 
                 self.on_progress_bar_update(None)
 
-                window = props_window.PropertiesWindow(get_iplayer_output_lines)
+                window = props_window.PropertiesWindow(get_iplayer_output_lines, icon=self.main_window.get_icon())
                 window.show_all()
             else:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
@@ -517,7 +517,8 @@ class MainWindowController:
         #except AttributeError:
         #    self.main_window.preferences_dialog = prefs_dialog.PreferencesDialogWrapper(self.main_window)
         
-        dialog = prefs_dialog.PreferencesDialogWrapper(self.main_window.builder.builder)
+        dialog = prefs_dialog.PreferencesDialogWrapper(self.main_window.builder.builder, 
+                                                       icon=self.main_window.get_icon())
         #dialog.connect("response", lambda dialog, response: dialog.destroy())
         dialog.run()
         dialog.destroy()

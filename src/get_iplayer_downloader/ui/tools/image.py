@@ -6,6 +6,8 @@ from get_iplayer_downloader import settings
 from get_iplayer_downloader.tools import file, markup
 
 def image(url, timeout=0.0):
+    """" Load and cache image from @url. """
+    
     #TODO url: g_markup_escape_text() or g_markup_printf_escaped()
     url = markup.html2text(url)
     pathname = settings.TEMP_PATHNAME + os.sep + "images"
