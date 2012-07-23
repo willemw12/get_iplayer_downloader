@@ -247,12 +247,12 @@ class MainWindowController:
         elif pvr_queue_chechbox_state or pvr_queue or future:
             # If implicitly or explicitly queuing, always show the Queued Programmes dialog window,
             # even if nothing will be queued
-            dialog = ExtendedMessageDialog(self.main_window, 0,
-                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+            dialog = ExtendedMessageDialog(self.main_window, 0, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
                                            "Queued Programmes")
             #dialog.format_secondary_text("")
             dialog.set_default_response(Gtk.ResponseType.CLOSE)
-            dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_MEDIUM_WIDTH, get_iplayer_downloader.ui.main_window.WINDOW_MEDIUM_HEIGHT)
+            dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH,
+                                                       get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT)
             dialog.format_tertiary_scrolled_text("" if process_output is None else process_output)
             label = dialog.get_scrolled_label()
             label.set_valign(Gtk.Align.START)

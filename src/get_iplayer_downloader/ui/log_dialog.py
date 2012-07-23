@@ -65,7 +65,8 @@ class LogViewerDialogWrapper(object):
         
         self.dialog.set_default_response(Gtk.ResponseType.CLOSE)
         #self.dialog.format_secondary_text("")
-        self.dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH, get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT)
+        self.dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH,
+                                                        get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT)
 
     def run(self):
         button_id_prev = Gtk.ResponseType.CLOSE
