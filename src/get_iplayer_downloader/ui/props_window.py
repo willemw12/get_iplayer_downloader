@@ -83,7 +83,7 @@ class PropertiesWindow(Gtk.Window):
                              margin_top=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, margin_bottom=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         frame.add(prop_grid)
         
-        focused_label = None
+        #focused_label = None
         #for prop_row in prop_table:
         #for i, prop_row in enumerate(prop_table):
         for i, (prop_label, prop_value) in enumerate(prop_table):
@@ -116,13 +116,13 @@ class PropertiesWindow(Gtk.Window):
                 label2.set_alignment(0, 0)
                 prop_grid.attach(label2, 1, i, 1, 1)
 
-                if prop_label == "index" or prop_label == "title":
-                    focused_label = label2
+                #if prop_label == "index" or prop_label == "title":
+                #    focused_label = label2
 
-        if focused_label:
-            focused_label.grab_focus()
-            # Avoid highlighted text
-            focused_label.select_region(0, 0)
+        #if focused_label:
+        #    focused_label.grab_focus()
+        #    # Avoid highlighted text
+        #    focused_label.select_region(0, 0)
         
         ####
 
@@ -190,3 +190,5 @@ class PropertiesWindow(Gtk.Window):
         button = Gtk.Button(stock=Gtk.STOCK_CLOSE, margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         button.connect("clicked", lambda user_data: self.destroy())
         box.pack_end(button, False, False, 0)
+
+        button.grab_focus()

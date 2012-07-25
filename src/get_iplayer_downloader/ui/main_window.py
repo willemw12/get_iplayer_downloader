@@ -695,7 +695,13 @@ class MainTreeView(Gtk.TreeView):
         ##self.set_style(allow_rules=True)
         #self.set_rules_hint(True)
         self.set_grid_lines(Gtk.TreeViewGridLines.VERTICAL)
-        self.set_enable_search(False)
+
+        # Interactive search
+        self.set_enable_search(True)
+        self.set_search_equal_func(self._search_equal_func, None)
+        #self.set_search_column(SearchResultColumn.EPISODE)
+        self.set_search_column(-1)
+        
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("button-release-event", self._on_button_release_event)
         self.connect("popup-menu", self._on_popup_menu_event)
@@ -795,6 +801,28 @@ class MainTreeView(Gtk.TreeView):
     def _get_column_width(self, n):
         return self.get_column(n).get_width()
 
+    #def _search_equal_func(self, model, column, key, tree_iter, search_data):
+    #    """ Return false if key matches, i.e. is a substring of cell_text, case-insensitive match). """
+    #    cell_text = model.get_value(tree_iter, column)
+    #    return not (cell_text and key.lower() in cell_text.lower())
+        
+    def _search_equal_func(self, model, column, key, tree_iter, search_data):
+        """ Return false if key matches, i.e. is a substring in a text cell, case-insensitive match). """
+        
+        # Get all cell text
+        serie = model.get_value(tree_iter, SearchResultColumn.SERIE)
+        episode = model.get_value(tree_iter, SearchResultColumn.EPISODE)
+        if serie and episode:
+            text = serie + "|" + episode
+        elif serie:
+            text = serie
+        elif episode:
+            text = episode
+        else:
+            text = None
+            
+        return not (text and key.lower() in text.lower())
+        
     def _on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         points_to_row, x, y, model, path, tree_iter = widget.get_tooltip_context(x, y, keyboard_mode)
         if not points_to_row or keyboard_mode or x > self._get_column_width(0):
