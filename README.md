@@ -35,9 +35,9 @@ The dependencies are:
 * get\_iplayer and its dependencies  
   [http://www.infradead.org/get\_iplayer/html/get\_iplayer.html](http://www.infradead.org/get_iplayer/html/get_iplayer.html)
 * Python 3 (3.2 or higher)
-* Python setuptools (pytyon3-setuptools), to install get\_iplayer\_downloader
-* GTK+ 3 libraries. On Debian/Ubuntu, package (\* is a wildcard character): gir\*-gtk-3\*
-* GI/GIR (GObject Introspection Repository) libraries for Python 3. On Debian/Ubuntu, packages: python3-gi, python3-gi-cairo
+* Python 3 setuptools for Distutils, to install get\_iplayer\_downloader. On Debian/Ubuntu, package: python3-setuptools
+* Python 3 GI/GIR (GObject Introspection Repository) libraries. On Debian/Ubuntu, packages: python3-gi, python3-gi-cairo
+* GTK+ 3 libraries. On Debian/Ubuntu, package: gir\*-gtk-3\* (\* is a wildcard character)
 * Linux. This program may work on other platforms (with a few minor changes), however, that has not been tested
 
 
