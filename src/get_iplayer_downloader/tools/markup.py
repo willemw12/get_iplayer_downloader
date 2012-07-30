@@ -30,7 +30,8 @@ def text2html(text, tabstop=4):
             if last in ['\n', '\r', '\r\n']:
                 #last = '<br/>'
                 last = '\n'
-            return '%s<a href="%s">%s</a>%s' % (prefix, url, url, last)
+            #return '%s<a href="%s">%s</a>%s' % (prefix, url, url, last)
+            return '{0}<a href="{1}">{2}</a>{3}'.format(prefix, url, url, last)
 
     if text is None:
         return ""

@@ -109,7 +109,7 @@ def _sanitize_path(path, include_substitution_markers):
     p = re.compile(r"(\\\!+)")
     path = p.sub("", path)
 
-    #PERL get_iplayer
+    #PERL based on get_iplayer's Perl code
     #sub StringUtils::sanitize_path {
     # Remove fwd slash if reqd
     #$string =~ s/\//_/g if ! $allow_fwd_slash;
@@ -118,7 +118,7 @@ def _sanitize_path(path, include_substitution_markers):
     # Sanitize by default
     #$string =~ s/\s+/_/g if (! $opt->{whitespace}) && (! $allow_fwd_slash);
     #
-    # Similar to Perl code, however, exclude matching forward slash
+    # Similar to Perl code, however, exclude matching forward slash.
     # \s means whitespace
     if os.name == "posix":
         p = re.compile(r"([\\\s]+)")
@@ -126,7 +126,7 @@ def _sanitize_path(path, include_substitution_markers):
         p = re.compile(r"([\s]+)")
     path = p.sub("_", path)
 
-    #PERL get_iplayer
+    #PERL based on get_iplayer's Perl code
     #$string =~ s/[^\w_\-\.\/\s]//gi if ! $opt->{whitespace};
     #
     # Similar to Perl code, however, also exclude matching substitution marker
@@ -134,7 +134,7 @@ def _sanitize_path(path, include_substitution_markers):
     p = re.compile(r"([^\w_\-\.\/\s<>]+)")
     path = p.sub("", path)
 
-    #PERL get_iplayer
+    #PERL based on get_iplayer's Perl code
     #$string =~ s/[\|\\\?\*\<\"\:\>\+\[\]\/]//gi if $opt->{fatfilename};
     #
     # Similar to Perl code, however, exclude matching forward slash and 
@@ -147,7 +147,7 @@ def _sanitize_path(path, include_substitution_markers):
         p = re.compile(r"([<>]+)")
         path = p.sub("_", path)
 
-    #PERL get_iplayer
+    #PERL based on get_iplayer's Perl code
     # Truncate multiple '_'
     #$string =~ s/_+/_/g;
     p = re.compile(r"([_]+)")
@@ -156,7 +156,7 @@ def _sanitize_path(path, include_substitution_markers):
     return path
 
 def _move_file(categories, dirname, filename, force, subdir_format):
-    logger.debug("move_file(): Move \"{0}\" (categories = \"{1}\", dirname = \"{2}\", force = {3}, subdir_format = \"{4}\"".format(filename, categories, dirname, force, subdir_format))
+    logger.debug("move_file(): filename = \"{0}\", categories = \"{1}\", dirname = \"{2}\", force = {3}, subdir_format = \"{4}\"".format(filename, categories, dirname, force, subdir_format))
 
     src_dirname = os.path.dirname(filename)
 

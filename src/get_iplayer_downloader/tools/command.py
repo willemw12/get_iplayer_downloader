@@ -96,14 +96,14 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         
         # Write log message also to the command log file, so the message will show up in the download log viewer
         with open(cmd_logname, "a") as file:
-            file.write("WARNING:%s" % exc.output)
+            file.write("WARNING:{0}".format(exc.output))
 
     ####
     
     if not quiet and not terminal_prog:
         # If not a silent process, e.g. command to update the progress bar
         # If running inside a terminal window then the log message was already generated before command execution
-        logger.debug("run(): process_output=%s", process_output)
+        logger.debug("run(): process_output={0}".format(process_output))
         #print "Ready"
 
     return process_output

@@ -132,12 +132,12 @@ def check_preset_files(quiet=False):
     for preset in [Preset.RADIO, Preset.TV]:
         filename = os.path.join(pathname, preset)
         if not os.path.exists(filename):
-            msg = "Configured preset file %s does not exist" % filename
+            msg = "Configured preset file {0} does not exist".format(filename)
             # Don't bother returning msg if msg is already written to the log
             if not quiet:
-                logger.warning("Configured preset file %s does not exist" % filename)
+                logger.warning("Configured preset file {0} does not exist".format(filename))
             else:
-                log_output += "WARNING: " + msg + "\n"
+                log_output += "WARNING:{0}\n".format(msg)
             
     return log_output
 

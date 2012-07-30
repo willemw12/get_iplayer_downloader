@@ -561,7 +561,7 @@ class MainWindowController:
 
         #NOTE String formatting: right-aligned (default for int), 4 characters wide: str.format("D:{0:4}  Q:{1:4}", ...)
         #self.progress_bar.set_text(str.format("D:{0}  Q:{1}", int(self.processes), command_queue.size()))
-        self.tool_bar_box.progress_bar.set_text("%s / %s" % (self.processes, errors))
+        self.tool_bar_box.progress_bar.set_text("{0} / {1}".format(self.processes, errors))
         # Full progress bar when TOTAL_WORKER_THREADS get_iplayer processes are running.  % 1 to keep the fraction between 0.0 and 1.0.
         self.tool_bar_box.progress_bar.set_fraction(self.processes / float(command_queue.TOTAL_WORKER_THREADS) % 1)
         # Gray-out

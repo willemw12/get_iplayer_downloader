@@ -19,7 +19,7 @@ def load_url(url, pathname, **urlopen_keywords):
         #    File "/usr/lib/python3.2/socket.py", line 276, in readinto
         #NOTE Combined exception handling
         except (urllib.error.URLError, socket.timeout): # as exc:
-            #sys.stderr.write("%s:load_url(): %s\n" % (__name__, exc))
+            #sys.stderr.write("{0}:load_url(): {1}\n".format(__name__, exc))
             traceback.print_exc(file=sys.stderr)
             return None
         #except ValueError: invalid URL

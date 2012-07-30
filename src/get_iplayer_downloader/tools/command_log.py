@@ -86,7 +86,7 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
         return ""
 
     # Log header: filename (started at hour:minutes)
-    log_header = "%s (started at %s:%s):\n" % (filepathname, filename[8:10], filename[10:12])
+    log_header = "{0} (started at {1}:{2}):\n".format(filepathname, filename[8:10], filename[10:12])
     if full:
         log_header += "\n"
         global _first_log_file
