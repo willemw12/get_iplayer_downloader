@@ -142,7 +142,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">A compact tool bar has no combo box labels. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">A compact tool bar has no combo box labels. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -183,13 +183,13 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Compact search result list. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Compact programme search result list. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
                         <property name="margin_top">4</property>
                         <property name="margin_bottom">4</property>
-                        <property name="label" translatable="yes">Compact tree view</property>
+                        <property name="label" translatable="yes">Compact programme list</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -265,7 +265,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Disable get_iplayer presets. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Disable get_iplayer presets. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -306,7 +306,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Show the menu bar. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Show the menu bar. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -347,7 +347,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Show additional programme information in a tooltip. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Show additional programme information in a tooltip on the left side of the programme search result list. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -511,7 +511,7 @@
                       <object class="GtkLabel" id="label4">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Override default channels. Comma-separated list. Add a minus sign in front of a channel to exclude it. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Override default channels. Comma-separated list. Add a minus sign in front of a channel to exclude it. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -613,7 +613,7 @@
                       <object class="GtkLabel" id="label29">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Preset file name. See also 'Disable presets' under the 'General' tab. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Preset file name. See also 'Disable presets' under the 'General' tab. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -777,7 +777,7 @@
                       <object class="GtkLabel" id="label7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Override default channels. Comma-separated list. Add a minus sign in front of a channel to exclude it. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Override default channels. Comma-separated list. Add a minus sign in front of a channel to exclude it. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -879,7 +879,7 @@
                       <object class="GtkLabel" id="label28">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Preset file name. See also 'Disable presets' under the 'General' tab. Requires program restart</property>
+                        <property name="tooltip_text" translatable="yes">Preset file name. See also 'Disable presets' under the 'General' tab. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>

@@ -47,7 +47,7 @@ TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. The fi
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue programmes with the alternative set of recording modes"
 TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off (when filter label is 'Categories', 'Channels' or empty)"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh programme cache"
-TOOLTIP_OPTION_FUTURE = "Include or exclude future programmes in the search result and property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Also enable 'PVR' to queue future programmes for downloading"
+TOOLTIP_OPTION_FUTURE = "Include or exclude future programmes in the search result list and future programme information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Also enable 'PVR' to queue future programmes for downloading"
 
 TOOLTIP_OPTION_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer --pvr"
 

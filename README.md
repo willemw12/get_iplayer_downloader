@@ -98,7 +98,7 @@ The radio and tv category lists and the radio channel list are very long and hav
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet
 
-If the program crashes immediately on startup or when the mouse cursor moves over the first column in the programme search result, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
+If the program crashes immediately on startup or when the mouse cursor moves over the first column in the programme search result list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
 
 
 
@@ -181,8 +181,8 @@ The keyboard shortcuts are:
     ctrl+3                  Channel
     ctrl+4, ctrl+5          Since
 
-    down-arrow                            Go from tool bar to the search result
-    space or enter                        Toggle programme selection in the search result
+    down-arrow                            Go from tool bar to programme search result list
+    space or enter                        Toggle programme selection in the programme search result list
 
 
 
