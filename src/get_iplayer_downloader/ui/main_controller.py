@@ -1,4 +1,5 @@
 import os
+import webbrowser
 
 from gi.repository import Gtk, Pango
 
@@ -57,6 +58,34 @@ class MainWindowController:
         # Initialize label text
         self.on_progress_bar_update(None)
 
+    def on_button_play_clicked(self, button):
+        # button can be None
+        model, tree_iter = self.main_tree_view.get_selection().get_selected()
+        if tree_iter is not None:
+            #index = model[tree_iter][SearchResultColumn.INDEX]
+            #if index:
+            
+            # Generate player URL. Note that get_iplayer does not retrieve 
+            # the value of the <player> field when searching episodes
+            pid = model[tree_iter][SearchResultColumn.PID]
+            if pid:
+                url = "http://www.bbc.co.uk/iplayer/episode/" + pid
+                webbrowser.open_new_tab(url)
+            else:
+                dialog = Gtk.MessageDialog(self.main_window, 0,
+                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                           "No episode is highlighted. A serie is highlighted")
+                #dialog.format_secondary_text("")
+                dialog.run()
+                dialog.destroy()
+        else:
+            dialog = Gtk.MessageDialog(self.main_window, 0,
+                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                       "No episode is highlighted")
+            #dialog.format_secondary_text("")
+            dialog.run()
+            dialog.destroy()
+
     def on_button_properties_clicked(self, button):
         # button can be None
         preset = None
@@ -96,14 +125,14 @@ class MainWindowController:
             else:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "No programme highlighted. A serie is highlighted")
+                                           "No episode is highlighted. A serie is highlighted")
                 #dialog.format_secondary_text("")
                 dialog.run()
                 dialog.destroy()
         else:
             dialog = Gtk.MessageDialog(self.main_window, 0,
                                        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No programme highlighted")
+                                       "No episode is highlighted")
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
@@ -120,7 +149,7 @@ class MainWindowController:
             
             #NOTE Downloading in "All" preset mode will not even work when all settings (radiomode, tvmode,
             #     outputradio, outputtv, etc.) are in one file (in the options file or a single preset file).
-            #     Get_iplayer.get() cannot (easily) determine the prog_type for each programme and
+            #     Get_iplayer.get() cannot (easily) determine the prog_type of each episode and
             #     get_iplayer does not determine the programme type by it self
             #search_all = self.tool_bar_box.search_all_presets_check_button.get_active()
             #if search_all_presets:
@@ -170,7 +199,7 @@ class MainWindowController:
         if len(pid_list) == 0:
             dialog = Gtk.MessageDialog(self.main_window, 0,
                                        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No programmes selected")
+                                       "No episodes are selected")
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
@@ -179,11 +208,11 @@ class MainWindowController:
         
         ####
         
-        # Avoid downloading a programme twice in parallel, otherwise continue downloading
+        # Avoid downloading a episode twice in parallel, otherwise continue downloading
         # twice and let get_iplayer generate an "Already in history" INFO log message.
-        # The user can download programmes in parallel without having
+        # The user can download episodes in parallel without having
         # to clear the previous download selection and therefore avoiding
-        # download errors because of two threads trying to download the same programme
+        # download errors because of two threads trying to download the same episode
 
         try:
             if os.name == "posix":
@@ -220,7 +249,7 @@ class MainWindowController:
             if len(pid_list) == 0:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "Already downloading all the selected programmes")
+                                           "Already downloading all the selected episodes")
                 #dialog.format_secondary_text("")
                 dialog.run()
                 dialog.destroy()
@@ -245,10 +274,10 @@ class MainWindowController:
             dialog.run()
             dialog.destroy()
         elif pvr_queue_chechbox_state or pvr_queue or future:
-            # If implicitly or explicitly queuing, always show the Queued Programmes dialog window,
+            # If implicitly or explicitly queuing, always show the Queued Episodes dialog window,
             # even if nothing will be queued
             dialog = ExtendedMessageDialog(self.main_window, 0, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "Queued Programmes")
+                                           "Queued Episodes")
             #dialog.format_secondary_text("")
             dialog.set_default_response(Gtk.ResponseType.CLOSE)
             dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH,
@@ -294,7 +323,7 @@ class MainWindowController:
     def on_button_refresh_clicked(self, button):
         # button can be None
         
-        # Refresh programme cache
+        # Refresh episode cache
 
         preset = None
         combo = self.tool_bar_box.preset_combo
@@ -318,7 +347,7 @@ class MainWindowController:
         get_iplayer.refresh(preset=preset, prog_type=prog_type, channels=channels, exclude_channels=exclude_channels, future=future)
         self.main_window.display_busy_mouse_cursor(False)
         
-        # Refresh programme list
+        # Refresh episode list
 
         self.on_button_find_clicked(None)
 
@@ -486,12 +515,12 @@ class MainWindowController:
         if check_button.get_active():
             self.tool_bar_box.pvr_queue_check_button.set_active(True)
 
-            ## Limit the initial search result to future programmes
+            ## Limit the initial search result to future episodes
             #combo = self.tool_bar_box.since_combo
             #combo.set_active(SinceListIndex.FUTURE)
 
             # Disable the category filter. Get_iplayer doesn't support it 
-            # and future programme data sometimes lacks the categories property
+            # and future episode data sometimes lacks the categories property
             self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_disabled_store)
             self.tool_bar_box.category_combo.set_active(0)
         else:

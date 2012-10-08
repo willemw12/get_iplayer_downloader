@@ -55,6 +55,7 @@ class UIManager():
   </toolbar>
   -->
   <popup name="PopupMenu">
+    <menuitem action="ViewPlayer"/>
     <menuitem action="ViewProperties"/>
     <menuitem action="ToolsDownload"/>
     <menuitem action="ToolsPvrQueue"/>
@@ -138,6 +139,7 @@ class UIManager():
     def _add_view_menu_actions(self, action_group):
         action_group.add_actions([
             ("ViewMenu", None, "View"),
+            ("ViewPlayer", Gtk.STOCK_MEDIA_PLAY, "Play", "<control>P", get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER, self._on_menu_others),
             ("ViewProperties", Gtk.STOCK_PROPERTIES, "_Properties", "<alt>Return", get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PROPERTIES, self._on_menu_others),
             ("ViewLog", Gtk.STOCK_CAPS_LOCK_WARNING, "_Log", "<control>L", get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_LOG, self._on_menu_others)
         ])
@@ -200,6 +202,8 @@ class UIManager():
         name = widget.get_name()
         if name == "EditPreferences":
             self.main_window.controller().on_preferences()
+        elif name == "ViewPlayer":
+            self.main_window.controller().on_button_play_clicked(None)
         elif name == "ViewProperties":
             self.main_window.controller().on_button_properties_clicked(None)
         elif name == "ViewLog":

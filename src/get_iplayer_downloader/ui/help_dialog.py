@@ -30,6 +30,7 @@ class HelpDialogWrapper(object):
                               ["ctrl+d", "Download", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_DOWNLOAD],
                               ["ctrl+f", "Find", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_GO_TO_FIND],
                               ["ctrl+l", "Log", get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_LOG],
+                              ["ctrl+p", "Play", get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER],
                               ["ctrl+q", "Queue", get_iplayer_downloader.ui.main_window.TOOLTIP_OPTION_PVR_QUEUE],
                               ["ctrl+r", "Refresh", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_REFRESH],
                               ["ctrl+s, ctrl+shift+s", "Since", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_ROTATE_SINCE],
@@ -41,8 +42,8 @@ class HelpDialogWrapper(object):
                               #["ctrl+4, ctrl+shift+4", "Since", None],
                               ["ctrl+4, ctrl+5", "Since", None],
                               [" ", None, None],
-                              ["down-arrow", None, "Go from tool bar to programme search result list"],
-                              ["space or enter", None, "Toggle programme selection in the programme search result list"]]
+                              ["down-arrow", None, "Go from tool bar to episode search result list"],
+                              ["space or enter", None, "Toggle selection in the episode search result list"]]
 
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
         for i, keyboard_shortcut in enumerate(KEYBOARD_SHORTCUTS):

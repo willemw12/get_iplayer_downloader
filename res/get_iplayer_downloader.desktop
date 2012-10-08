@@ -1,10 +1,9 @@
 [Desktop Entry]
 Categories=Network;FileTransfer
-Comment=Download utility for get_iplayer
+Comment=Download BBC programmes
 Encoding=UTF-8
 Exec=get_iplayer_downloader
 Hidden=false
-#Icon=emblem-downloads
 Icon=get_iplayer_downloader
 Name=BBC Get iPlayer Downloader
 StartupNotify=false

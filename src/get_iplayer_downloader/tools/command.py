@@ -10,10 +10,12 @@ logger = logging.getLogger(__name__)
 def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname=None):
     """ @terminal_prog is a terminal emulator program name, compatible with xterm options (-geometry instead of --geometry). """
     
+    #log_level = logging.getLogger().level
+
     # The command string that will be executed
     cmd_exec = cmd
     
-    #log_level = logging.getLogger().level
+    cmd_logname = None
 
     if not quiet:
         #temp_pathname = keywords["temp_pathname"] if "temp_pathname" in keywords else None
@@ -68,8 +70,24 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         with subprocess.Popen(cmd_exec, shell=True, universal_newlines=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
             # Cannot seek a pipe (proc.stdout) to retry another encoding on the command/process output
             # Copy pipe content into memory
-            bytes_buffer = proc.stdout.read()
+
+            #bytes_buffer = proc.stdout.read()
+            bytes_buffer, unused_errs = proc.communicate()
+            #
+            #TODO in Python 3.3
+            #try:
+            #    bytes_buffer, unused_errs = proc.communicate(timeout=60)
+            #except subprocess.TimeoutExpired:
+            #    proc.kill()
+            #    bytes_buffer, unused_errs = proc.communicate()
+
             #proc.stdout.close()            
+
+            if proc.returncode != 0:
+                #return (process_output, proc.returncode)
+                process_output = bytes_buffer.decode()
+                raise subprocess.CalledProcessError(proc.returncode, cmd_exec, process_output)
+ 
             try:
                 process_output = bytes_buffer.decode("UTF-8", "strict")
             except (UnicodeDecodeError, ValueError) as exc:
@@ -94,9 +112,11 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         #logger.warning("(return code " + str(exc.returncode) + ") " + exc.text_output)
         logger.warning(exc.output)
         
-        # Write log message also to the command log file, so the message will show up in the download log viewer
-        with open(cmd_logname, "a") as file:
-            file.write("WARNING:{0}".format(exc.output))
+        #if not quiet and temp_pathname is not None:
+        if cmd_logname is not None:
+            # Write log message also to the command log file, so the message will show up in the download log viewer
+            with open(cmd_logname, "a") as file:
+                file.write("WARNING:{0}".format(exc.output))
 
     ####
     
@@ -154,4 +174,3 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
 #                        process_output = text_output.getvalue()            
 #                    except (UnicodeDecodeError, ValueError) as exc:
 #                        logger.warning(exc)
-

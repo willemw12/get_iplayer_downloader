@@ -125,20 +125,27 @@ class SearchResultColumn:
 
 ####
 
-def check_preset_files(quiet=False):
-    pathname = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
-
+def precheck(quiet=False):
     log_output = ""
-    for preset in [Preset.RADIO, Preset.TV]:
-        filename = os.path.join(pathname, preset)
-        if not os.path.exists(filename):
-            msg = "Configured preset file {0} does not exist".format(filename)
-            # Don't bother returning msg if msg is already written to the log
-            if not quiet:
-                logger.warning("Configured preset file {0} does not exist".format(filename))
-            else:
-                log_output += "WARNING:{0}\n".format(msg)
-            
+    
+    # Check required program(s)
+    # Call get_iplayer directly, instead of wrapping it in "shell code", to check whether it is installed or not    
+    process_output =  command.run(_GET_IPLAYER_PROG + " --usage", quiet=True, temp_pathname=settings.TEMP_PATHNAME)
+    #TODO not Linux specific ("not found")
+    if quiet and "not found" in process_output:
+        # command.run() already logs the error (logger.warning())
+        log_output += "WARNING:{0}".format(process_output)
+        
+    # Check get_iplayer preset files
+    if not string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
+        pathname = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
+        for preset in [Preset.RADIO, Preset.TV]:
+            filename = os.path.join(pathname, preset)
+            if not os.path.exists(filename):
+                msg = "preset file {0} does not exist".format(filename)
+                logger.warning(msg)
+                log_output += "WARNING:{0}".format(msg)
+
     return log_output
 
 #NOTE Logging is not fully initialized yet
@@ -238,7 +245,7 @@ def search(search_text, preset=None, prog_type=None,
     if future:
         cmd += " --future"
     cmd += " --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\""
-    # --fields: perform the same search as with --long plus on pid
+    # --fields: perform the same search as with "--long" plus on "pid"
     cmd += " --fields=\"name,episode,desc,pid\" --nocopyright"
     if search_text:
         # Simple exclude search option
@@ -256,6 +263,7 @@ def search(search_text, preset=None, prog_type=None,
     level = 0
     copy = False
     for line in lines:
+        #NOTE with "def __len__()" in a metaclass: l = line.split("|", len(SearchResultColumn) - 1)
         l = line.split("|", 9)
         # Skip empty lines
         if l[0]:
@@ -272,7 +280,7 @@ def search(search_text, preset=None, prog_type=None,
                     # Add serie line.
                     # Serie title is copied from the previous line (root level, level 0, a serie)
                     # Categories, channels and thumbnail url, etc. are copied from the current line (level 1, an episode)
-                    # No pid or index available for a serie from the output of get_iplayer --tree
+                    # No PID or index available for a serie from the output of get_iplayer --tree
                     try:
                         output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
                     except IndexError:    # as exc:
@@ -367,7 +375,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         if pvr_queue:
             if not preset:
                 return False
-            # Must explicitly specify programme type and pid on the command line in queue mode
+            # Must explicitly specify programme type and PID on the command line in queue mode
             cmd += " --pvrqueue --pid="
             #cmd += " --pvr-exclude=" + ",".join(exclude_search_term_list)
         elif pid:
@@ -377,7 +385,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         ##cmd += "\"$i\" ; done"
         #cmd += "$i; done )"
         if search_term:
-            # search_term_list could be a set of programme indices, so don't surround them with quotes
+            # search_term_list could be a set of episode indices, so don't surround them with quotes
             cmd += search_term
         
         if (i < len(search_term_list) - 1):
@@ -411,7 +419,7 @@ def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=
         cmd += " --proxy=0"
     if future:
         cmd += " --future"
-    # --fields: perform the same search as with --long plus on pid
+    # --fields: perform the same search as with --long plus on PID
     cmd += " --fields=\"name,episode,desc,pid\" --nocopyright"
     if search_term:
         cmd += " \"" + search_term + "\""

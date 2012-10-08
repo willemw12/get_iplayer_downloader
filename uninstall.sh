@@ -19,5 +19,5 @@ fi
 #sudo xdg-desktop-menu uninstall get_iplayer_downloader.desktop
 #sudo xdg-desktop-icon uninstall get_iplayer_downloader.svg
 #sudo xdg-icon-resource uninstall --novendor --size 96 res/get_iplayer_downloader.png
-#sudo gtk-update-icon-cache -q -t -f usr/share/icons/hicolor
+#sudo gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor
 

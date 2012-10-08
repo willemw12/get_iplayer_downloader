@@ -73,8 +73,8 @@ def cleanup_install():
 #else:
 PROGRAM_NAME = "get_iplayer_downloader"
 
-DESCRIPTION = "Download utility for the BBC get_iplayer program"
-LONG_DESCRIPTION = "get_iplayer_downloader is a graphical version of the command \"get_iplayer --tree\", followed by \"get_iplayer --pid\" or \"get_iplayer --info\""
+DESCRIPTION = "Download BBC programmes"
+LONG_DESCRIPTION = "A GUI download utility for BBC get_iplayer"
 VERSION = _version()
 AUTHORS = "willemw12"
 EMAILS = "willemw12@gmail.com"

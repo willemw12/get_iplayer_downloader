@@ -11,9 +11,9 @@ from get_iplayer_downloader.tools import command_log
 
 def download_log(**keywords):
     """ Return today's download log. """
-    
+
     # Add some useful session log messages
-    log_output = get_iplayer.check_preset_files(quiet=True)
+    log_output = get_iplayer.precheck(quiet=True)
     if log_output:
         log_output += "\n======================================================================\n\n"
     

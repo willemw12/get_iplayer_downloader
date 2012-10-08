@@ -183,13 +183,13 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Compact programme search result list. Requires a program restart</property>
+                        <property name="tooltip_text" translatable="yes">Compact episode search result list. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
                         <property name="margin_top">4</property>
                         <property name="margin_bottom">4</property>
-                        <property name="label" translatable="yes">Compact programme list</property>
+                        <property name="label" translatable="yes">Compact episode list</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -224,7 +224,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Disable full web proxy mode when viewing programme properties. May improve property download speed. Useful outside the UK. When full proxy is disabled, some properties may not have values (TV modes and TV mode sizes)</property>
+                        <property name="tooltip_text" translatable="yes">Disable full web proxy mode when viewing episode properties. May improve property download speed. Useful outside the UK. When full proxy is disabled, some properties may not have values (TV modes and TV mode sizes)</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -347,7 +347,7 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_text" translatable="yes">Show additional programme information in a tooltip on the left side of the programme search result list. Requires a program restart</property>
+                        <property name="tooltip_text" translatable="yes">Show additional episode information in a tooltip on the left side of the episode search result list. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>

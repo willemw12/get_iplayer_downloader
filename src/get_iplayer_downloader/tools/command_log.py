@@ -15,7 +15,7 @@ def _log_text(string, markup):
 def _log_cmd_file(dirpath, filename, full=False, markup=False):
     """ Return log messages from single command log file @dirpath/@filename.
         Return all download logs (get_iplayer --get or --pid), plus any command log file containing errors (FATAL, ERROR or WARNING log messages).
-        If @full is true, return the whole command log file, otherwise return only error and programme download messages.
+        If @full is true, return the whole command log file, otherwise return only error and episode download messages.
         If @markup is true, then error messages will be in bold.
     """
     

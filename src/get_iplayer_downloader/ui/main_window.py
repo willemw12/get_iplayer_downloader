@@ -20,36 +20,37 @@ from get_iplayer_downloader.ui.tools import image as Image
 
 #TOOLTIP_FILE_QUIT
 
-TOOLTIP_VIEW_PROPERTIES = "View properties of highlighted programme"
+TOOLTIP_VIEW_PLAYER = "Go to BBC iPlayer web page of the highlighted episode"
+TOOLTIP_VIEW_PROPERTIES = "View properties of the highlighted episode"
 TOOLTIP_VIEW_LOG = "View download log"
 
 #TOOLTIP_EDIT_PREFERENCES
 
-TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected programmes, or queue programmes if 'PVR' enabled"
-TOOLTIP_TOOLS_DOWNLOAD = "Download selected programmes"
-TOOLTIP_TOOLS_CLEAR = "Clear programme download selection"
-TOOLTIP_TOOLS_REFRESH = "Refresh programme cache, limited of the selected programme type (radio, podcast or TV)"
+TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected episodes, or queue episodes if 'PVR' is enabled"
+TOOLTIP_TOOLS_DOWNLOAD = "Download selected episodes"
+TOOLTIP_TOOLS_CLEAR = "Clear episode download selection"
+TOOLTIP_TOOLS_REFRESH = "Refresh episode cache, limited of the selected programme type (radio, podcast or TV)"
 
-TOOLTIP_SEARCH_FIND = "Find programmes"
+TOOLTIP_SEARCH_FIND = "Find episodes"
 TOOLTIP_SEARCH_CLEAR = "Clear search text"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
-TOOLTIP_SEARCH_ROTATE_SINCE = "Select since programmes were added to the cache"
+TOOLTIP_SEARCH_ROTATE_SINCE = "Select since episodes were added to the cache"
 TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast or TV)"
-TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select category"
+TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select programme category"
 TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
-TOOLTIP_FILTER_SEARCH_ENTRY = "Search in episode name, programme name and description or on PID. Add a minus sign in front of the whole search term to exclude it from the search. Press 'Enter' to search"
+TOOLTIP_FILTER_SEARCH_ENTRY = "Search in serie title, episode title and description or on PID. Add a minus sign in front of the whole search term to exclude it from the search. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
-TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter is off (when filter label is 'Categories' or empty)"
-TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on programme channels. Filter on all listed (configured) channels, when the filter is off (when filter label is 'Channels' or empty)"
-TOOLTIP_FILTER_SINCE = "Filter on programmes recently added to the cache. The filter is off when filter label is 'Since' or empty"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter is off. The filter is off when the filter label is 'Categories' or empty"
+TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on channels. Filter on all listed (configured) channels, when the filter is off. The filter is off when the filter label is 'Channels' or empty"
+TOOLTIP_FILTER_SINCE = "Filter on episodes recently added to the cache. The filter is off when filter label is 'Since' or empty"
 
-TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue programmes with the alternative set of recording modes"
-TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off (when filter label is 'Categories', 'Channels' or empty)"
-TOOLTIP_OPTION_FORCE = "Force download or force refresh programme cache"
-TOOLTIP_OPTION_FUTURE = "Include or exclude future programmes in the search result list and future programme information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future programmes in the cache. The category filter is disabled in 'Future' mode. Also enable 'PVR' to queue future programmes for downloading"
+TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue episodes with the alternative set of recording modes"
+TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off. The filter is off when the filter label is 'Categories', 'Channels' or empty"
+TOOLTIP_OPTION_FORCE = "Force download or force refresh of episode cache"
+TOOLTIP_OPTION_FUTURE = "Include or exclude future episodes in the search result list and future episode information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future episodes in the cache. The category filter is disabled in 'Future' mode. Also enable 'PVR' to queue future episodes for downloading"
 
-TOOLTIP_OPTION_PVR_QUEUE = "Queue selected programmes for one-off downloading by get_iplayer --pvr"
+TOOLTIP_OPTION_PVR_QUEUE = "Queue selected episodes for one-off downloading"
 
 TOOLTIP_PROGRESS_BAR = "Downloading / Errors. Click to view the download log, reset the error count or remove log and image cache files"
 
@@ -212,6 +213,15 @@ class ToolBarBox(Gtk.Box):
         ####
         
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
+        if show_button_labels:
+            button.set_label("Play")
+        button.set_tooltip_text(TOOLTIP_VIEW_PLAYER)
+        button.connect("clicked", self.main_window.controller().on_button_play_clicked)
+        self.pack_start(button, False, False, 0)
+        focus_chain.append(button)
+
+        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_PROPERTIES))
         if show_button_labels:
             button.set_label("Properties")
@@ -280,7 +290,7 @@ class ToolBarBox(Gtk.Box):
 
         #NOTE Preset can be None. However cannot set presets in the model to None: 
         #     the toolbar models and configuration are based on presets, not programme types
-        #(TODO Group programmes in programme types (radio, podcasts or TV), not on presets (radio or TV))
+        #(TODO Group episodes in programme types (radio, podcasts or TV), not on presets (radio or TV))
         #if disable_presets:
         #    presets = [[None, get_iplayer.ProgType.RADIO, "Radio"],
         #               [None, get_iplayer.ProgType.PODCAST, "Podcast"],
@@ -584,7 +594,7 @@ class ToolBarBox(Gtk.Box):
         ##
         
         self.pvr_queue_check_button = Gtk.CheckButton("PVR")
-        self.pvr_queue_check_button.set_tooltip_text("Queue mode. " + TOOLTIP_OPTION_PVR_QUEUE)
+        self.pvr_queue_check_button.set_tooltip_text("Queue mode. " + TOOLTIP_OPTION_PVR_QUEUE + ", when clicking on the download button in the tool bar")
         self.pvr_queue_check_button.set_focus_on_click(False)
         grid.attach_next_to(self.pvr_queue_check_button, event_box, Gtk.PositionType.BOTTOM, 1, 1)
 
@@ -1041,11 +1051,10 @@ def _main_quit(main_window, event):
     Gtk.main_quit(main_window, event)
 
 def main():
-    #if not string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
-    if not string.str2bool(get_iplayer_downloader.settings.config().get(config.NOSECTION, "disable-presets")):
-        get_iplayer.check_preset_files()
+    #TODO: raise error count in the tool bar when precondition check(s) fail
+    get_iplayer.precheck()
 
-    # Load css file. Do this before window.show_all() since some themes don't resize after a css update
+    # Load CSS file. Do this before window.show_all() since some themes don't resize after a CSS update
     screen = Gdk.Screen.get_default()
     css_provider = Gtk.CssProvider()
     package_pathname = os.path.dirname(os.path.realpath(__file__))
