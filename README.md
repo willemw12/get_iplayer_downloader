@@ -124,7 +124,7 @@ and run it as:
     get_iplayer_downloader
     
 
-### Installing by install script
+### Install by installation script
 
 This should work on any Linux distribution. Run from this directory:
 
@@ -135,7 +135,7 @@ To uninstall, run from this directory:
     ./uninstall.sh
 
 
-### Installing as an Arch Linux package
+### Install an Arch Linux package
 
 To install the latest git version:
 
@@ -145,9 +145,9 @@ To install the latest version:
 
     ./install-pkg.sh
 
-### Installing as a Debian/Ubuntu package
+### Install a Debian/Ubuntu package
 
-__Warning: this does not work in Python 3. Distutils command "bdist_deb" in package "python-stdeb" is not available for Python 3.__
+__Warning: this does not work. Distutils command "bdist_deb" in package "python-stdeb" is not available for Python 3.__
 
     # Install build and package tools
     sudo apt-get install python-stdeb

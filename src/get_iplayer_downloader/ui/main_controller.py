@@ -120,7 +120,7 @@ class MainWindowController:
 
                 self.on_progress_bar_update(None)
 
-                window = props_window.PropertiesWindow(get_iplayer_output_lines, icon=self.main_window.get_icon())
+                window = props_window.PropertiesWindow(self, get_iplayer_output_lines, icon=self.main_window.get_icon())
                 window.show_all()
             else:
                 dialog = Gtk.MessageDialog(self.main_window, 0,

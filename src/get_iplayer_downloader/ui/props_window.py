@@ -14,18 +14,19 @@ from get_iplayer_downloader.ui.tools import image as Image
 
 class PropertiesWindow(Gtk.Window):
 
-    def __init__(self, get_iplayer_output_lines, icon=None):
+    def __init__(self, main_controller, get_iplayer_output_lines, icon=None):
         Gtk.Window.__init__(self, title="properties - " + get_iplayer_downloader.PROGRAM_NAME)
-        self.set_default_size(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH, get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT)
+        self.set_default_size(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH, 
+                              get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT)
         self.set_border_width(get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         #self.set_resizable(False)
         
         if icon is not None:
             self.set_icon(icon)
         
-        self._init_grid(get_iplayer_output_lines)
+        self._init_grid(main_controller, get_iplayer_output_lines)
 
-    def _init_grid(self, prop_table):
+    def _init_grid(self, controller, prop_table):
         ##min_content_height=600, min_content_width=600
         ##visible=True, can_focus=True, hscrollbar_policy=Gtk.Policy.AUTOMATIC, 
         #                               vscrollbar_policy=Gtk.Policy.AUTOMATIC
@@ -39,7 +40,8 @@ class PropertiesWindow(Gtk.Window):
         #scrolled_window.set_vexpand(True)
         self.add(scrolled_window)
 
-        self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+        self.grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, 
+                             margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         ##self.grid.set_row_homogeneous(False)
         ##self.grid.set_column_homogeneous(False)
         scrolled_window.add_with_viewport(self.grid)
@@ -64,10 +66,24 @@ class PropertiesWindow(Gtk.Window):
                 if image is not None:
                     self.grid.add(image)
 
+        #### Play button
+        
+        # The play button URL is basically the same as the "player" property URL
+        
+        #NOTE Do not expand/fill the button in the grid: halign=Gtk.Align.CENTER
+        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP, halign=Gtk.Align.CENTER)
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
+        #button.set_label("Play")
+        #button.set_tooltip_text(get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER)
+        button.set_tooltip_text("Go to BBC iPlayer web page")
+        button.connect("clicked", controller.on_button_play_clicked)
+        self.grid.add(button)
+
         #### Property table
         
-        #NOTE To expand the grid, expand one of its child widgets
-        frame = Gtk.Frame(label="Properties", label_xalign=0.01, margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, hexpand=True)
+        #NOTE To expand the main grid (self.grid), expand one of its child widgets: hexpand=True
+        frame = Gtk.Frame(label="Properties", label_xalign=0.01, hexpand=True,
+                          margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(frame)
 
         ####
@@ -80,7 +96,8 @@ class PropertiesWindow(Gtk.Window):
                            "type", "versions", "web"]
 
         prop_grid = Gtk.Grid(column_homogeneous=False, row_homogeneous=False,
-                             margin_top=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, margin_bottom=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+                             margin_top=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, 
+                             margin_bottom=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         frame.add(prop_grid)
         
         #focused_label = None
@@ -158,7 +175,8 @@ class PropertiesWindow(Gtk.Window):
 
         ####
 
-        frame = Gtk.Frame(label="Additional links", label_xalign=0.01, margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+        frame = Gtk.Frame(label="Additional links", label_xalign=0.01, 
+                          margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(frame)
 
         url = "<a href=\"http://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
@@ -174,7 +192,8 @@ class PropertiesWindow(Gtk.Window):
         url += file.files2urls(filepath)
 
         label1 = Gtk.Label(url, valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True,
-                           margin_top=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, margin_bottom=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+                           margin_top=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, 
+                           margin_bottom=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         label1.set_padding(get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, 0)
         label1.set_line_wrap(True)
         #WORD_CHAR
@@ -187,7 +206,8 @@ class PropertiesWindow(Gtk.Window):
         box = Gtk.Box(spacing=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(box)
         
-        button = Gtk.Button(stock=Gtk.STOCK_CLOSE, margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+        button = Gtk.Button(stock=Gtk.STOCK_CLOSE, 
+                            margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         button.connect("clicked", lambda user_data: self.destroy())
         box.pack_end(button, False, False, 0)
 
