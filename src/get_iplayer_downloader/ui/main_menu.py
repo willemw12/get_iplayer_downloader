@@ -35,6 +35,7 @@ class UIManager():
     </menu>
     -->
     <menu action="ToolsMenu">
+      <menuitem action="ViewPlayer"/>
       <menuitem action="ViewProperties"/>
       <menuitem action="ToolsDownload"/>
       <menuitem action="ToolsPvrQueue"/>
