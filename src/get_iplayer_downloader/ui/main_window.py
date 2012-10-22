@@ -217,7 +217,7 @@ class ToolBarBox(Gtk.Box):
         if show_button_labels:
             button.set_label("Play")
         button.set_tooltip_text(TOOLTIP_VIEW_PLAYER)
-        button.connect("clicked", self.main_window.controller().on_button_play_clicked)
+        button.connect("clicked", self.main_window.controller().on_button_play_clicked, None)
         self.pack_start(button, False, False, 0)
         focus_chain.append(button)
 

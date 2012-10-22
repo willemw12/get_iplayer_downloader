@@ -58,33 +58,39 @@ class MainWindowController:
         # Initialize label text
         self.on_progress_bar_update(None)
 
-    def on_button_play_clicked(self, button):
+    def on_button_play_clicked(self, button, pid):
+        """ If @pid is None, then play selected episode in the tree view """
         # button can be None
-        model, tree_iter = self.main_tree_view.get_selection().get_selected()
-        if tree_iter is not None:
-            #index = model[tree_iter][SearchResultColumn.INDEX]
-            #if index:
-            
-            # Generate player URL. Note that get_iplayer does not retrieve 
-            # the value of the <player> field when searching episodes
-            pid = model[tree_iter][SearchResultColumn.PID]
-            if pid:
-                url = "http://www.bbc.co.uk/iplayer/episode/" + pid
-                webbrowser.open_new_tab(url)
+        if pid is None:
+            # Get PID from selected episode in the tree view
+            model, tree_iter = self.main_tree_view.get_selection().get_selected()
+            if tree_iter is not None:
+                #index = model[tree_iter][SearchResultColumn.INDEX]
+                #if index:
+                
+                # Generate player URL. Note that get_iplayer does not retrieve 
+                # the value of the <player> field when searching episodes
+                pid = model[tree_iter][SearchResultColumn.PID]
+                if pid is None:
+                    dialog = Gtk.MessageDialog(self.main_window, 0,
+                                               Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                               "No episode is highlighted. A serie is highlighted")
+                    #dialog.format_secondary_text("")
+                    dialog.run()
+                    dialog.destroy()
+                    #return
             else:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "No episode is highlighted. A serie is highlighted")
+                                           "No episode is highlighted")
                 #dialog.format_secondary_text("")
                 dialog.run()
                 dialog.destroy()
-        else:
-            dialog = Gtk.MessageDialog(self.main_window, 0,
-                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No episode is highlighted")
-            #dialog.format_secondary_text("")
-            dialog.run()
-            dialog.destroy()
+                #return
+
+        if pid:
+            url = "http://www.bbc.co.uk/iplayer/episode/" + pid
+            webbrowser.open_new_tab(url)
 
     def on_button_properties_clicked(self, button):
         # button can be None

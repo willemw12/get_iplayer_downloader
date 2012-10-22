@@ -46,12 +46,18 @@ class PropertiesWindow(Gtk.Window):
         ##self.grid.set_column_homogeneous(False)
         scrolled_window.add_with_viewport(self.grid)
 
-        #### Thumbnail
+        ##
         
         image_url = None
+        pid = None
         for prop_label, prop_value in prop_table:
             if prop_label == "thumbnail" or prop_label == "thumbnail4":
                 image_url = prop_value
+            if prop_label == "pid":
+                pid = prop_value
+        
+        #### Thumbnail
+        
         ##ALTERNATIVE
         #for i in range(len(prop_table)):
         #    if prop_table[i][InfoResultColumn.PROP_LABEL /* 0 */] == "thumbnail4":
@@ -76,7 +82,7 @@ class PropertiesWindow(Gtk.Window):
         #button.set_label("Play")
         #button.set_tooltip_text(get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER)
         button.set_tooltip_text("Go to BBC iPlayer web page")
-        button.connect("clicked", controller.on_button_play_clicked)
+        button.connect("clicked", controller.on_button_play_clicked, pid)
         self.grid.add(button)
 
         #### Property table
