@@ -74,7 +74,7 @@ class MainWindowController:
                 if pid is None:
                     dialog = Gtk.MessageDialog(self.main_window, 0,
                                                Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                               "No episode is highlighted. A serie is highlighted")
+                                               "No episode highlighted. A serie is highlighted")
                     #dialog.format_secondary_text("")
                     dialog.run()
                     dialog.destroy()
@@ -131,7 +131,7 @@ class MainWindowController:
             else:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "No episode is highlighted. A serie is highlighted")
+                                           "No episode highlighted. A serie is highlighted")
                 #dialog.format_secondary_text("")
                 dialog.run()
                 dialog.destroy()
@@ -205,7 +205,7 @@ class MainWindowController:
         if len(pid_list) == 0:
             dialog = Gtk.MessageDialog(self.main_window, 0,
                                        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No episodes are selected")
+                                       "No episodes selected")
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
