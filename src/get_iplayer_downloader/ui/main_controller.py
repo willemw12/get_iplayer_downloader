@@ -172,11 +172,12 @@ class MainWindowController:
     
         force = self.tool_bar_box.force_check_button.get_active()
         
-        pvr_queue_chechbox_state = self.tool_bar_box.pvr_queue_check_button.get_active()
-        if button is not None and not pvr_queue:
-            # If event was raised from the tool bar download button and not from a keyboard shortcut,
-            # then the PVR check button determines the download/queue mode
-            pvr_queue = pvr_queue_chechbox_state
+        #PVR_CHECK_BUTTON
+        #pvr_queue_checkbox_state = self.tool_bar_box.pvr_queue_check_button.get_active()
+        #if button is not None and not pvr_queue:
+        #    # If event was raised from the tool bar download button and not from a keyboard shortcut,
+        #    # then the PVR check button determines the download/queue mode
+        #    pvr_queue = pvr_queue_checkbox_state
         
         # Search selected leaf nodes (the second level) two levels deep
         model = self.main_tree_view.get_model()
@@ -234,7 +235,9 @@ class MainWindowController:
         # the number of >all< the get_iplayer processes on the system)
         # (TODO Limit self.processes to the get_iplayer processes which belong
         # to the current get_iplayer_downloader process)
-        if gipd_processes == 1 and not pvr_queue:
+        #PVR_CHECK_BUTTON
+        #if gipd_processes == 1 and not pvr_queue:
+        if gipd_processes == 1:
             pid_set = set(pid_list)
             # Update self.processes now, to avoid any progress bar update delay
             self._update_processes_count()
@@ -279,9 +282,12 @@ class MainWindowController:
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
-        elif pvr_queue_chechbox_state or pvr_queue or future:
-            # If implicitly or explicitly queuing, always show the Queued Episodes dialog window,
-            # even if nothing will be queued
+        #PVR_CHECK_BUTTON
+        #elif pvr_queue_checkbox_state or pvr_queue or future:
+        #    # If implicitly or explicitly queuing, always show the Queued Episodes dialog window,
+        #    # even if nothing will be queued
+        elif pvr_queue or future:
+            # When queuing episodes, always show the Queued Episodes dialog window, even if nothing will be queued
             dialog = ExtendedMessageDialog(self.main_window, 0, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
                                            "Queued Episodes")
             #dialog.format_secondary_text("")
@@ -300,7 +306,7 @@ class MainWindowController:
         #else:
         #    self.main_window.main_tree_view.grab_focus()
 
-    def on_button_pvr_queue_clicked(self):
+    def on_button_pvr_queue_clicked(self, button):
         self.on_button_download_clicked(None, pvr_queue=True)
 
     def on_button_clear_clicked(self, button):
@@ -519,7 +525,8 @@ class MainWindowController:
     
     def on_check_button_future_clicked(self, check_button):
         if check_button.get_active():
-            self.tool_bar_box.pvr_queue_check_button.set_active(True)
+            #PVR_CHECK_BUTTON
+            #self.tool_bar_box.pvr_queue_check_button.set_active(True)
 
             ## Limit the initial search result to future episodes
             #combo = self.tool_bar_box.since_combo
@@ -530,7 +537,8 @@ class MainWindowController:
             self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_disabled_store)
             self.tool_bar_box.category_combo.set_active(0)
         else:
-            self.tool_bar_box.pvr_queue_check_button.set_active(False)
+            #PVR_CHECK_BUTTON
+            #self.tool_bar_box.pvr_queue_check_button.set_active(False)
 
             # Set since filter to now or as close as possible (since 1 hour)
             #combo = self.tool_bar_box.since_combo

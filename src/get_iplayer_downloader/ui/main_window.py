@@ -26,7 +26,8 @@ TOOLTIP_VIEW_LOG = "View download log"
 
 #TOOLTIP_EDIT_PREFERENCES
 
-TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected episodes, or queue episodes if 'PVR' is enabled"
+#PVR_CHECK_BUTTON
+#TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected episodes, or queue episodes if 'PVR' is enabled"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected episodes"
 TOOLTIP_TOOLS_CLEAR = "Clear episode download selection"
 TOOLTIP_TOOLS_REFRESH = "Refresh episode cache, limited of the selected programme type (radio, podcast or TV)"
@@ -236,8 +237,20 @@ class ToolBarBox(Gtk.Box):
         button.set_image(Gtk.Image(stock=Gtk.STOCK_GOTO_BOTTOM))
         if show_button_labels:
             button.set_label("_Download")
-        button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
+        #PVR_CHECK_BUTTON
+        #button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE)
+        button.set_tooltip_text(TOOLTIP_TOOLS_DOWNLOAD)
         button.connect("clicked", self.main_window.controller().on_button_download_clicked)
+        self.pack_start(button, False, False, 0)
+        focus_chain.append(button)
+
+        button = Gtk.Button(use_underline=True, relief=Gtk.ReliefStyle.NONE,
+                            image_position=Gtk.PositionType.TOP)
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_DND_MULTIPLE))
+        if show_button_labels:
+            button.set_label("_Queue")
+        button.set_tooltip_text(TOOLTIP_OPTION_PVR_QUEUE)
+        button.connect("clicked", self.main_window.controller().on_button_pvr_queue_clicked)
         self.pack_start(button, False, False, 0)
         focus_chain.append(button)
 
@@ -593,10 +606,11 @@ class ToolBarBox(Gtk.Box):
 
         ##
         
-        self.pvr_queue_check_button = Gtk.CheckButton("PVR")
-        self.pvr_queue_check_button.set_tooltip_text("Queue mode. " + TOOLTIP_OPTION_PVR_QUEUE + ", when clicking on the download button in the tool bar")
-        self.pvr_queue_check_button.set_focus_on_click(False)
-        grid.attach_next_to(self.pvr_queue_check_button, event_box, Gtk.PositionType.BOTTOM, 1, 1)
+        #PVR_CHECK_BUTTON
+        #self.pvr_queue_check_button = Gtk.CheckButton("PVR")
+        #self.pvr_queue_check_button.set_tooltip_text("Queue mode. " + TOOLTIP_OPTION_PVR_QUEUE + ", when clicking on the download button in the tool bar")
+        #self.pvr_queue_check_button.set_focus_on_click(False)
+        #grid.attach_next_to(self.pvr_queue_check_button, event_box, Gtk.PositionType.BOTTOM, 1, 1)
 
         ##
 

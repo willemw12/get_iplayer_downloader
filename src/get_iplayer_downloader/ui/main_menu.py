@@ -164,10 +164,10 @@ class UIManager():
 
     def _add_tools_menu_actions(self, action_group):
         action_group.add_actions([
-            ("ToolsMenu", None, "Programme"),
+            ("ToolsMenu", None, "Episode"),
             #Gtk.STOCK_GO_DOWN
             ("ToolsDownload", Gtk.STOCK_GOTO_BOTTOM, "_Download", "<control>D", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
-            ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", "Queue mode. " + get_iplayer_downloader.ui.main_window.TOOLTIP_OPTION_PVR_QUEUE, self._on_menu_others),
+            ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", get_iplayer_downloader.ui.main_window.TOOLTIP_OPTION_PVR_QUEUE, self._on_menu_others),
             ("ToolsClear", Gtk.STOCK_CLEAR, "_Clear", "<control>C", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_CLEAR, self._on_menu_others),
             ("ToolsRefresh", Gtk.STOCK_REFRESH, "_Refresh", "<control>R", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_REFRESH, self._on_menu_others)
         ])
@@ -225,7 +225,7 @@ class UIManager():
         elif name == "ToolsDownload":
             self.main_window.controller().on_button_download_clicked(None)
         elif name == "ToolsPvrQueue":
-            self.main_window.controller().on_button_pvr_queue_clicked()
+            self.main_window.controller().on_button_pvr_queue_clicked(None)
         elif name == "ToolsClear":
             self.main_window.controller().on_button_clear_clicked(None)
         elif name == "ToolsRefresh":

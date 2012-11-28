@@ -375,7 +375,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         if pvr_queue:
             if not preset:
                 return False
-            # Must explicitly specify programme type and PID on the command line in queue mode
+            # Must explicitly specify programme type and PID on the command line when in pvr queue mode
             cmd += " --pvrqueue --pid="
             #cmd += " --pvr-exclude=" + ",".join(exclude_search_term_list)
         elif pid:
