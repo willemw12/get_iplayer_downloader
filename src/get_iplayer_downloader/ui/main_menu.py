@@ -167,7 +167,7 @@ class UIManager():
             ("ToolsMenu", None, "Episode"),
             #Gtk.STOCK_GO_DOWN
             ("ToolsDownload", Gtk.STOCK_GOTO_BOTTOM, "_Download", "<control>D", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_DOWNLOAD, self._on_menu_others),
-            ("ToolsPvrQueue", Gtk.STOCK_DND_MULTIPLE, "_Queue", "<control>Q", get_iplayer_downloader.ui.main_window.TOOLTIP_OPTION_PVR_QUEUE, self._on_menu_others),
+            ("ToolsPvrQueue", Gtk.STOCK_COPY, "_Queue", "<control>Q", get_iplayer_downloader.ui.main_window.TOOLTIP_OPTION_PVR_QUEUE, self._on_menu_others),
             ("ToolsClear", Gtk.STOCK_CLEAR, "_Clear", "<control>C", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_CLEAR, self._on_menu_others),
             ("ToolsRefresh", Gtk.STOCK_REFRESH, "_Refresh", "<control>R", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_REFRESH, self._on_menu_others)
         ])

@@ -246,7 +246,7 @@ class ToolBarBox(Gtk.Box):
 
         button = Gtk.Button(use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_DND_MULTIPLE))
+        button.set_image(Gtk.Image(stock=Gtk.STOCK_COPY))
         if show_button_labels:
             button.set_label("_Queue")
         button.set_tooltip_text(TOOLTIP_OPTION_PVR_QUEUE)
