@@ -1,7 +1,7 @@
 get\_iplayer\_downloader
 ========================
 
-get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays programme episodes in a large tree view with two main columns: serie title and episode title plus episode description. This program works best with a screen resolution of 1024x768 or higher. You can continue using the program, while get\_iplayer is downloading in the background. Note that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading programme episodes.
+get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: serie title, serie categories and episode title plus episode description. This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
 
 It is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
@@ -47,8 +47,8 @@ Configuration
 
 get\_iplayer\_downloader's default configuration has two get\_iplayer presets defined:
 
-* radio - for radio programme episodes and podcasts
-* tv - for television programme episodes
+* radio - for radio episodes and podcasts
+* tv - for television episodes
 
 The preset names are configurable.
 
@@ -78,25 +78,25 @@ Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` w
 
 There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the aactomp3 option in that case.
 
-Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued programme episodes. Check the get\_iplayer documentation on how to do that.
+Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued episodes. Check the get\_iplayer documentation on how to do that.
 
 
 ### get\_iplayer\_downloader
 
 Most configuration options can be managed from the GUI. Other options can be found in the configuration file (~/.config/get\_iplayer\_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Add a minus sign in front of a channel or a category to exclude it from the search and cache refresh. When searching programme episodes, add a minus sign in front of the whole search term to exclude it from the search.
+Add a minus sign in front of a channel or a category to exclude it from the search and cache refresh. When searching episodes, add a minus sign in front of the whole search term to exclude it from the search.
 
 Leave options, such as Channels and Download folder, empty in Preferences to use the default value specified in get\_iplayer.
 
-Before downloading programme episodes for the first time, verify the download paths and optionally the terminal emulator program name and options.
+Before downloading episodes for the first time, verify the download paths and optionally the terminal emulator program name and options.
 
 The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs, i.e. "search term"-"GUI label" pairs). File ./extra/my\_config is an example. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet
 
-If the program crashes immediately on startup or when the mouse cursor moves over the first column in the programme episode search result list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
+If the program crashes immediately on startup or when the mouse cursor moves over the first column in the episode search result list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
 
 
 
@@ -188,9 +188,9 @@ The keyboard shortcuts are:
 Extra
 -----
 
-Want to group downloaded programme episodes by their specific category or by week?
+Want to group downloaded episodes by their specific category or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option and can be used without get\_iplayer\_downloader. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 

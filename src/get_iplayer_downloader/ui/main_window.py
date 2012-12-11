@@ -48,8 +48,8 @@ TOOLTIP_FILTER_SINCE = "Filter on episodes recently added to the cache. The filt
 
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue episodes with the alternative set of recording modes"
 TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off. The filter is off when the filter label is 'Categories', 'Channels' or empty"
-TOOLTIP_OPTION_FORCE = "Force download or force refresh of episode cache"
-TOOLTIP_OPTION_FUTURE = "Include or exclude future episodes in the search result list and future episode information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future episodes in the cache. The category filter is disabled in 'Future' mode. Also enable 'PVR' to queue future episodes for downloading"
+TOOLTIP_OPTION_FORCE = "Force download or force refresh of the episode cache"
+TOOLTIP_OPTION_FUTURE = "Include or exclude future episodes in the search result list and future episode information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future episodes in the cache. The category filter is disabled in 'Future' mode"
 
 TOOLTIP_OPTION_PVR_QUEUE = "Queue selected episodes for one-off downloading"
 
@@ -65,7 +65,7 @@ TOOLTIP_HELP_ABOUT = "About this program"
 WINDOW_MAIN_HEIGHT = 720
 
 WINDOW_LARGE_WIDTH = 800
-WINDOW_LARGE_HEIGHT = 700
+WINDOW_LARGE_HEIGHT = 800
 
 #WINDOW_MEDIUM_WIDTH = 600
 #WINDOW_MEDIUM_HEIGHT = 500
@@ -794,8 +794,8 @@ class MainTreeView(Gtk.TreeView):
 
         #### Second column
 
-        #max_width_chars=250
-        renderer = Gtk.CellRendererText(width=250)
+        #max_width_chars=256
+        renderer = Gtk.CellRendererText(width=256)
         renderer.set_property("height", row_height)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Serie", renderer, text=SearchResultColumn.SERIE)
@@ -805,22 +805,22 @@ class MainTreeView(Gtk.TreeView):
         
         #### Third column
 
+        renderer = Gtk.CellRendererText(width=192)
+        renderer.set_property("height", row_height)
+        #sizing=Gtk.TreeViewColumn.FIXED
+        column = Gtk.TreeViewColumn("Categories", renderer, text=SearchResultColumn.CATEGORIES)
+        column.set_resizable(True)
+        column.set_max_width(600)
+        self.append_column(column)
+
+        #### Fourth column
+
         renderer = Gtk.CellRendererText()
         renderer.set_property("height", row_height)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Episode ~ Description", renderer, text=SearchResultColumn.EPISODE)
         column.set_resizable(True)
         self.append_column(column)
-
-        #### Fourth column
-
-        #renderer = Gtk.CellRendererText(width=250)
-        #renderer.set_property("height", row_height)
-        ##sizing=Gtk.TreeViewColumn.FIXED
-        #column = Gtk.TreeViewColumn("Categories", renderer, text=SearchResultColumn.CATEGORIES)
-        #column.set_resizable(True)
-        #column.set_max_width(600)
-        #self.append_column(column)
 
     def _get_column_width(self, n):
         return self.get_column(n).get_width()
@@ -860,9 +860,9 @@ class MainTreeView(Gtk.TreeView):
         channel = model.get_value(tree_iter, SearchResultColumn.CHANNELS)
         image_url = model.get_value(tree_iter, SearchResultColumn.THUMBNAIL_SMALL)
 
-        categories = model.get_value(tree_iter, SearchResultColumn.CATEGORIES)
-        if not categories or categories == "Unknown":
-            categories = None
+        #categories = model.get_value(tree_iter, SearchResultColumn.CATEGORIES)
+        #if not categories or categories == "Unknown":
+        #    categories = None
 
         available = model.get_value(tree_iter, SearchResultColumn.AVAILABLE)
         if not available or available == "Unknown":
@@ -875,8 +875,8 @@ class MainTreeView(Gtk.TreeView):
         #
 
         tooltip_text = "" + markup.text2html(channel)
-        if categories is not None:
-            tooltip_text += "\n" + markup.text2html(categories)
+        #if categories is not None:
+        #    tooltip_text += "\n" + markup.text2html(categories)
         if available is not None:
             tooltip_text += "\navailable: " + available
         if duration is not None:
@@ -1020,6 +1020,9 @@ class MainTreeView(Gtk.TreeView):
                     i += 1
                 root_iter = store.append(None, row)            
             else:
+                # Don't repeat serie information for each episode
+                row[SearchResultColumn.CATEGORIES] = None
+
                 # Child/leave level row (an episode)
                 store.append(root_iter, row)
             i += 1
