@@ -7,6 +7,12 @@ def str2float(string):
     except ValueError:
         return 0.0
 
+def str2int(string):
+    try:
+        return int(string)
+    except ValueError:
+        return 0
+
 # Python 2
 #def decode(string):
 #    # Simple decoding

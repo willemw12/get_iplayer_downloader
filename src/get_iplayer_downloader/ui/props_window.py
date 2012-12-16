@@ -50,13 +50,16 @@ class PropertiesWindow(Gtk.Window):
         
         image_url = None
         pid = None
+        title = None
         for prop_label, prop_value in prop_table:
-            if prop_label == "thumbnail" or prop_label == "thumbnail4":
-                image_url = prop_value
             if prop_label == "pid":
                 pid = prop_value
+            if prop_label == "thumbnail" or prop_label == "thumbnail4":
+                image_url = prop_value
+            if prop_label == "title":
+                title = prop_value
         
-        #### Thumbnail
+        #### Thumbnail, title, play button
         
         ##ALTERNATIVE
         #for i in range(len(prop_table)):
@@ -72,14 +75,17 @@ class PropertiesWindow(Gtk.Window):
                 if image is not None:
                     self.grid.add(image)
 
-        #### Play button
-        
-        # The play button URL is basically the same as the "player" property URL
-        
+        label1 = Gtk.Label(title, halign=Gtk.Align.CENTER)
+        #label1.set_selectable(False)
+        self.grid.add(label1)
+
+        # The play button URL is the same as the "player" property URL
         #NOTE Do not expand/fill the button in the grid: halign=Gtk.Align.CENTER
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP, halign=Gtk.Align.CENTER)
         button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
         #button.set_label("Play")
+        #if title is not None:
+        #    button.set_label(title)
         #button.set_tooltip_text(get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER)
         button.set_tooltip_text("Go to BBC iPlayer web page")
         button.connect("clicked", controller.on_button_play_clicked, pid)
@@ -92,7 +98,7 @@ class PropertiesWindow(Gtk.Window):
                           margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(frame)
 
-        ####
+        ##
         
         PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir",
                            "duration", "episode", "expiry", "expiryrel",
@@ -147,7 +153,7 @@ class PropertiesWindow(Gtk.Window):
         #    # Avoid highlighted text
         #    focused_label.select_region(0, 0)
         
-        ####
+        ##
 
         ##ALTERNATIVE array indexing and populating Gtk.Grid
         #self.table = Gtk.Table()
@@ -158,7 +164,7 @@ class PropertiesWindow(Gtk.Window):
         #        ...
         #        self.table.attach(label, x, x+1, y, y+1)
 
-        ####
+        ##
         
         ##ALTERNATIVE however, Gtk.Grid has better geometry management
         #prop_table = Gtk.Table(len(prop_list), len(prop_list[0]), False)
@@ -179,7 +185,7 @@ class PropertiesWindow(Gtk.Window):
         #    
         #    i += 1
 
-        ####
+        #### Additional Links
 
         frame = Gtk.Frame(label="Additional links", label_xalign=0.01, 
                           margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
@@ -207,7 +213,7 @@ class PropertiesWindow(Gtk.Window):
         #label1.set_selectable(False)
         frame.add(label1)
 
-        ####
+        #### Buttons
         
         box = Gtk.Box(spacing=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(box)

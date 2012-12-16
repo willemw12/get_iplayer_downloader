@@ -103,14 +103,6 @@ If the program crashes immediately on startup or when the mouse cursor moves ove
 Installation
 ------------
 
-There are several ways to install the program, see sections below.
-
-After installation, run:
-
-    get_iplayer_downloader
-
-or run it from the desktop menu.
-
 To execute without installing, run:
 
     <path to this directory>/src/get_iplayer_downloader.py
@@ -119,10 +111,18 @@ Or create a symbolic link of get\_iplayer\_downloader.py in a directory of $PATH
 
     ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/get_iplayer_downloader
 
-and run it as:
+and run:
 
     get_iplayer_downloader
     
+There are several ways to install the program, see below.
+
+After installation, run:
+
+    get_iplayer_downloader
+
+or run it from the desktop menu.
+
 
 ### Install by installation script
 

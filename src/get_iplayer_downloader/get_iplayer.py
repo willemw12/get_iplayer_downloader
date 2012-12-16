@@ -27,7 +27,8 @@ VALUE_INDEX = 1
 
 _GET_IPLAYER_PROG = "get_iplayer"
 
-_SINCE_HOUR_MARGIN = 6
+#_SINCE_HOUR_MARGIN = 6
+_SINCE_HOUR_MARGIN = string.str2int(settings.config().get(config.NOSECTION, "since-margin-hours", fallback=6))
 
 _COMPACT_TOOLBAR = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
 _ALL_CATEGORIES_LABEL = ALL_CATEGORIES_LABEL if _COMPACT_TOOLBAR else ""
