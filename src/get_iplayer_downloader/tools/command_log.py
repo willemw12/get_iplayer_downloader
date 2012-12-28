@@ -14,8 +14,10 @@ def _log_text(string, markup):
     
 def _log_cmd_file(dirpath, filename, full=False, markup=False):
     """ Return log messages from single command log file @dirpath/@filename.
-        Return all download logs (get_iplayer --get or --pid), plus any command log file containing errors (FATAL, ERROR or WARNING log messages).
-        If @full is true, return the whole command log file, otherwise return only error and episode download messages.
+        Return all download logs (get_iplayer --get or --pid),
+        plus any command log file containing errors (FATAL, ERROR or WARNING log messages).
+        If @full is true, return the whole command log file, otherwise return only error 
+        and episode download messages.
         If @markup is true, then error messages will be in bold.
     """
     
@@ -51,7 +53,10 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                         pass
 
                 if markup:
-                    log_output += "<b>" + _log_text(line, markup) + "</b>"
+                    if line.startswith("FATAL") or line.startswith("ERROR"):
+                        log_output += "<b>" + _log_text(line, markup) + "</b>"
+                    else:
+                        log_output += _log_text(line, markup)
                 else:
                     log_output += line
                 prev_line_index = i
@@ -70,10 +75,17 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                             log_output += _log_text(lines[i + 1], markup)
                             prev_line_index = i
                         elif line.startswith("INFO: No specified modes") or \
-                             (is_error_cmd and (line == "Download complete\n" or line.startswith("Resuming download") or line.startswith("INFO: Command exit code"))):
+                             (is_error_cmd and (line == "Download complete\n" or
+                                                line.startswith("Resuming download") or
+                                                line.startswith("INFO: Command exit code"))):
                             # Log additional messages when current command has an error
                             if markup:
-                                log_output += "<b>" + _log_text(line, markup) + "</b>"
+                                if line.startswith("FATAL") or line.startswith("ERROR"):
+                                    log_output += "<b>" + _log_text(line, markup) + "</b>"
+                                elif line == "Download complete\n":
+                                    log_output += "<b><i>" + _log_text(line, markup) + "</i></b>"
+                                else:
+                                    log_output += _log_text(line, markup)
                             else:
                                 log_output += line
                             prev_line_index = i
@@ -121,7 +133,7 @@ def download_log(temp_pathname, full=False, markup=False, sort_by_mtime=False):
     return log_output
 
 def download_errors(temp_pathname):
-    """ Return the number of today's FATAL, ERROR and WARNING download log messages found in command log files. """
+    """ Return the number of today's FATAL and ERROR download log messages found in command log files. """
     
     errors = 0
     # Restrict to today's download log
@@ -133,6 +145,6 @@ def download_errors(temp_pathname):
                 with open(os.path.join(dirpath, filename), "r", encoding="LATIN-1") as file:
                     lines = file.readlines()
                     for line in lines:
-                        if line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
+                        if line.startswith("FATAL") or line.startswith("ERROR"):
                             errors += 1
     return errors

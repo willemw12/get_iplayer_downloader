@@ -22,7 +22,7 @@ def download_log(**keywords):
     return log_output
 
 def download_errors():
-    """ Return the number of today's FATAL, ERROR and WARNING download log messages. """
+    """ Return the number of today's FATAL and ERROR download log messages. """
     return command_log.download_errors(settings.TEMP_PATHNAME)
 
 def clear_cache():
