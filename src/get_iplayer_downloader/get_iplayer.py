@@ -116,7 +116,7 @@ class SearchResultColumn:
     DOWNLOAD = 0
     PID = 1
     INDEX = 2
-    SERIE = 3
+    SERIES = 3
     EPISODE = 4
     CATEGORIES = 5
     CHANNELS = 6
@@ -266,6 +266,16 @@ def search(search_text, preset=None, prog_type=None,
     for line in lines:
         #NOTE with "def __len__()" in a metaclass: l = line.split("|", len(SearchResultColumn) - 1)
         l = line.split("|", 9)
+
+        # Make sure the line array contains at least 10 items (avoid IndexError exception)
+        # This better than catching IndexError exceptions below, which currently will discard the whole episode line
+        # TODO sanitize process_output.
+        #      An episode description sometimes contain a newline character or a | character.
+        #      Split() will only split the first line
+        for unused in range(len(l), 9 + 1):
+            l.extend([''])
+        #ALTERNATIVE catch exceptions 
+
         # Skip empty lines
         if l[0]:
             # Match string containing only spaces
@@ -274,36 +284,40 @@ def search(search_text, preset=None, prog_type=None,
             #2) CHECK_RE = re.compile('[ -]+$'); CHECK_RE.match(l)
             #3) re.match("^[ ]+$", l)
             if level == 0 and l[0].isspace():
-                # Going from root level (level 0, a serie) to level 1 (an episode)
+                # Going from root level (level 0, a series) to level 1 (an episode)
                 level = 1
                 copy = True
                 if l_prev:
-                    # Add serie line.
-                    # Serie title is copied from the previous line (root level, level 0, a serie)
+                    # Add series line.
+                    # Series title is copied from the previous line (root level, level 0, a series)
                     # Categories, channels and thumbnail url, etc. are copied from the current line (level 1, an episode)
-                    # No PID or index available for a serie from the output of get_iplayer --tree
+                    # No PID or index available for a series from the output of get_iplayer --tree
                     try:
                         output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
                     except IndexError:    # as exc:
                         pass
             if level == 1 and not l[0].isspace():
-                # Going from level 1 (an episode) to root level (level 0, a serie)
+                # Going from level 1 (an episode) to root level (level 0, a series)
                 level = 0
                 copy = False
             #if level == 1 and copy:
             if copy:
                 # Add an episode line. Episode title and description from the current line
-                if l[3].startswith("- ~ "):
-                    # No episode title
-                    output_lines.append([False, l[1], l[2], None, l[3][len("- ~ "):], l[4], l[5], l[6], l[7], l[8]])
-                else:
-                    output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8]])
+                try:
+                    if l[3].startswith("- ~ "):
+                        # No episode title
+                        output_lines.append([False, l[1], l[2], None, l[3][len("- ~ "):], l[4], l[5], l[6], l[7], l[8]])
+                    else:
+                        output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8]])
+                except IndexError:    # as exc:
+                    pass
             l_prev = l
 
     return output_lines
 
 def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None,
-        alt_recording_mode=False, force=False, output_path=None, categories=None, future=False):
+        alt_recording_mode=False, dry_run=False, force=False, output_path=None,
+        categories=None, future=False):
     """ Run get_iplayer --get, get_iplayer --pid or get_iplayer --pvrqueue.
         If @pid is true, then @search_term_list contains pids.
         Return tuple: launched boolean, process output string.
@@ -316,7 +330,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
     else:
         output_path = None
         
-    #WORKAROUND Preset can be None: disable-presets is true AND models and configuration are based on presets, not on programme types
+    #WORKAROUND Preset can be None: disable-presets is true AND data models and configuration are based on presets, not on programme types
     #if preset and string.str2bool(settings.config().get(preset, "run-in-terminal")):
     #    terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
     #else:
@@ -325,7 +339,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
     if preset:
         preset_fallback = preset
     else:
-        # Determine preset from programem type
+        # Determine preset from programme type
         if prog_type == ProgType.RADIO or prog_type == ProgType.PODCAST:
             preset_fallback = Preset.RADIO
         elif prog_type == ProgType.TV:
@@ -392,10 +406,10 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         if (i < len(search_term_list) - 1):
             cmd += "; "
 
-    if pvr_queue:
+    if pvr_queue or dry_run:
         launched = True
-        process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
-    else:    
+        process_output = command.run(cmd, dry_run=dry_run, temp_pathname=settings.TEMP_PATHNAME)
+    else:
         #CommandQueue.CommandQueue().run(...)
         launched = command_queue.run(cmd, temp_pathname=settings.TEMP_PATHNAME, terminal_prog=terminal_prog, terminal_title="get_iplayer get")
         process_output = None
@@ -404,7 +418,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
 
 def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=False):
     """ Run get_iplayer --info.
-        Return table with columns: serie title, episode title plus description.
+        Return table with columns: series title, episode title plus description.
     """
     
     # Only useful from outside the UK:

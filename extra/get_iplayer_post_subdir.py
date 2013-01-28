@@ -7,7 +7,10 @@ import sys
 import re
 import shutil
 import tempfile
+
 from datetime import datetime
+
+from get_iplayer_downloader.tools import file
 
 progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
 logger = logging.getLogger(progname)
@@ -98,63 +101,6 @@ def _init_loggers():
     elif args.quiet:
         logger.setLevel(logging.FATAL)
 
-def _sanitize_path(path, include_substitution_markers):
-    # Sanitize directory path, optionally including substitution marker 
-    # characters < and >, i.e. collapse adjacent invalid characters into a 
-    # single _ character or remove invalid characters
-
-    # Match and replace ! and perhaps other characters, which as program
-    # arguments have been translated by Python or get_iplayer into \! and 
-    # this would otherwise result in an _ in the sanitized path
-    p = re.compile(r"(\\\!+)")
-    path = p.sub("", path)
-
-    #PERL based on get_iplayer's Perl code
-    #sub StringUtils::sanitize_path {
-    # Remove fwd slash if reqd
-    #$string =~ s/\//_/g if ! $allow_fwd_slash;
-    # Replace backslashes with _ regardless
-    #$string =~ s/\\/_/g;
-    # Sanitize by default
-    #$string =~ s/\s+/_/g if (! $opt->{whitespace}) && (! $allow_fwd_slash);
-    #
-    # Similar to Perl code, however, exclude matching forward slash.
-    # \s means whitespace
-    if os.name == "posix":
-        p = re.compile(r"([\\\s]+)")
-    else:
-        p = re.compile(r"([\s]+)")
-    path = p.sub("_", path)
-
-    #PERL based on get_iplayer's Perl code
-    #$string =~ s/[^\w_\-\.\/\s]//gi if ! $opt->{whitespace};
-    #
-    # Similar to Perl code, however, also exclude matching substitution marker
-    # characters < and >
-    p = re.compile(r"([^\w_\-\.\/\s<>]+)")
-    path = p.sub("", path)
-
-    #PERL based on get_iplayer's Perl code
-    #$string =~ s/[\|\\\?\*\<\"\:\>\+\[\]\/]//gi if $opt->{fatfilename};
-    #
-    # Similar to Perl code, however, exclude matching forward slash and 
-    # substitution marker characters < and >
-    p = re.compile(r"([\|\\\?\*\"\:\+\[\]]+)")
-    path = p.sub("", path)
-
-    # Replace substitution marker characters < and >
-    if include_substitution_markers:
-        p = re.compile(r"([<>]+)")
-        path = p.sub("_", path)
-
-    #PERL based on get_iplayer's Perl code
-    # Truncate multiple '_'
-    #$string =~ s/_+/_/g;
-    p = re.compile(r"([_]+)")
-    path = p.sub("_", path)
-
-    return path
-
 def _move_file(categories, dirname, filename, force, subdir_format):
     logger.debug("move_file(): filename = \"{0}\", categories = \"{1}\", dirname = \"{2}\", force = {3}, subdir_format = \"{4}\"".format(filename, categories, dirname, force, subdir_format))
 
@@ -185,7 +131,7 @@ def _move_file(categories, dirname, filename, force, subdir_format):
             # Merge duplicate string values separated by sanitized separators or
             # other valid separator characters (-)
  
-            subdir_format = _sanitize_path(subdir_format, False)
+            subdir_format = file.sanitize_path(subdir_format, False)
         
             #NOTE p.sub replaces that whole search string, not just the group in the search string
             #     --> use non-consuming, fixed-length lookaheads (?=...) and lookbehinds (?<=...)
@@ -205,7 +151,7 @@ def _move_file(categories, dirname, filename, force, subdir_format):
             #sys.exit(1)
 
     # Sanitize everything in subdir again, to sanitize the substituted values and unrecognized substitutions (field formatting)
-    subdir_format = _sanitize_path(subdir_format, True)
+    subdir_format = file.sanitize_path(subdir_format, True)
 
     # Move the file
     try:

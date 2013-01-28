@@ -45,7 +45,7 @@ class MainWindowController:
             else:
                 self.processes = 0
         except ValueError:
-            # Sometmies self.processes is not a valid int (empty string?)
+            # Sometimes self.processes is not a valid int (empty string?)
             self.processes = 0
     
     def init(self):
@@ -74,7 +74,7 @@ class MainWindowController:
                 if pid is None:
                     dialog = Gtk.MessageDialog(self.main_window, 0,
                                                Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                               "No episode highlighted. A serie is highlighted")
+                                               "No episode highlighted. A series is highlighted")
                     #dialog.format_secondary_text("")
                     dialog.run()
                     dialog.destroy()
@@ -131,7 +131,7 @@ class MainWindowController:
             else:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "No episode highlighted. A serie is highlighted")
+                                           "No episode highlighted. A series is highlighted")
                 #dialog.format_secondary_text("")
                 dialog.run()
                 dialog.destroy()
@@ -170,7 +170,9 @@ class MainWindowController:
             if prog_type == get_iplayer.ProgType.ITV:
                 alt_recording_mode = "itvnormal,itvhigh"
     
+        dry_run = self.tool_bar_box.dry_run_check_button.get_active()
         force = self.tool_bar_box.force_check_button.get_active()
+        future = self.tool_bar_box.future_check_button.get_active()
         
         #PVR_CHECK_BUTTON
         #pvr_queue_checkbox_state = self.tool_bar_box.pvr_queue_check_button.get_active()
@@ -199,8 +201,6 @@ class MainWindowController:
                     pid_list.append(row[SearchResultColumn.PID])
                 child_iter = model.iter_next(child_iter)
             root_iter = model.iter_next(root_iter)
-
-        future = self.tool_bar_box.future_check_button.get_active()
 
         #if not indices:
         if len(pid_list) == 0:
@@ -270,7 +270,7 @@ class MainWindowController:
         self.main_window.display_busy_mouse_cursor(True)
         launched, process_output = get_iplayer.get(pid_list, pid=True, pvr_queue=pvr_queue, preset=preset,
                                                    prog_type=prog_type, alt_recording_mode=alt_recording_mode,
-                                                   force=force, future=future)
+                                                   dry_run=dry_run, force=force, future=future)
         self.main_window.display_busy_mouse_cursor(False)
         
         self.on_progress_bar_update(None)
@@ -286,10 +286,16 @@ class MainWindowController:
         #elif pvr_queue_checkbox_state or pvr_queue or future:
         #    # If implicitly or explicitly queuing, always show the Queued Episodes dialog window,
         #    # even if nothing will be queued
-        elif pvr_queue or future:
+        elif dry_run or pvr_queue or future:
+            if dry_run:
+                if process_output is not None:
+                    process_output = process_output.replace("; ", "\n") + "\n"
+                message_format = "Command list"
+            else:
+                message_format = "Queued Episodes"
+
             # When queuing episodes, always show the Queued Episodes dialog window, even if nothing will be queued
-            dialog = ExtendedMessageDialog(self.main_window, 0, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "Queued Episodes")
+            dialog = ExtendedMessageDialog(self.main_window, 0, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE, message_format)
             #dialog.format_secondary_text("")
             dialog.set_default_response(Gtk.ResponseType.CLOSE)
             dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH,

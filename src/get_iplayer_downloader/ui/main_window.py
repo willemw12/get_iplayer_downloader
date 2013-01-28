@@ -40,16 +40,17 @@ TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast or TV)"
 TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select programme category"
 TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
-TOOLTIP_FILTER_SEARCH_ENTRY = "Search in serie title, episode title and description or on PID. Add a minus sign in front of the whole search term to exclude it from the search. Press 'Enter' to search"
+TOOLTIP_FILTER_SEARCH_ENTRY = "Search in series title, episode title and description or on PID. Add a minus sign in front of the whole search term to exclude it from the search. Press 'Enter' to search"
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
-TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter is off. The filter is off when the filter label is 'Categories' or empty"
-TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on channels. Filter on all listed (configured) channels, when the filter is off. The filter is off when the filter label is 'Channels' or empty"
+TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter is off. The filter is off when the filter label in the tool bar is 'Categories' or empty"
+TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on channels. Filter on all listed (configured) channels, when the filter is off. The filter is off when the filter label in the tool bar is 'Channels' or empty"
 TOOLTIP_FILTER_SINCE = "Filter on episodes recently added to the cache. The filter is off when filter label is 'Since' or empty"
 
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue episodes with the alternative set of recording modes"
-TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off. The filter is off when the filter label is 'Categories', 'Channels' or empty"
+TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off. The filter is off when the filter label in the tool bar is 'Categories', 'Channels' or empty"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh of the episode cache"
 TOOLTIP_OPTION_FUTURE = "Include or exclude future episodes in the search result list and future episode information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future episodes in the cache. The category filter is disabled in 'Future' mode"
+TOOLTIP_OPTION_DRY_RUN = "Dry-run download and queue commands"
 
 TOOLTIP_OPTION_PVR_QUEUE = "Queue selected episodes for one-off downloading"
 
@@ -159,11 +160,11 @@ class MainWindow(Gtk.Window):
             self.set_title(get_iplayer_downloader.PROGRAM_NAME)
 
     def display_busy_mouse_cursor(self, busy):
-        #WORKAROUND get_root_window()
-        #    get root window (the desktop), otherwise setting the cursor won't work from a menu
-        #    TODO get a window inside this program, not the desktop window, otherwise if the program crashes, the mouse cursor may remain busy on the desktop
         #window = self.get_window()
-        window = self.get_root_window()
+        
+        # Get the window of the widget (the second widget in the hierarchy)
+        # immediately below the main window widget
+        window = self.main_grid.get_window()
         if window is not None:
             if busy:
                 Gdk.Window.set_cursor(window, self.busy_cursor)
@@ -604,6 +605,12 @@ class ToolBarBox(Gtk.Box):
         #grid.attach_next_to(self.progress_bar, self.pvr_queue_check_button, Gtk.PositionType.RIGHT, 1, 1)
         event_box.add(self.progress_bar)
 
+
+        self.dry_run_check_button = Gtk.CheckButton("Preview")
+        self.dry_run_check_button.set_tooltip_text(TOOLTIP_OPTION_DRY_RUN)
+        self.dry_run_check_button.set_focus_on_click(False)
+        grid.add(self.dry_run_check_button)
+
         ##
         
         #PVR_CHECK_BUTTON
@@ -798,7 +805,7 @@ class MainTreeView(Gtk.TreeView):
         renderer = Gtk.CellRendererText(width=256)
         renderer.set_property("height", row_height)
         #sizing=Gtk.TreeViewColumn.FIXED
-        column = Gtk.TreeViewColumn("Serie", renderer, text=SearchResultColumn.SERIE)
+        column = Gtk.TreeViewColumn("Series", renderer, text=SearchResultColumn.SERIES)
         column.set_resizable(True)
         column.set_max_width(600)
         self.append_column(column)
@@ -834,12 +841,12 @@ class MainTreeView(Gtk.TreeView):
         """ Return false if key matches, i.e. is a substring in a text cell, case-insensitive match). """
         
         # Get all cell text
-        serie = model.get_value(tree_iter, SearchResultColumn.SERIE)
+        series = model.get_value(tree_iter, SearchResultColumn.SERIES)
         episode = model.get_value(tree_iter, SearchResultColumn.EPISODE)
-        if serie and episode:
-            text = serie + "|" + episode
-        elif serie:
-            text = serie
+        if series and episode:
+            text = series + "|" + episode
+        elif series:
+            text = series
         elif episode:
             text = episode
         else:
@@ -998,8 +1005,8 @@ class MainTreeView(Gtk.TreeView):
         while i in range(len(tree_rows)):
             row = tree_rows[i]
             if row[SearchResultColumn.EPISODE] is None:
-                # Root level row (a serie)
-                # If root (a serie) has only one child/leave (an episode) then merge the two into one row
+                # Root level row (a series)
+                # If root (a series) has only one child/leave (an episode) then merge the two into one row
                 #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
                 if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and \
                    (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
@@ -1020,7 +1027,7 @@ class MainTreeView(Gtk.TreeView):
                     i += 1
                 root_iter = store.append(None, row)            
             else:
-                # Don't repeat serie information for each episode
+                # Don't repeat series information for each episode
                 row[SearchResultColumn.CATEGORIES] = None
 
                 # Child/leave level row (an episode)

@@ -1,9 +1,17 @@
 get\_iplayer\_downloader
 ========================
 
-get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: serie title, serie categories and episode title plus episode description. This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
+get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: series title, series categories and episode title plus episode description. This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
 
-It is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+This is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+
+Features:
+
+* Find episodes. Filter on categories, channels, recent episodes
+* Download episodes or queue episodes for download
+* Visit the episode BBC iPlayer web page
+* View episode properties
+* View download logs. Check for download errors
 
 Some screenshots:
 
@@ -43,6 +51,8 @@ The dependencies are:
 Configuration
 -------------
 
+Basically, the get\_iplayer preset configuration in get\_iplayer has to match with the one in get\_iplayer\_downloader.
+
 ### get\_iplayer
 
 get\_iplayer\_downloader's default configuration has two get\_iplayer presets defined:
@@ -50,33 +60,27 @@ get\_iplayer\_downloader's default configuration has two get\_iplayer presets de
 * radio - for radio episodes and podcasts
 * tv - for television episodes
 
-The preset names are configurable.
+The preset names are configurable. There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the aactomp3 option in that case.
 
-To configure get\_iplayer, either reuse existing preset files or create new presets files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc. or edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly. Here are two preset file examples. Lines starting with # are commented out.
+To configure get\_iplayer for use with two presets, either reuse existing preset files or create new preset files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc. or edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly. Here are two preset file examples. Lines starting with # are commented out. The "info" property should not be set or should be disabled by default, otherwise displaying episode search results will take a very long time.
 
 File ~/.get\_iplayer/presets/radio:
 
     aactomp3 1
-    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
-    #ffmpeg /usr/bin/avconv
-    fileprefix <name>-<episode>-<lastbcast>
-    isodate 1
-    #listformat <index>:   <name>: <episode> (<pid>)
+    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --force
+    #ffmpeg avconv
+    info 0
     output /home/willemw12/Music/bbc
     radiomode flashaudio,flashaac,wma,realaudio
 
 File ~/.get\_iplayer/presets/tv:
 
-    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --verbose
-    fileprefix <name>-<episode>-<lastbcast>
-    isodate 1
-    #listformat <index>:   <name>: <episode> (<pid>)
+    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --force
+    info 0
     output /home/willemw12/Videos/bbc
     tvmode flashhigh,flashstd,flashnormal
 
 Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` work properly from the command line.
-
-There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the aactomp3 option in that case.
 
 Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued episodes. Check the get\_iplayer documentation on how to do that.
 
@@ -190,7 +194,7 @@ Extra
 
 Want to group downloaded episodes by their specific category or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option and can be used without get\_iplayer\_downloader. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option and does not require get\_iplayer\_downloader. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 

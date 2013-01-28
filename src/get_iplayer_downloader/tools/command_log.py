@@ -42,7 +42,7 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                 if is_download_cmd:
                     is_error_cmd = True
                 
-                if not full:
+                if not full and i > 1:
                     #for j in range(2, 0, -1):
                     try:
                         prev_line = lines[i - 1]

@@ -9,8 +9,9 @@ import get_iplayer_downloader
 import get_iplayer_downloader.ui.main_window
 
 from get_iplayer_downloader import settings
-from get_iplayer_downloader.tools import config, file, markup, string
+from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools import image as Image
+from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
 class PropertiesWindow(Gtk.Window):
 
@@ -47,17 +48,23 @@ class PropertiesWindow(Gtk.Window):
         scrolled_window.add_with_viewport(self.grid)
 
         ##
-        
+
+        # Find property values        
+        name = None
         image_url = None
         pid = None
         title = None
         for prop_label, prop_value in prop_table:
+            if prop_label == "name":
+                name = prop_value
             if prop_label == "pid":
                 pid = prop_value
             if prop_label == "thumbnail" or prop_label == "thumbnail4":
                 image_url = prop_value
             if prop_label == "title":
                 title = prop_value
+        
+        locate_search_term = name
         
         #### Thumbnail, title, play button
         
@@ -224,3 +231,36 @@ class PropertiesWindow(Gtk.Window):
         box.pack_end(button, False, False, 0)
 
         button.grab_focus()
+
+        if os.name == "posix":
+            button = Gtk.Button(stock=Gtk.STOCK_FIND, 
+                                margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+            button.set_label("Locate similar")
+            button.set_tooltip_text("Find similar episodes on the file system, using the updatedb \"locate\" command")
+            button.connect("clicked", self.on_button_similar_clicked, locate_search_term)
+            box.pack_end(button, False, False, 0)
+
+    def on_button_similar_clicked(self, button, locate_search_term):
+        if os.name == "posix" and locate_search_term is not None:
+            output = ""
+            
+            cmd = "locate " + file.sanitize_path(locate_search_term, False)
+            process_output = command.run(cmd, quiet=True)
+            output += cmd + ":\n" + process_output
+             
+            dialog = ExtendedMessageDialog(self.get_parent(), 0, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                           "Similar Episodes")
+            #dialog.format_secondary_text("")
+            dialog.set_default_response(Gtk.ResponseType.CLOSE)
+            dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH,
+                                                       get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT)
+
+            dialog.format_tertiary_scrolled_text(output)
+            label = dialog.get_scrolled_label()
+            label.set_valign(Gtk.Align.START)
+            label.set_halign(Gtk.Align.START)
+            label.set_selectable(True)
+            #label.override_font(Pango.FontDescription("monospace small"))
+            label.override_font(Pango.FontDescription("monospace 10"))
+            dialog.run()
+            dialog.destroy()

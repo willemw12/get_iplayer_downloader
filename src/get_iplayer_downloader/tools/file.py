@@ -1,11 +1,14 @@
 import os
+import re
 import socket
 import sys
 import traceback
 import urllib.request, urllib.parse     #, urllib.error
 
 def load_url(url, pathname, **urlopen_keywords):
-    """ Download file @url to folder @pathname. @urlopen_keywords are for urllib.request.urlopen(): "timeout" keyword in seconds """
+    """ Download file @url to folder @pathname. 
+        @urlopen_keywords are for urllib.request.urlopen(): "timeout" keyword in seconds    
+    """
 
     if not os.path.exists(pathname):
         os.makedirs(pathname)
@@ -38,7 +41,9 @@ def load_url(url, pathname, **urlopen_keywords):
     return filename
 
 def files2urls(filepath):
-    """ Return a string containing a url to the folder @filepath and the filenames inside @filepath (one level deep), sorted by file name. """
+    """ Return a string containing a url to the folder @filepath and 
+        the filenames inside @filepath (one level deep), sorted by file name.
+    """
 
     basename = os.path.basename(filepath)
     url = "<a href=\"file://" + filepath + "\" title=\"get_iplayer " + basename + " configuration folder\">" + basename + "</a>"
@@ -56,3 +61,64 @@ def files2urls(filepath):
             url += ")"
     return url
     #ALTERNATIVE ways of sorting a list of filenames in a folder: glob(<filename filter>); listdir()
+
+def sanitize_path(path, include_substitution_markers):
+    """ Sanitize file name path @path, similar to the get_iplayer rules.
+        @include_substitution_markers: include substitution marker characters < and > in the sanitation process    
+    """
+    
+    # Sanitize directory path, optionally including substitution marker 
+    # characters < and >, i.e. collapse adjacent invalid characters into a 
+    # single _ character or remove invalid characters
+
+    # Match and replace ! and perhaps other characters, which as program
+    # arguments have been translated by Python or get_iplayer into \! and 
+    # this would otherwise result in an _ in the sanitized path
+    p = re.compile(r"(\\\!+)")
+    path = p.sub("", path)
+
+    #PERL based on get_iplayer's Perl code
+    #sub StringUtils::sanitize_path {
+    # Remove fwd slash if reqd
+    #$string =~ s/\//_/g if ! $allow_fwd_slash;
+    # Replace backslashes with _ regardless
+    #$string =~ s/\\/_/g;
+    # Sanitize by default
+    #$string =~ s/\s+/_/g if (! $opt->{whitespace}) && (! $allow_fwd_slash);
+    #
+    # Similar to Perl code, however, exclude matching forward slash.
+    # \s means whitespace
+    if os.name == "posix":
+        p = re.compile(r"([\\\s]+)")
+    else:
+        p = re.compile(r"([\s]+)")
+    path = p.sub("_", path)
+
+    #PERL based on get_iplayer's Perl code
+    #$string =~ s/[^\w_\-\.\/\s]//gi if ! $opt->{whitespace};
+    #
+    # Similar to Perl code, however, also exclude matching substitution marker
+    # characters < and >
+    p = re.compile(r"([^\w_\-\.\/\s<>]+)")
+    path = p.sub("", path)
+
+    #PERL based on get_iplayer's Perl code
+    #$string =~ s/[\|\\\?\*\<\"\:\>\+\[\]\/]//gi if $opt->{fatfilename};
+    #
+    # Similar to Perl code, however, exclude matching forward slash and 
+    # substitution marker characters < and >
+    p = re.compile(r"([\|\\\?\*\"\:\+\[\]]+)")
+    path = p.sub("", path)
+
+    # Replace substitution marker characters < and >
+    if include_substitution_markers:
+        p = re.compile(r"([<>]+)")
+        path = p.sub("_", path)
+
+    #PERL based on get_iplayer's Perl code
+    # Truncate multiple '_'
+    #$string =~ s/_+/_/g;
+    p = re.compile(r"([_]+)")
+    path = p.sub("_", path)
+
+    return path

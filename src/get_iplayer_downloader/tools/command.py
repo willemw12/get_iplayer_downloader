@@ -6,8 +6,8 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-#def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, **keywords):
-def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname=None):
+#def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False, **keywords):
+def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False, temp_pathname=None):
     """ @terminal_prog is a terminal emulator program name, compatible with xterm options (-geometry instead of --geometry). """
     
     #log_level = logging.getLogger().level
@@ -33,10 +33,12 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         if os.name == "posix":
             # Linux specific
             #cmd_exec = "gnome-terminal --geometry=131x41 --title=\"" + str(terminal_title) + "\" --command=\"sh -c '" + cmd_exec + " ; cd ; sh'\" ; exit 0"
-            cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
-                
+            #cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
+            # Konsole cannot handle a quoted exec string: -e "..."
+            cmd_exec = terminal_prog + " -e $SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'"
+
     if not quiet:
-        # If not a silent process, e.g. command to update the progress bar
+        # If not a silent process, e.g. not a command to update the progress bar
         logger.debug("run(): cmd_exec=%s", cmd_exec)
         logger.info("run(): cmd=%s", cmd)
         if terminal_prog:
@@ -46,6 +48,9 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
 
     process_output = ""
 
+    if dry_run:
+        return cmd
+    
     #### Run command
     
     # Run command. Command output is expected to be UTF-8
@@ -116,7 +121,7 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, temp_pathname
         if cmd_logname is not None:
             # Write log message also to the command log file, so the message will show up in the download log viewer
             with open(cmd_logname, "a") as file:
-                file.write("WARNING:{0}".format(exc.output))
+                file.write("ERROR:{0}".format(exc.output))
 
     ####
     
