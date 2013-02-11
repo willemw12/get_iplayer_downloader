@@ -9,6 +9,7 @@ arch=('any')
 url="https://github.com/willemw12/get_iplayer_downloader"
 license=('GPL3')
 depends=('get_iplayer' 'gtk3' 'python-gobject' 'python>=3.2')
+optdepends=('mlocate: find similar episodes')
 conflicts=('get_iplayer_downloader-git')
 options=(!emptydirs)
 #install="$pkgname.install"
@@ -22,7 +23,7 @@ package() {
   # Don't let get_iplayer_downloader guess an approximate version
   echo "$pkgver" > src/get_iplayer_downloader/GIT_VERSION
 
-  #sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python2|' extra/get_iplayer_post_subdir.py
+  #sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python3|' extra/get_iplayer_post_subdir.py
 
   python setup.py install --root="$pkgdir/" --optimize=1
   # Because of cd ...* above, make sure there will be only be a single package build directory next time

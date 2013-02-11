@@ -425,10 +425,10 @@ class ToolBarBox(Gtk.Box):
                     # Skip excluded channel
                     continue
                 if compact_toolbar:
-                    label = INDENT_STR + label
                     if label.startswith("BBC "):
                         # Remove leading "BBC " substring
                         label = label[len("BBC "):]
+                    label = INDENT_STR + label
             self.chan_radio_store.append([key, label])
         ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.RADIO[1:]]:
         #if channels:
@@ -451,10 +451,10 @@ class ToolBarBox(Gtk.Box):
                     # Skip excluded channel
                     continue
                 if compact_toolbar:
-                    label = INDENT_STR + label
                     if label.startswith("BBC "):
                         # Remove leading "BBC " substring
                         label = label[len("BBC "):]
+                    label = INDENT_STR + label
             self.chan_tv_store.append([key, label])
         ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.TV[1:]]:
         #if channels:
@@ -479,10 +479,10 @@ class ToolBarBox(Gtk.Box):
                         # Skip excluded channel
                         continue
                     if compact_toolbar:
-                        label = INDENT_STR + label
                         if label.startswith("ITV "):
                             # Remove leading "ITV " string
                             label = label[len("ITV "):]
+                        label = INDENT_STR + label
                 self.chan_itv_store.append([key, label])
             ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.ITV[1:]]:
             #if channels:

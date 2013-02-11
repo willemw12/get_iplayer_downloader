@@ -53,7 +53,7 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                         pass
 
                 if markup:
-                    if line.startswith("FATAL") or line.startswith("ERROR"):
+                    if line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
                         log_output += "<b>" + _log_text(line, markup) + "</b>"
                     else:
                         log_output += _log_text(line, markup)
@@ -80,7 +80,7 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                                                 line.startswith("INFO: Command exit code"))):
                             # Log additional messages when current command has an error
                             if markup:
-                                if line.startswith("FATAL") or line.startswith("ERROR"):
+                                if line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
                                     log_output += "<b>" + _log_text(line, markup) + "</b>"
                                 elif line == "Download complete\n":
                                     log_output += "<b><i>" + _log_text(line, markup) + "</i></b>"
@@ -145,6 +145,6 @@ def download_errors(temp_pathname):
                 with open(os.path.join(dirpath, filename), "r", encoding="LATIN-1") as file:
                     lines = file.readlines()
                     for line in lines:
-                        if line.startswith("FATAL") or line.startswith("ERROR"):
+                        if line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
                             errors += 1
     return errors

@@ -1,7 +1,7 @@
 get\_iplayer\_downloader
 ========================
 
-get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: series title, series categories and episode title plus episode description. This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
+get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: series title, series categories and episode title plus episode description. This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note, however, that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
 
 This is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
@@ -51,7 +51,11 @@ The dependencies are:
 Configuration
 -------------
 
-Basically, the get\_iplayer preset configuration in get\_iplayer has to match with the one in get\_iplayer\_downloader.
+In summary:
+
+* the get\_iplayer preset configuration in get\_iplayer has to match with the one in get\_iplayer\_downloader
+* the get\_iplayer "info" property needs to be disabled by default
+* to change the category or channel filters you need to edit the configuration file
 
 ### get\_iplayer
 

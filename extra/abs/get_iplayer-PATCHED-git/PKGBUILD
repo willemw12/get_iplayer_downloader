@@ -53,12 +53,20 @@ build() {
   ##'--COMM', $tags->{comment},
   #'--COMM', $tags->{longDescription},
 
-  #PATCH download list size
+  #PATCH increase download list size
   sed -i "s|^my \$info_limit.*|\n#PATCH\n#&\nmy \$info_limit      = 200;\n|" get_iplayer
 
-  #PATCH full description in id3v2 comment tag. Preserve indentation in the patch
+  #PATCH store full description in id3v2 comment tag. Preserve indentation in the patch
   sed -i "s|\(^[ \t]*\)\(\$mp3->select_id3v2_frame_by_descr('COMM(eng,#0)\[\]', \$tags->{comment});.*\)|\n\1#PATCH\n\1#\2\n\1\$mp3->select_id3v2_frame_by_descr('COMM(eng,#0)\[\]', \$tags->{longDescription});\n|" get_iplayer
   sed -i "s|\(^[ \t]*\)\('--COMM', \$tags->{comment},.*\)|\n\1#PATCH\n\1#\2\n\1'--COMM', \$tags->{longDescription},\n|" get_iplayer
+
+  #PATCH disable Akamai
+  sudo sed -i "s|\(^[ \t]*\)\(if ( \$cattribs->{kind} eq 'akamai' ) {.*\)|\n\1#PATCH\n\1#\2\n\1if ( \$cattribs->{kind} eq 'DISABLED_akamai' ) {\n|" /usr/bin/get_iplayer
+
+  # Check applied patches
+  if [ $(grep "#PATCH" /usr/bin/get_iplayer | wc -l) -ne 4 ]; then
+    echo "ERROR: the number of lines patched in /usr/bin/get_iplayer is different than expected" >&2
+  fi
 }
 
 package() {
