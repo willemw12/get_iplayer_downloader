@@ -9,7 +9,7 @@ Features:
 
 * Find episodes. Filter on categories, channels, recent episodes
 * Download episodes or queue episodes for download
-* Visit the episode BBC iPlayer web page
+* Visit the episode's "BBC iPlayer" web page
 * View episode properties
 * View download logs. Check for download errors
 
@@ -51,11 +51,11 @@ The dependencies are:
 Configuration
 -------------
 
-In summary:
+Summary:
 
-* the get\_iplayer preset configuration in get\_iplayer has to match with the one in get\_iplayer\_downloader
-* the get\_iplayer "info" property needs to be disabled by default
-* to change the category or channel filters you need to edit the configuration file
+* The get\_iplayer preset configuration in get\_iplayer has to match with the preset configuration in get\_iplayer\_downloader
+* The get\_iplayer "info" property needs to be disabled by default
+* To change the category or channel filters you need to edit the configuration file
 
 ### get\_iplayer
 
@@ -64,7 +64,7 @@ get\_iplayer\_downloader's default configuration has two get\_iplayer presets de
 * radio - for radio episodes and podcasts
 * tv - for television episodes
 
-The preset names are configurable. There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the aactomp3 option in that case.
+The preset names are configurable. There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the "aactomp3" property in that case.
 
 To configure get\_iplayer for use with two presets, either reuse existing preset files or create new preset files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc. or edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly. Here are two preset file examples. Lines starting with # are commented out. The "info" property should not be set or should be disabled by default, otherwise displaying episode search results will take a very long time.
 
@@ -198,7 +198,7 @@ Extra
 
 Want to group downloaded episodes by their specific category or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option and does not require get\_iplayer\_downloader. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. It requires get\_iplayer\_downloader and it does not update the download location recorded in the (localfiles) download history. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 
@@ -207,3 +207,4 @@ The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /us
 To configure, put for example in ~/.get\_iplayer/presets/tv:
 
     command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --force --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+

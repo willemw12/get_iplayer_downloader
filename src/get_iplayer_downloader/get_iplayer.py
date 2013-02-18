@@ -304,9 +304,9 @@ def search(search_text, preset=None, prog_type=None,
             if copy:
                 # Add an episode line. Episode title and description from the current line
                 try:
-                    if l[3].startswith("- ~ "):
+                    if l[3].startswith(" ~ "):
                         # No episode title
-                        output_lines.append([False, l[1], l[2], None, l[3][len("- ~ "):], l[4], l[5], l[6], l[7], l[8]])
+                        output_lines.append([False, l[1], l[2], None, l[3][len(" ~ "):], l[4], l[5], l[6], l[7], l[8]])
                     else:
                         output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8]])
                 except IndexError:    # as exc:
