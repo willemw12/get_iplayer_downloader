@@ -1,9 +1,7 @@
 get\_iplayer\_downloader
 ========================
 
-get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: series title, series categories and episode title plus episode description. This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note, however, that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
-
-This is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: series title, series categories and episode title plus episode description.
 
 Features:
 
@@ -13,17 +11,21 @@ Features:
 * View episode properties
 * View download logs. Check for download errors
 
-Some screenshots:
+Screenshots:
 
 * [tree view](https://github.com/willemw12/get_iplayer_downloader/wiki/images/tree_view.jpg)
 * [properties](https://github.com/willemw12/get_iplayer_downloader/wiki/images/properties.jpg)
 * [preferences](https://github.com/willemw12/get_iplayer_downloader/wiki/images/preferences.jpg)
 
-For the latest version go to:
+This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note, however, that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
+
+This is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+
+For the latest version, go to:
 
 * [https://github.com/willemw12/get\_iplayer\_downloader](https://github.com/willemw12/get_iplayer_downloader)
 
-For other news go to:
+For other news, go to:
 
 * [https://github.com/willemw12/get\_iplayer\_downloader/wiki](https://github.com/willemw12/get_iplayer_downloader/wiki)
 
@@ -53,9 +55,9 @@ Configuration
 
 Summary:
 
-* The get\_iplayer preset configuration in get\_iplayer has to match with the preset configuration in get\_iplayer\_downloader
+* The get\_iplayer preset configuration in get\_iplayer has to match the preset configuration in get\_iplayer\_downloader
 * The get\_iplayer "info" property needs to be disabled by default
-* To change the category or channel filters you need to edit the configuration file
+* To change the category or channel filters the configuration file needs to be edited
 
 ### get\_iplayer
 
