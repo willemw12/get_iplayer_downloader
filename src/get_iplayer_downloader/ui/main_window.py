@@ -29,7 +29,7 @@ TOOLTIP_VIEW_LOG = "View download log"
 #PVR_CHECK_BUTTON
 #TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected episodes, or queue episodes if 'PVR' is enabled"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected episodes"
-TOOLTIP_TOOLS_CLEAR = "Clear episode download selection"
+TOOLTIP_TOOLS_CLEAR = "Clear selected episodes"
 TOOLTIP_TOOLS_REFRESH = "Refresh episode cache, limited of the selected programme type (radio, podcast or TV)"
 
 TOOLTIP_SEARCH_FIND = "Find episodes"
@@ -44,7 +44,7 @@ TOOLTIP_FILTER_SEARCH_ENTRY = "Search in series title, episode title and descrip
 TOOLTIP_FILTER_PROGRAMME_TYPE = "Filter on programme type"
 TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on all listed (configured) categories, when the filter is off. The filter is off when the filter label in the tool bar is 'Categories' or empty"
 TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on channels. Filter on all listed (configured) channels, when the filter is off. The filter is off when the filter label in the tool bar is 'Channels' or empty"
-TOOLTIP_FILTER_SINCE = "Filter on episodes recently added to the cache. The filter is off when filter label is 'Since' or empty"
+TOOLTIP_FILTER_SINCE = "Filter on episodes recently added to the cache. The filter is off when filter label in the tool bar is 'Since' or empty"
 
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue episodes with the alternative set of recording modes"
 TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off. The filter is off when the filter label in the tool bar is 'Categories', 'Channels' or empty"
@@ -56,7 +56,7 @@ TOOLTIP_OPTION_PVR_QUEUE = "Queue selected episodes for one-off downloading"
 
 TOOLTIP_PROGRESS_BAR = "Downloading / Errors. Click to view the download log, reset the error count or remove log and image cache files"
 
-TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click on the main window"
+TOOLTIP_MENU_BUTTON = "Menu. Click here or right-click below the tool bar"
 
 TOOLTIP_HELP_HELP = "Help for this program"
 TOOLTIP_HELP_ABOUT = "About this program"

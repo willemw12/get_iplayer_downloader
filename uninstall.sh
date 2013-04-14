@@ -2,7 +2,7 @@
 
 echo "Uninstalling..."
 
-echo "Removing the following files (and not the containing directories)..."
+echo "Removing the following files (directories are not removed)..."
 FILE_LIST="installed-files.txt"
 cat "$FILE_LIST"
 if [ -f "$FILE_LIST" ]; then

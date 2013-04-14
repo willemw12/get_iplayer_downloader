@@ -57,7 +57,7 @@ Summary:
 
 * The get\_iplayer preset configuration in get\_iplayer has to match the preset configuration in get\_iplayer\_downloader
 * The get\_iplayer "info" property needs to be disabled by default
-* To change the category or channel filters the configuration file needs to be edited
+* To change the category or channel filters the configuration file needs to be edited manually
 
 ### get\_iplayer
 

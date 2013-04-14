@@ -5,7 +5,7 @@
 
 #PATCH
 #pkgname=get_iplayer-git
-pkgname=get_iplayer-PATCHED-git
+pkgname=get_iplayer-patched-git
 
 pkgver=20120714
 pkgrel=1

@@ -11,7 +11,7 @@ license=('GPL3')
 depends=('get_iplayer' 'gtk3' 'python-gobject' 'python>=3.2')
 optdepends=('mlocate: find similar episodes')
 conflicts=('get_iplayer_downloader-git')
-options=(!emptydirs)
+#options=(!emptydirs)
 #install="$pkgname.install"
 source=(https://github.com/willemw12/get_iplayer_downloader/tarball/$_pkgver)
 #md5sums=('')
