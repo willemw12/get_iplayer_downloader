@@ -42,8 +42,8 @@ class HelpDialogWrapper(object):
                               #["ctrl+4, ctrl+shift+4", "Since", None],
                               ["ctrl+4, ctrl+5", "Since", None],
                               [" ", None, None],
-                              ["down-arrow", None, "Go from tool bar to episode search result list"],
-                              ["space or enter", None, "Toggle selection in the episode search result list"]]
+                              ["down-arrow", None, "Go from tool bar to episode list"],
+                              ["space or enter", None, "Toggle selection in the episode list"]]
 
         grid = Gtk.Grid(orientation=Gtk.Orientation.VERTICAL, halign=Gtk.Align.CENTER)
         for i, keyboard_shortcut in enumerate(KEYBOARD_SHORTCUTS):

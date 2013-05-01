@@ -8,10 +8,11 @@ import get_iplayer_downloader
 #NOTE Import module, not symbol names inside a module, to avoid circular import
 import get_iplayer_downloader.ui.main_window
 
-from get_iplayer_downloader import settings
+from get_iplayer_downloader import get_iplayer, settings
 from get_iplayer_downloader.tools import command, config, file, markup, string
 from get_iplayer_downloader.ui.tools import image as Image
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
+from get_iplayer_downloader.get_iplayer import get
 
 class PropertiesWindow(Gtk.Window):
 
@@ -50,17 +51,23 @@ class PropertiesWindow(Gtk.Window):
         ##
 
         # Find property values        
+        episode = None
+        longname = None
         name = None
         image_url = None
         pid = None
         title = None
         for prop_label, prop_value in prop_table:
+            if prop_label == "episode":
+                episode = prop_value
+            if prop_label == "longname":
+                longname = prop_value
             if prop_label == "name":
                 name = prop_value
-            if prop_label == "pid":
-                pid = prop_value
             if prop_label == "thumbnail" or prop_label == "thumbnail4":
                 image_url = prop_value
+            if prop_label == "pid":
+                pid = prop_value
             if prop_label == "title":
                 title = prop_value
         
@@ -78,13 +85,25 @@ class PropertiesWindow(Gtk.Window):
         if image_url is not None:
             if string.str2bool(settings.config().get(config.NOSECTION, "show-images")):
                 timeout = string.str2float(settings.config().get(config.NOSECTION, "load-image-timeout-seconds"))
-                image = Image.image(image_url, timeout=timeout)
+                image = Image.image(image_url, timeout=timeout,
+                                    max_width=get_iplayer_downloader.ui.main_window.IMAGE_MAX_WIDTH,
+                                    max_height=get_iplayer_downloader.ui.main_window.IMAGE_MAX_HEIGHT)
                 if image is not None:
                     self.grid.add(image)
 
-        label1 = Gtk.Label(title, halign=Gtk.Align.CENTER)
-        #label1.set_selectable(False)
-        self.grid.add(label1)
+        if title is not None:
+            props_title = title
+        else:
+            # Programme type is "podcast"
+            props_title = longname + " : " + episode     
+        if props_title is not None:
+            TITLE_MAX_LENGTH = int(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH / 8) + 3        # 8: gestimated character width
+            if len(props_title) > TITLE_MAX_LENGTH:
+                # Label1 should not exceed the grid width
+                props_title = props_title[:TITLE_MAX_LENGTH] + "..."
+            label1 = Gtk.Label(props_title, halign=Gtk.Align.CENTER)
+            #label1.set_selectable(False)
+            self.grid.add(label1)
 
         # The play button URL is the same as the "player" property URL
         #NOTE Do not expand/fill the button in the grid: halign=Gtk.Align.CENTER
@@ -93,9 +112,8 @@ class PropertiesWindow(Gtk.Window):
         #button.set_label("Play")
         #if title is not None:
         #    button.set_label(title)
-        #button.set_tooltip_text(get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER)
-        button.set_tooltip_text("Go to BBC iPlayer web page")
-        button.connect("clicked", controller.on_button_play_clicked, pid)
+        button.set_tooltip_text(get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER)
+        button.connect("clicked", controller.on_button_play_clicked_by_pid, pid)
         self.grid.add(button)
 
         #### Property table
@@ -198,6 +216,7 @@ class PropertiesWindow(Gtk.Window):
                           margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(frame)
 
+        #TODO if prog_type not in [get_iplayer.Channels.CH4, get_iplayer.Channels.ITV]:
         url = "<a href=\"http://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
         url += "      "
 

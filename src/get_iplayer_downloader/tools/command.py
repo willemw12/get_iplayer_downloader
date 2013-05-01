@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 
 #def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False, **keywords):
 def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False, temp_pathname=None):
-    """ @terminal_prog is a terminal emulator program name, compatible with xterm options (-geometry instead of --geometry). """
+    """ @terminal_prog is a terminal emulator program name, compatible with xterm options (-geometry instead of --geometry). 
+        If @temp_pathname is specified, then also log to separate *-cmd.log file.
+    """
     
     #log_level = logging.getLogger().level
 
@@ -102,20 +104,22 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
                     #     but won't always work properly in get_iplayer.get(): not enough columns returned in |-separated string
                     #NOTE Trying LATIN-1 first, to try to avoid unreadable characters (i.e. replacement marker '?' in a diamond shape) in the GUI
                     logger.debug(exc)
-                    logger.debug("trying 'latin-1' codec")
+                    logger.debug("trying 'LATIN-1' codec")
                     process_output = bytes_buffer.decode("LATIN-1", "strict")
                 except (UnicodeDecodeError, ValueError) as exc:
                     try:
                         logger.debug(exc)
-                        logger.debug("trying 'utf-8' codec and replacing non-utf-8 characters")
+                        logger.debug("trying 'UTF-8' codec and replacing non-utf-8 characters")
                         process_output = bytes_buffer.decode("UTF-8", "replace")
                     except (UnicodeDecodeError, ValueError) as exc:
                         # Should not happen
                         logger.warning(exc)
                         #return ""
     except subprocess.CalledProcessError as exc:
-        #logger.warning("(return code " + str(exc.returncode) + ") " + exc.text_output)
-        logger.warning(exc.output)
+        if quiet:
+            logger.debug("(return code " + str(exc.returncode) + ") " + exc.output)
+        else:
+            logger.warning("(return code " + str(exc.returncode) + ") " + exc.output)
         
         #if not quiet and temp_pathname is not None:
         if cmd_logname is not None:

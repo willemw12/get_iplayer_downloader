@@ -24,6 +24,7 @@ class PreferencesDialogWrapper(object):
         self.general_compact_treeview_check_button = self.builder.get_object("PrefsGeneralCompactTreeViewCheckButton")
         self.general_disable_presets_check_button = self.builder.get_object("PrefsGeneralDisablePresetsCheckButton")
         self.general_disable_proxy_check_button = self.builder.get_object("PrefsGeneralDisableProxyCheckButton")
+        self.general_refresh_cache_on_startup_check_button = self.builder.get_object("PrefsGeneralRefreshCacheOnStartupCheckButton")
         self.general_show_menubar_check_button = self.builder.get_object("PrefsGeneralShowMenuBarCheckButton")
         self.general_show_tooltip_check_button = self.builder.get_object("PrefsGeneralShowTooltipCheckButton")
         self.general_start_maximized_check_button = self.builder.get_object("PrefsGeneralStartMaximizedCheckButton")
@@ -74,6 +75,7 @@ class PreferencesDialogWrapper(object):
         self.general_compact_treeview_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
         self.general_disable_presets_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")))
         self.general_disable_proxy_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy")))
+        self.general_refresh_cache_on_startup_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "refresh-cache-on-startup")))
         self.general_show_menubar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")))
         self.general_show_tooltip_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
         self.general_start_maximized_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
@@ -124,6 +126,7 @@ class PreferencesDialogWrapper(object):
         settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_check_button.get_active()))
         settings.config().set(config.NOSECTION, "disable-presets", str(self.general_disable_presets_check_button.get_active()))
         settings.config().set(config.NOSECTION, "disable-proxy", str(self.general_disable_proxy_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "refresh-cache-on-startup", str(self.general_refresh_cache_on_startup_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_check_button.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_check_button.get_active()))
@@ -155,6 +158,7 @@ class PreferencesDialogWrapper(object):
         settings.revert_option(config.NOSECTION, "compact-treeview")
         settings.revert_option(config.NOSECTION, "disable-presets")
         settings.revert_option(config.NOSECTION, "disable-proxy")
+        settings.revert_option(config.NOSECTION, "refresh-cache-on-startup")
         settings.revert_option(config.NOSECTION, "show-menubar")
         settings.revert_option(config.NOSECTION, "show-tooltip")
         settings.revert_option(config.NOSECTION, "start-maximized")
@@ -185,14 +189,14 @@ class PreferencesDialogWrapper(object):
     def _on_radio_download_file_chooser_file_set(self, entry_widget):
         filename = self.radio_download_file_chooser_button.get_filename()
         #entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
-        if filename != os.sep:
+        if filename is not None and filename != os.sep:
             # Not root path
             entry_widget.set_text(filename)
         
     def _on_tv_download_file_chooser_file_set(self, entry_widget):
         filename = self.tv_download_file_chooser_button.get_filename()
         #entry_widget.set_text(GLib.filename_to_utf8(filename, -1, None, 25, None))
-        if filename != os.sep:
+        if filename is not None and filename != os.sep:
             # Not root path
             entry_widget.set_text(filename)
 

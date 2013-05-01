@@ -31,7 +31,7 @@ For other news, go to:
 
 This program is licensed under GPLv3 (see included file COPYING).
 
-Disclaimer: this program does not perform any downloading itself. It relies on the get\_iplayer program to do the actual downloading.
+Disclaimer: this program does not perform any downloading itself. It relies on the get\_iplayer program to perform the actual downloading.
 
 
 
@@ -106,7 +106,7 @@ The radio and tv category lists and the radio channel list are very long and hav
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet
 
-If the program crashes immediately on startup or when the mouse cursor moves over the first column in the episode search result list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
+If the program crashes immediately on startup or when the mouse cursor moves over the first column in the episode list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
 
 
 
@@ -190,8 +190,8 @@ The keyboard shortcuts are:
     ctrl+3                  Channel
     ctrl+4, ctrl+5          Since
 
-    down-arrow                            Go from tool bar to episode search result list
-    space or enter                        Toggle selection in the episode search result list
+    down-arrow                            Go from tool bar to episode list
+    space or enter                        Toggle selection in the episode list
 
 
 

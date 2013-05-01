@@ -204,7 +204,7 @@ class UIManager():
         if name == "EditPreferences":
             self.main_window.controller().on_preferences()
         elif name == "ViewPlayer":
-            self.main_window.controller().on_button_play_clicked(None, None)
+            self.main_window.controller().on_button_play_clicked_by_pid(None, None)
         elif name == "ViewProperties":
             self.main_window.controller().on_button_properties_clicked(None)
         elif name == "ViewLog":

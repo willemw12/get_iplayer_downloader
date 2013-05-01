@@ -36,6 +36,10 @@ class MainWindowController:
         self.processes = 0
         self.errors_offset = 0
         self.downloaded_pid_set = None
+        
+        #NOTE convert class data members to an array or a dictionary
+        #self.prog_types = [getattr(get_iplayer.ProgType, attr) for attr in dir(get_iplayer.ProgType) if not callable(attr) and not attr.startswith("__")]
+        self.prog_types = {getattr(get_iplayer.ProgType, attr): True for attr in dir(get_iplayer.ProgType) if not callable(attr) and not attr.startswith("__")}
 
     def _update_processes_count(self):
         """ Update the number of running get_iplayer processes. """
@@ -58,8 +62,8 @@ class MainWindowController:
         # Initialize label text
         self.on_progress_bar_update(None)
 
-    def on_button_play_clicked(self, button, pid):
-        """ If @pid is None, then play selected episode in the tree view """
+    def on_button_play_clicked_by_pid(self, button, pid):
+        """ Visit BBC iPlayer web site. If @pid is None, then play selected episode in the tree view """
         # button can be None
         if pid is None:
             # Get PID from selected episode in the tree view
@@ -82,14 +86,23 @@ class MainWindowController:
             else:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "No episode is highlighted")
+                                           "No episode highlighted")
                 #dialog.format_secondary_text("")
                 dialog.run()
                 dialog.destroy()
                 #return
 
         if pid:
-            url = "http://www.bbc.co.uk/iplayer/episode/" + pid
+            if pid.startswith("http"):
+                # Podcast URL
+                self.on_button_play_clicked_by_url(None, pid)
+            else:
+                #TODO if prog_type not in [get_iplayer.Channels.CH4, get_iplayer.Channels.ITV]:
+                self.on_button_play_clicked_by_url(None, "http://www.bbc.co.uk/iplayer/episode/" + pid)
+
+    def on_button_play_clicked_by_url(self, button, url):
+        """ Visit BBC iPlayer web site. """
+        if url is not None:
             webbrowser.open_new_tab(url)
 
     def on_button_properties_clicked(self, button):
@@ -138,7 +151,7 @@ class MainWindowController:
         else:
             dialog = Gtk.MessageDialog(self.main_window, 0,
                                        Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                       "No episode is highlighted")
+                                       "No episode highlighted")
             #dialog.format_secondary_text("")
             dialog.run()
             dialog.destroy()
@@ -167,8 +180,6 @@ class MainWindowController:
             #channel = model[tree_iter][self.PresetComboModelColumn.CHANNEL]
 
             alt_recording_mode = self.tool_bar_box.alt_recording_mode_check_button.get_active()
-            if prog_type == get_iplayer.ProgType.ITV:
-                alt_recording_mode = "itvnormal,itvhigh"
     
         dry_run = self.tool_bar_box.dry_run_check_button.get_active()
         force = self.tool_bar_box.force_check_button.get_active()
@@ -369,6 +380,13 @@ class MainWindowController:
 
         self.on_button_find_clicked(None)
 
+    def _check_first_time_find(self, prog_type):
+        """ Return True if @prog_type has been searched in for the first time. """
+        first_time = self.prog_types[prog_type]
+        if first_time:
+            self.prog_types[prog_type] = False
+        return first_time
+
     def on_button_find_clicked(self, button):
         # button can be None
         search_text = self.tool_bar_box.search_entry.get_text()
@@ -425,6 +443,8 @@ class MainWindowController:
         future = self.tool_bar_box.future_check_button.get_active()
 
         self.main_window.display_busy_mouse_cursor(True)
+        if self._check_first_time_find(prog_type):
+            get_iplayer.refresh(preset=preset, prog_type=prog_type, channels=channels, exclude_channels=exclude_channels, future=future)
         output_lines = get_iplayer.search(search_text, preset=preset, prog_type=prog_type,
                                           channels=channels, exclude_channels=exclude_channels,
                                           categories=categories, exclude_categories=exclude_categories,
@@ -497,7 +517,7 @@ class MainWindowController:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_podcast_store)
             elif prog_type == get_iplayer.ProgType.TV:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
-            elif prog_type == get_iplayer.ProgType.ITV:
+            elif prog_type in [get_iplayer.ProgType.CH4, get_iplayer.ProgType.ITV]:
                 #self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_disabled_store)
             self.tool_bar_box.category_combo.set_active(0)
@@ -506,7 +526,9 @@ class MainWindowController:
             if preset == get_iplayer.Preset.RADIO:
                 self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_radio_store)
             elif preset == get_iplayer.Preset.TV:
-                if prog_type == get_iplayer.ProgType.ITV:
+                if prog_type == get_iplayer.ProgType.CH4:
+                    self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_ch4_store)
+                elif prog_type == get_iplayer.ProgType.ITV:
                     self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_itv_store)
                 else:
                     self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_tv_store)
@@ -711,8 +733,10 @@ class MainWindowController:
                 since = 0
             search_all = string.str2bool(settings.config().get("session", "search-all"))
 
-            # If empty string or None (in case of an error) or itv has been disabled, then set the default value
-            if not prog_type or (prog_type == "itv" and not string.str2bool(settings.config().get(config.NOSECTION, "enable-itv"))):
+            # If empty string or None (in case of an error) or ch4/itv has been disabled, then set the default value
+            if not prog_type or \
+                    (prog_type == "ch4" and not string.str2bool(settings.config().get(config.NOSECTION, "enable-ch4"))) or \
+                    (prog_type == "itv" and not string.str2bool(settings.config().get(config.NOSECTION, "enable-itv"))):
                 prog_type = get_iplayer.ProgType.RADIO
             if not categories:
                 categories = ""

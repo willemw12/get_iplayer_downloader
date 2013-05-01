@@ -58,6 +58,7 @@ class ProgType:
     RADIO = "radio"
     PODCAST = "podcast"
     TV = "tv"
+    CH4 = "ch4"
     ITV = "itv"
 
 ####
@@ -70,6 +71,7 @@ class ProgType:
 class Channels:
     RADIO = _ALL_CHANNELS_LABEL + "," + settings.config().get("radio", "channels")
     TV = _ALL_CHANNELS_LABEL + "," + settings.config().get("tv", "channels")
+    CH4 = _ALL_CHANNELS_LABEL
     ITV = _ALL_CHANNELS_LABEL
 
 class Categories:
@@ -168,7 +170,7 @@ def categories(search_text, preset=None, prog_type=None):
     if search_text:
         cmd += " \"" + search_text + "\""
     
-    process_output = command.run(cmd, quiet=True, temp_pathname=settings.TEMP_PATHNAME)
+    process_output = command.run(cmd, quiet=True)
 
     lines = process_output.splitlines()
     output_lines = []
@@ -196,7 +198,7 @@ def channels(search_text, preset=None, prog_type=None, compact=False):
     if search_text:
         cmd += " \"" + search_text + "\""
     
-    process_output = command.run(cmd, quiet=True, temp_pathname=settings.TEMP_PATHNAME)
+    process_output = command.run(cmd, quiet=True)
 
     lines = process_output.splitlines()
     first_value = True
@@ -255,7 +257,7 @@ def search(search_text, preset=None, prog_type=None,
         else:
             cmd += " \"" + search_text + "\""
     
-    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
+    process_output = command.run(cmd)
 
     # Convert the process output lines to lists (no dicts, no objects), matching the GtkTreeStore input data
     lines = process_output.splitlines()
@@ -307,6 +309,9 @@ def search(search_text, preset=None, prog_type=None,
                     if l[3].startswith(" ~ "):
                         # No episode title
                         output_lines.append([False, l[1], l[2], None, l[3][len(" ~ "):], l[4], l[5], l[6], l[7], l[8]])
+                    elif l[3].endswith(" ~ "):
+                        # No episode description
+                        output_lines.append([False, l[1], l[2], None, l[3][:len(l[3])-len(" ~ ")], l[4], l[5], l[6], l[7], l[8]])
                     else:
                         output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8]])
                 except IndexError:    # as exc:
@@ -350,8 +355,15 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         terminal_prog = None
 
     if alt_recording_mode:
-        alt_radio_modes = settings.config().get(Preset.RADIO, "recording-modes")
-        alt_tv_modes = settings.config().get(Preset.TV, "recording-modes")
+        if prog_type == ProgType.CH4:
+            alt_radio_modes = ""
+            alt_tv_modes = "flashnormal"
+        elif prog_type == ProgType.ITV:
+            alt_radio_modes = ""
+            alt_tv_modes = "itvnormal,itvhigh,itvlow"
+        else:
+            alt_radio_modes = settings.config().get(Preset.RADIO, "recording-modes")
+            alt_tv_modes = settings.config().get(Preset.TV, "recording-modes")
     
     #cmd = "( for i in"
     #for search_term_row in search_term_list:
@@ -400,6 +412,12 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         ##cmd += "\"$i\" ; done"
         #cmd += "$i; done )"
         if search_term:
+            #TEMP if search_term is a PID and the PID is numeric,
+            #     then add a leading non-digit character to the PID
+            #     so that get_iplayer will not assume the search_term to be an index
+            if " " not in search_term and prog_type in [Channels.CH4, Channels.ITV]:
+                search_term = " " + search_term
+
             # search_term_list could be a set of episode indices, so don't surround them with quotes
             cmd += search_term
         
@@ -411,7 +429,8 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         process_output = command.run(cmd, dry_run=dry_run, temp_pathname=settings.TEMP_PATHNAME)
     else:
         #CommandQueue.CommandQueue().run(...)
-        launched = command_queue.run(cmd, temp_pathname=settings.TEMP_PATHNAME, terminal_prog=terminal_prog, terminal_title="get_iplayer get")
+        launched = command_queue.run(cmd, temp_pathname=settings.TEMP_PATHNAME,
+                                     terminal_prog=terminal_prog, terminal_title="get_iplayer get")
         process_output = None
 
     return (launched, process_output)
@@ -439,7 +458,7 @@ def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=
     if search_term:
         cmd += " \"" + search_term + "\""
 
-    process_output = command.run(cmd, temp_pathname=settings.TEMP_PATHNAME)
+    process_output = command.run(cmd)
 
     lines = process_output.splitlines()
     output_lines = []
@@ -482,4 +501,4 @@ def refresh(preset=None, prog_type=None, channels=None, exclude_channels=None, f
         ret2 = command.run(cmd + " --preset=" + Preset.TV, temp_pathname=settings.TEMP_PATHNAME)
         return ret2 if ret2 != 0 else ret1
     else:
-        return command.run(cmd + " --preset=" + preset, temp_pathname=settings.TEMP_PATHNAME)
+        return command.run(cmd + " --preset=" + preset)

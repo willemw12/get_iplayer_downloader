@@ -20,8 +20,8 @@ from get_iplayer_downloader.ui.tools import image as Image
 
 #TOOLTIP_FILE_QUIT
 
-TOOLTIP_VIEW_PLAYER = "Go to BBC iPlayer web page of the highlighted episode"
-TOOLTIP_VIEW_PROPERTIES = "View properties of the highlighted episode"
+TOOLTIP_VIEW_PLAYER = "View episode's web page or start podcast episode in the web browser"
+TOOLTIP_VIEW_PROPERTIES = "View episode properties"
 TOOLTIP_VIEW_LOG = "View download log"
 
 #TOOLTIP_EDIT_PREFERENCES
@@ -49,7 +49,7 @@ TOOLTIP_FILTER_SINCE = "Filter on episodes recently added to the cache. The filt
 TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue episodes with the alternative set of recording modes"
 TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off. The filter is off when the filter label in the tool bar is 'Categories', 'Channels' or empty"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh of the episode cache"
-TOOLTIP_OPTION_FUTURE = "Include or exclude future episodes in the search result list and future episode information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future episodes in the cache. The category filter is disabled in 'Future' mode"
+TOOLTIP_OPTION_FUTURE = "Include or exclude future episodes in the episode list and future episode information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future episodes in the cache. The category filter is disabled in 'Future' mode"
 TOOLTIP_OPTION_DRY_RUN = "Dry-run download and queue commands"
 
 TOOLTIP_OPTION_PVR_QUEUE = "Queue selected episodes for one-off downloading"
@@ -73,6 +73,14 @@ WINDOW_LARGE_HEIGHT = 800
 
 WIDGET_BORDER_WIDTH = 4
 WIDGET_BORDER_WIDTH_COMPACT = 2
+
+####
+
+ICON_IMAGE_MAX_WIDTH = 600
+ICON_IMAGE_MAX_HEIGHT = 600
+
+IMAGE_MAX_WIDTH = 800
+IMAGE_MAX_HEIGHT = 800
 
 ####
 
@@ -219,7 +227,7 @@ class ToolBarBox(Gtk.Box):
         if show_button_labels:
             button.set_label("Play")
         button.set_tooltip_text(TOOLTIP_VIEW_PLAYER)
-        button.connect("clicked", self.main_window.controller().on_button_play_clicked, None)
+        button.connect("clicked", self.main_window.controller().on_button_play_clicked_by_pid, None)
         self.pack_start(button, False, False, 0)
         focus_chain.append(button)
 
@@ -313,6 +321,8 @@ class ToolBarBox(Gtk.Box):
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, "Radio"],
                    [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, "Podcast"],
                    [get_iplayer.Preset.TV, get_iplayer.ProgType.TV, "TV"]]
+        if string.str2bool(settings.config().get(config.NOSECTION, "enable-ch4")):
+            presets.append([get_iplayer.Preset.TV, get_iplayer.ProgType.CH4, "CH4"])
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
             presets.append([get_iplayer.Preset.TV, get_iplayer.ProgType.ITV, "ITV"])
 
@@ -459,6 +469,34 @@ class ToolBarBox(Gtk.Box):
         ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.TV[1:]]:
         #if channels:
         #    self.chan_tv_store.append([None, "ANY"])
+
+        self.chan_ch4_store = None
+        if string.str2bool(settings.config().get(config.NOSECTION, "enable-ch4")):
+            # Create ch4 model list
+            channels = get_iplayer.Channels.CH4
+            channel_list = channels.split(",")
+            self.chan_ch4_store = Gtk.ListStore(str, str)
+            first = True
+            for channel in channel_list:
+                key = label = channel.strip()
+                if first:
+                    # The first item in the list represents all configured channels
+                    #key = settings.config().get("tv", "channels")
+                    key = ",".join(channel_list[1:])
+                    first = False
+                else:
+                    if key.startswith("-"):
+                        # Skip excluded channel
+                        continue
+                    if compact_toolbar:
+                        if label.startswith("4oD "):
+                            # Remove leading "4oD " string
+                            label = label[len("4oD "):]
+                        label = INDENT_STR + label
+                self.chan_ch4_store.append([key, label])
+            ##if channels and not "ALL" in [row[VALUE_INDEX] for row in get_iplayer.Channels.CH4[1:]]:
+            #if channels:
+            #    self.chan_ch4_store.append([None, "ANY"])
 
         self.chan_itv_store = None
         if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
@@ -719,8 +757,8 @@ class MainTreeView(Gtk.TreeView):
         #self.set_property("fixed-height-mode", True)
         self.main_window = main_window
         self.button_pressed = False
-        self.show_images = string.str2bool(settings.config().get(config.NOSECTION, "show-images"))
         self.load_image_timeout_seconds = string.str2float(settings.config().get(config.NOSECTION, "load-image-timeout-seconds"))
+        self.show_images = string.str2bool(settings.config().get(config.NOSECTION, "show-images"))
 
         #selection = self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         ##self.set_style(allow_rules=True)
@@ -743,6 +781,7 @@ class MainTreeView(Gtk.TreeView):
             #self.get_tooltip_window().set_default_size(200, -1)
             self.set_has_tooltip(True)
 
+            #TODO if prog_type not in [get_iplayer.Channels.CH4, get_iplayer.Channels.ITV]:
             #self._on_query_tooltip_path = None
             self.connect("query-tooltip", self._on_query_tooltip)
 
@@ -766,29 +805,22 @@ class MainTreeView(Gtk.TreeView):
         #self.connect("event", self._on_event)
         self.connect("visibility-notify-event", self._on_visibility_notify_event)
 
-    # Lazy treeview initialization. Signal when treeview is being displayed on screen
-    #def _on_event(self, widget, event):
-    def _on_visibility_notify_event(self, event, user_data):
-        self.main_window.controller().on_button_find_clicked(None)
-
-        #self.disconnect_by_func(self._on_event)
-        self.disconnect_by_func(self._on_visibility_notify_event)
-
     def _init_columns(self):
-        if string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")):
-            widget = Gtk.Label()
-            (unused_minimum_height, natural_height) = widget.get_preferred_height()
-            row_height = natural_height + WIDGET_BORDER_WIDTH_COMPACT
-        else:
-            widget = Gtk.CheckButton()
-            (unused_minimum_height, natural_height) = widget.get_preferred_height()
-            row_height = natural_height
+        compact_treeview = string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview"))
         
+        #WORKAROUND. TODO get text label height
+        row_height = 20
+        #widget = Gtk.Label()
+        #(unused_minimum_height, natural_height) = widget.get_preferred_height()
+        #row_height = natural_height + WIDGET_BORDER_WIDTH_COMPACT
+
         #### First column
         
         renderer = Gtk.CellRendererToggle(indicator_size=11)
         renderer.set_alignment(0, 0.5)
         renderer.set_property("height", row_height)
+        if compact_treeview:
+            renderer.set_property("ypad", 0)
         renderer.connect("toggled", self._on_cell_row_toggled)
 
         #sizing=Gtk.TreeViewColumn.FIXED
@@ -804,6 +836,8 @@ class MainTreeView(Gtk.TreeView):
         #max_width_chars=256
         renderer = Gtk.CellRendererText(width=256)
         renderer.set_property("height", row_height)
+        if compact_treeview:
+            renderer.set_property("ypad", 0)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Series", renderer, text=SearchResultColumn.SERIES)
         column.set_resizable(True)
@@ -814,6 +848,8 @@ class MainTreeView(Gtk.TreeView):
 
         renderer = Gtk.CellRendererText(width=192)
         renderer.set_property("height", row_height)
+        if compact_treeview:
+            renderer.set_property("ypad", 0)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Categories", renderer, text=SearchResultColumn.CATEGORIES)
         column.set_resizable(True)
@@ -824,6 +860,8 @@ class MainTreeView(Gtk.TreeView):
 
         renderer = Gtk.CellRendererText()
         renderer.set_property("height", row_height)
+        if compact_treeview:
+            renderer.set_property("ypad", 0)
         #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Episode ~ Description", renderer, text=SearchResultColumn.EPISODE)
         column.set_resizable(True)
@@ -854,6 +892,14 @@ class MainTreeView(Gtk.TreeView):
             
         return not (text and key.lower() in text.lower())
         
+    # Lazy treeview initialization. Signal when treeview is being displayed on screen
+    #def _on_event(self, widget, event):
+    def _on_visibility_notify_event(self, event, user_data):
+        self.main_window.controller().on_button_find_clicked(None)
+
+        #self.disconnect_by_func(self._on_event)
+        self.disconnect_by_func(self._on_visibility_notify_event)
+
     def _on_query_tooltip(self, widget, x, y, keyboard_mode, tooltip):
         points_to_row, x, y, model, path, tree_iter = widget.get_tooltip_context(x, y, keyboard_mode)
         if not points_to_row or keyboard_mode or x > self._get_column_width(0):
@@ -892,7 +938,8 @@ class MainTreeView(Gtk.TreeView):
         tooltip.set_markup(tooltip_text)
 
         if self.show_images and image_url is not None:
-            image = Image.image(image_url, timeout=self.load_image_timeout_seconds)
+            image = Image.image(image_url, timeout=self.load_image_timeout_seconds,
+                                max_width=ICON_IMAGE_MAX_WIDTH, max_height=ICON_IMAGE_MAX_HEIGHT)
             if image is not None:
                 tooltip.set_icon(image.get_pixbuf())
 
