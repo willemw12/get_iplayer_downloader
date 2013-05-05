@@ -5,7 +5,7 @@ get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer prog
 
 Features:
 
-* Find episodes. Filter on categories, channels, recent episodes
+* Find episodes. Filter on categories, channels, recently cached episodes
 * Download episodes or queue episodes for download
 * Visit the episode's "BBC iPlayer" web page
 * View episode properties

@@ -146,7 +146,7 @@ class MainWindow(Gtk.Window):
             self.main_grid.add(self.menu_bar)
         
     def _init_tool_bar_box(self):
-        self.tool_bar_box = ToolBarBox(self)
+        self.tool_bar_box = MainToolBarBox(self)
         self.main_grid.add(self.tool_bar_box)
         
     def _init_main_tree_view(self):
@@ -183,24 +183,7 @@ class MainWindow(Gtk.Window):
             else:
                 Gdk.Window.set_cursor(window, self.normal_cursor)
 
-#NOTE  
-#Glade generates the following deprecated Grid property: 
-#    <property name="n_rows">1</property>
-#It causes a Gtk warning. This property can be removed from the generated .ui file.
-
-#class Builder(Gtk.Builder):
-class Builder(object):
-    
-    def __init__(self):
-        self.builder = Gtk.Builder()
-        #self.builder.set_translation_domain(textdomain)
-
-        #TODO load all ui/*.ui filenames
-        package_pathname = os.path.dirname(os.path.realpath(__file__))
-        ui_filename = os.path.join(package_pathname, "preferences.ui")
-        self.builder.add_from_file(ui_filename)
-
-class ToolBarBox(Gtk.Box):
+class MainToolBarBox(Gtk.Box):
 
     def __init__(self, main_window):
         Gtk.Box.__init__(self, spacing=WIDGET_BORDER_WIDTH)
@@ -1045,6 +1028,8 @@ class MainTreeView(Gtk.TreeView):
         # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
         store = Gtk.TreeStore(bool, str, str, str, str, str, str, str, str, str)
         
+        repeat_categories = False
+        
         #NOTE Could use "for i, row in enumerate(tree_rows):"
         #     except that "i += 1" to skip a list item has no effect
         root_iter = None
@@ -1052,11 +1037,12 @@ class MainTreeView(Gtk.TreeView):
         while i in range(len(tree_rows)):
             row = tree_rows[i]
             if row[SearchResultColumn.EPISODE] is None:
-                # Root level row (a series)
-                # If root (a series) has only one child/leave (an episode) then merge the two into one row
+                # Series level (parent/root/level 0)
                 #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
                 if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and \
                    (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
+                    # Series (parent/root/level 0) has only episode (child/leave/level 1)
+                    # Merge the two rows into one
                     #TODO
                     # [1:] means skip the first tree row value: SearchResultColumn.DOWNLOAD
                     #for j, prop_value in enumerate(tree_rows[i + 1][1:]):
@@ -1072,12 +1058,28 @@ class MainTreeView(Gtk.TreeView):
                     row[SearchResultColumn.DURATION] = tree_rows[i + 1][SearchResultColumn.DURATION]
                     # Skip merged row (an episode)
                     i += 1
+                    
+                    repeat_categories = False
+                else:
+                    # Repeat displaying categories in each row, if the episode's categories of a series are not all the same
+                    # Check episodes (children/leaves/level 1) in a series (parent/root/level 0)
+                    categories = row[SearchResultColumn.CATEGORIES]
+                    j = i + 1
+                    while j < len(tree_rows):
+                        row_next = tree_rows[j]
+                        if row_next[SearchResultColumn.EPISODE] is None:
+                            # End of episodes in a series: reached next series level (parent/root/level 0)
+                            break
+                        if row_next[SearchResultColumn.CATEGORIES] != categories:
+                            repeat_categories = True
+                            break
+                        j += 1
+                    
                 root_iter = store.append(None, row)            
             else:
-                # Don't repeat series information for each episode
-                row[SearchResultColumn.CATEGORIES] = None
-
-                # Child/leave level row (an episode)
+                # Episode level (child/leave/level 1)
+                if not repeat_categories:
+                    row[SearchResultColumn.CATEGORIES] = None
                 store.append(root_iter, row)
             i += 1
         self.set_model(store)
@@ -1106,6 +1108,25 @@ class SearchEntry(Gtk.Entry):
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             entry.set_text("")
             #entry.set_placeholder_text("Search")
+
+####
+
+#NOTE  
+#Glade generates the following deprecated Grid property: 
+#    <property name="n_rows">1</property>
+#It causes a Gtk warning. This property can be removed from the generated .ui file.
+
+#class Builder(Gtk.Builder):
+class Builder(object):
+    
+    def __init__(self):
+        self.builder = Gtk.Builder()
+        #self.builder.set_translation_domain(textdomain)
+
+        #TODO load all ui/*.ui filenames
+        package_pathname = os.path.dirname(os.path.realpath(__file__))
+        ui_filename = os.path.join(package_pathname, "preferences.ui")
+        self.builder.add_from_file(ui_filename)
 
 ####
 

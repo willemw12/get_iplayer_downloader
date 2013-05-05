@@ -259,7 +259,7 @@ def search(search_text, preset=None, prog_type=None,
     
     process_output = command.run(cmd)
 
-    # Convert the process output lines to lists (no dicts, no objects), matching the GtkTreeStore input data
+    # Convert the process output lines directly to lists, matching the GtkTreeStore model data. Do not create intermediate data/interfaces
     lines = process_output.splitlines()
     output_lines = []
     l_prev = None
@@ -286,20 +286,20 @@ def search(search_text, preset=None, prog_type=None,
             #2) CHECK_RE = re.compile('[ -]+$'); CHECK_RE.match(l)
             #3) re.match("^[ ]+$", l)
             if level == 0 and l[0].isspace():
-                # Going from root level (level 0, a series) to level 1 (an episode)
+                # Going from series level (parent/root/level 0) to episode level (child/leave/level 1)
                 level = 1
                 copy = True
                 if l_prev:
-                    # Add series line.
-                    # Series title is copied from the previous line (root level, level 0, a series)
-                    # Categories, channels and thumbnail url, etc. are copied from the current line (level 1, an episode)
+                    # Add series line
+                    # Series title is copied from the previous line (parent/root/level 0)
+                    # Categories, channels and thumbnail URL, etc. are copied from the current line (child/leave/level 1)
                     # No PID or index available for a series from the output of get_iplayer --tree
                     try:
                         output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
                     except IndexError:    # as exc:
                         pass
             if level == 1 and not l[0].isspace():
-                # Going from level 1 (an episode) to root level (level 0, a series)
+                # Going from episode level (child/leave/level 1) to series level (parent/root/level 0)
                 level = 0
                 copy = False
             #if level == 1 and copy:
