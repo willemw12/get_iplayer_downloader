@@ -29,6 +29,7 @@ class HelpDialogWrapper(object):
                               ["ctrl+c", "Clear", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_CLEAR],
                               ["ctrl+d", "Download", get_iplayer_downloader.ui.main_window.TOOLTIP_TOOLS_DOWNLOAD],
                               ["ctrl+f", "Find", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_GO_TO_FIND],
+                              ["ctrl+m", "Similar", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_LOCATE_SIMILAR],
                               ["ctrl+l", "Log", get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_LOG],
                               ["ctrl+p", "Play", get_iplayer_downloader.ui.main_window.TOOLTIP_VIEW_PLAYER],
                               ["ctrl+q", "Queue", get_iplayer_downloader.ui.main_window.TOOLTIP_OPTION_PVR_QUEUE],

@@ -125,6 +125,9 @@ class SearchResultColumn:
     THUMBNAIL_SMALL = 7
     AVAILABLE = 8
     DURATION = 9
+    
+    # Additional data derived from fields above in this class
+    LOCATE_SEARCH_TERM = 10
 
 ####
 
@@ -267,14 +270,14 @@ def search(search_text, preset=None, prog_type=None,
     copy = False
     for line in lines:
         #NOTE with "def __len__()" in a metaclass: l = line.split("|", len(SearchResultColumn) - 1)
-        l = line.split("|", 9)
+        l = line.split("|", 11 - 1)     # , len(SearchResultColumn) - 1)
 
-        # Make sure the line array contains at least 10 items (avoid IndexError exception)
+        # Make sure the line array contains at least 11 items (avoid IndexError exception)
         # This better than catching IndexError exceptions below, which currently will discard the whole episode line
         # TODO sanitize process_output.
         #      An episode description sometimes contain a newline character or a | character.
         #      Split() will only split the first line
-        for unused in range(len(l), 9 + 1):
+        for unused in range(len(l), 11):     # , len(SearchResultColumn.attributes))
             l.extend([''])
         #ALTERNATIVE catch exceptions 
 
@@ -295,7 +298,7 @@ def search(search_text, preset=None, prog_type=None,
                     # Categories, channels and thumbnail URL, etc. are copied from the current line (child/leave/level 1)
                     # No PID or index available for a series from the output of get_iplayer --tree
                     try:
-                        output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8]])
+                        output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8], l_prev[0]])
                     except IndexError:    # as exc:
                         pass
             if level == 1 and not l[0].isspace():
@@ -308,12 +311,12 @@ def search(search_text, preset=None, prog_type=None,
                 try:
                     if l[3].startswith(" ~ "):
                         # No episode title
-                        output_lines.append([False, l[1], l[2], None, l[3][len(" ~ "):], l[4], l[5], l[6], l[7], l[8]])
+                        output_lines.append([False, l[1], l[2], None, l[3][len(" ~ "):], l[4], l[5], l[6], l[7], l[8], None])
                     elif l[3].endswith(" ~ "):
                         # No episode description
-                        output_lines.append([False, l[1], l[2], None, l[3][:len(l[3])-len(" ~ ")], l[4], l[5], l[6], l[7], l[8]])
+                        output_lines.append([False, l[1], l[2], None, l[3][:len(l[3])-len(" ~ ")], l[4], l[5], l[6], l[7], l[8], None])
                     else:
-                        output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8]])
+                        output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8], None])
                 except IndexError:    # as exc:
                     pass
             l_prev = l

@@ -1,53 +1,34 @@
-# Maintainer: willemw12 <willemw12@gmail.com>
+# Maintainer: willemw <willemw12@gmail.com>
 
-_name=get_iplayer_downloader
-pkgname=$_name-git
-pkgver=20120519
+_pkgname=get_iplayer_downloader
+pkgname=$_pkgname-git
+pkgver=183.c2aa840
 pkgrel=1
 pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')
 url="https://github.com/willemw12/get_iplayer_downloader"
 license=('GPL3')
-depends=('get_iplayer' 'gtk3' 'python-gobject' 'python>=3.2')
+depends=('get_iplayer' 'gtk3' 'python>=3.2' 'python-gobject')
 optdepends=('mlocate: find similar episodes')
 makedepends=('git')
-provides=("$_name")
-conflicts=("$_name")
-#options=(!emptydirs)
+provides=($_pkgname)
+conflicts=($_pkgname)
 #install="$pkgname.install"
-#source=(https://github.com/willemw12/get_iplayer_downloader/tarball/master)
-#md5sums=()
+#source=($_pkgname::git+https://github.com/willemw12/get_iplayer_downloader/tarball/master)
+source=($_pkgname::git://github.com/willemw12/get_iplayer_downloader.git)
+md5sums=(SKIP)
 
-_gitroot=git://github.com/willemw12/get_iplayer_downloader.git
-_gitname=$pkgname
-
-build() {
-  cd "$srcdir"
-  msg "Connecting to GIT server...."
-
-  if [[ -d "$_gitname" ]]; then
-    cd "$_gitname" && git pull origin
-    msg "The local files are updated."
-  else
-    git clone "$_gitroot" "$_gitname"
-  fi
-
-  msg "GIT checkout done or server timeout"
-  msg "Starting build..."
-
-  rm -rf "$srcdir/$_gitname-build"
-  git clone "$srcdir/$_gitname" "$srcdir/$_gitname-build"
-  cd "$srcdir/$_gitname-build"
+pkgver() {
+  cd "$srcdir/$_pkgname"
+  echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
 }
 
 package() {
-  cd "$srcdir/$_gitname-build"
+  cd "$srcdir/$_pkgname"
 
   #sed -i 's|#![ ]*/usr/bin/env python[ ]*$|#!/usr/bin/env python3|' extra/get_iplayer_post_subdir.py
 
   python setup.py install --root="$pkgdir/" --optimize=1
-  python setup.py clean
-  rm -rf build
 
   # Python setup.py already does the following
   #install -m644 res/get_iplayer_downloader.desktop -t ${pkgdir}/usr/share/applications/
@@ -58,6 +39,4 @@ package() {
   #xdg-desktop-icon install --novendor res/get_iplayer_downloader.desktop
   #xdg-icon-resource install --novendor --size 96 res/get_iplayer_downloader.png
 }
-
-# vim:set ts=2 sw=2 et:
 

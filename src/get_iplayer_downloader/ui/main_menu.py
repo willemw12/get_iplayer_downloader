@@ -32,6 +32,7 @@ class UIManager():
     <!--
     <menu action="SearchMenu">
       <menuitem action="SearchGoToFind"/>
+      <menuitem action="SearchLocateSimilar"/>
     </menu>
     -->
     <menu action="ToolsMenu">
@@ -43,6 +44,7 @@ class UIManager():
       <menuitem action="ToolsRefresh"/>
       <separator/>
       <menuitem action="SearchGoToFind"/>
+      <menuitem action="SearchLocateSimilar"/>
     </menu>
     <menu action="HelpMenu">
       <menuitem action="HelpHelp"/>
@@ -64,6 +66,7 @@ class UIManager():
     <menuitem action="ToolsRefresh"/>
     <separator/>
     <menuitem action="SearchGoToFind"/>
+    <menuitem action="SearchLocateSimilar"/>
     <separator/>
     <menuitem action="EditPreferences"/>
     <separator/>
@@ -149,6 +152,7 @@ class UIManager():
         action_group.add_actions([
             ("SearchMenu", None, "Search"),
             ("SearchGoToFind", Gtk.STOCK_FIND, "_Find", "<control>F", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_GO_TO_FIND, self._on_menu_others),
+            ("SearchLocateSimilar", Gtk.STOCK_FIND, "Si_milar", "<control>M", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_LOCATE_SIMILAR, self._on_menu_others),
             ("SearchRotateProgrammeType", None, None, "<control>T", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_ROTATE_PROG_TYPE, self._on_menu_others),
             ("SearchRotateForwardSince", None, None, "<control>S", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
             ("SearchRotateBackwardSince", None, None, "<control><shift>S", get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_ROTATE_SINCE, self._on_menu_others),
@@ -211,6 +215,8 @@ class UIManager():
             self.main_window.controller().on_progress_bar_button_press_event(None, None)
         elif name == "SearchGoToFind":
             self.main_window.controller().on_accel_go_to_find()
+        elif name == "SearchLocateSimilar":
+            self.main_window.controller().on_accel_locate_similar(None)
         elif name == "SearchRotateForwardSince" or name == "SearchRotateForwardSince_4":
             self.main_window.controller().on_accel_rotate_since(False)
         #elif name == "SearchRotateBackwardSince" or name == "SearchRotateBackwardSince_SHIFT_4":

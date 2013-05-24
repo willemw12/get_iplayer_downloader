@@ -19,7 +19,7 @@ Screenshots:
 
 This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note, however, that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
 
-This is a small utility program for me to try and find out the capabilities of standard Python and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+This is a small utility program for me to try and find out the capabilities of the standard Python libraries and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
 For the latest version, go to:
 
@@ -53,11 +53,11 @@ The dependencies are:
 Configuration
 -------------
 
-Summary:
+In short:
 
 * The get\_iplayer preset configuration in get\_iplayer has to match the preset configuration in get\_iplayer\_downloader
 * The get\_iplayer "info" property needs to be disabled by default
-* To change the category or channel filters the configuration file needs to be edited manually
+* To change the category or channel filters, the configuration file needs to be edited manually
 
 ### get\_iplayer
 
@@ -68,7 +68,9 @@ get\_iplayer\_downloader's default configuration has two get\_iplayer presets de
 
 The preset names are configurable. There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the "aactomp3" property in that case.
 
-To configure get\_iplayer for use with two presets, either reuse existing preset files or create new preset files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc. or edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly. Here are two preset file examples. Lines starting with # are commented out. The "info" property should not be set or should be disabled by default, otherwise displaying episode search results will take a very long time.
+To configure get\_iplayer for use with two presets, either reuse existing preset files or create new preset files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc., or create and edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly.
+
+Here are two preset file examples. Lines starting with # are commented out. The "info" property should not be set or should be disabled by default, otherwise displaying episode search results will take a very long time.
 
 File ~/.get\_iplayer/presets/radio:
 
@@ -95,19 +97,21 @@ Optionally, setup a get\_iplayer pvr scheduler (a cron job) to download queued e
 
 Most configuration options can be managed from the GUI. Other options can be found in the configuration file (~/.config/get\_iplayer\_downloader/config), which will be created after running the program for the first time. Make sure the program is not running, before editing the configuration file.
 
-Add a minus sign in front of a channel or a category to exclude it from the search and cache refresh. When searching episodes, add a minus sign in front of the whole search term to exclude it from the search.
-
 Leave options, such as Channels and Download folder, empty in Preferences to use the default value specified in get\_iplayer.
 
-Before downloading episodes for the first time, verify the download paths and optionally the terminal emulator program name and options.
+Before downloading episodes for the first time, verify the download paths and, optionally, the terminal emulator program name and program arguments.
 
-The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (lists of key-value pairs, i.e. "search term"-"GUI label" pairs). File ./extra/my\_config is an example. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
+If the program crashes immediately on startup or when the mouse cursor moves over the first column in the episode list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
+
+
+#### Categories and channels
+
+The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (they are lists of key-value pairs, i.e. lists of "search term"-"GUI label" pairs). File ./extra/my\_config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet
 
-If the program crashes immediately on startup or when the mouse cursor moves over the first column in the episode list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
-
+Add a minus sign in front of a channel or a category to exclude it from the search and cache refresh. When searching episodes, add a minus sign in front of the whole search term to exclude it from the search.
 
 
 Installation
@@ -117,24 +121,18 @@ To execute without installing, run:
 
     <path to this directory>/src/get_iplayer_downloader.py
 
-Or create a symbolic link of get\_iplayer\_downloader.py in a directory of $PATH. From this directory:
+Or create a symbolic link of get\_iplayer\_downloader.py to a directory in $PATH. From this directory, run:
 
-    ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/get_iplayer_downloader
+    ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/gipd
 
-and run:
+and then run:
 
-    get_iplayer_downloader
+    gipd
     
-There are several ways to install the program, see below.
-
-After installation, run:
-
-    get_iplayer_downloader
-
-or run it from the desktop menu.
+There are several ways to install the program.
 
 
-### Install by installation script
+### Install with installation script
 
 This should work on any Linux distribution. Run from this directory:
 

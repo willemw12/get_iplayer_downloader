@@ -35,6 +35,7 @@ TOOLTIP_TOOLS_REFRESH = "Refresh episode cache, limited of the selected programm
 TOOLTIP_SEARCH_FIND = "Find episodes"
 TOOLTIP_SEARCH_CLEAR = "Clear search text"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
+TOOLTIP_SEARCH_LOCATE_SIMILAR = "Find more similar episodes on the file system, using the updatedb \"locate\" command"
 TOOLTIP_SEARCH_ROTATE_SINCE = "Select since episodes were added to the cache"
 TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast or TV)"
 TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select programme category"
@@ -63,13 +64,18 @@ TOOLTIP_HELP_ABOUT = "About this program"
 
 ####
 
-WINDOW_MAIN_HEIGHT = 720
+WINDOW_MAIN_HEIGHT = 716
 
 WINDOW_LARGE_WIDTH = 800
-WINDOW_LARGE_HEIGHT = 800
+WINDOW_LARGE_HEIGHT = WINDOW_MAIN_HEIGHT
+
+WINDOW_LARGE_WIDTH_WIDE = 1000
+WINDOW_LARGE_HEIGHT_WIDE = WINDOW_MAIN_HEIGHT
 
 #WINDOW_MEDIUM_WIDTH = 600
 #WINDOW_MEDIUM_HEIGHT = 500
+
+####
 
 WIDGET_BORDER_WIDTH = 4
 WIDGET_BORDER_WIDTH_COMPACT = 2
@@ -1026,8 +1032,9 @@ class MainTreeView(Gtk.TreeView):
 
     def set_store(self, tree_rows):
         # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
-        store = Gtk.TreeStore(bool, str, str, str, str, str, str, str, str, str)
+        store = Gtk.TreeStore(bool, str, str, str, str, str, str, str, str, str, str)
         
+        locate_search_term = None
         repeat_categories = False
         
         #NOTE Could use "for i, row in enumerate(tree_rows):"
@@ -1038,6 +1045,8 @@ class MainTreeView(Gtk.TreeView):
             row = tree_rows[i]
             if row[SearchResultColumn.EPISODE] is None:
                 # Series level (parent/root/level 0)
+                repeat_categories = False
+
                 #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
                 if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and \
                    (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
@@ -1056,10 +1065,9 @@ class MainTreeView(Gtk.TreeView):
                     row[SearchResultColumn.THUMBNAIL_SMALL] = tree_rows[i + 1][SearchResultColumn.THUMBNAIL_SMALL]
                     row[SearchResultColumn.AVAILABLE] = tree_rows[i + 1][SearchResultColumn.AVAILABLE]
                     row[SearchResultColumn.DURATION] = tree_rows[i + 1][SearchResultColumn.DURATION]
-                    # Skip merged row (an episode)
-                    i += 1
                     
-                    repeat_categories = False
+                    # Skip merged row (an episode)
+                    i += 1                    
                 else:
                     # Repeat displaying categories in each row, if the episode's categories of a series are not all the same
                     # Check episodes (children/leaves/level 1) in a series (parent/root/level 0)
@@ -1074,10 +1082,15 @@ class MainTreeView(Gtk.TreeView):
                             repeat_categories = True
                             break
                         j += 1
-                    
+                locate_search_term = row[SearchResultColumn.SERIES]
+                row[SearchResultColumn.LOCATE_SEARCH_TERM] = locate_search_term
                 root_iter = store.append(None, row)            
             else:
                 # Episode level (child/leave/level 1)
+                
+                # Copy locate_search_term from series (parent/root/level 0) row
+                row[SearchResultColumn.LOCATE_SEARCH_TERM] = locate_search_term
+                
                 if not repeat_categories:
                     row[SearchResultColumn.CATEGORIES] = None
                 store.append(root_iter, row)

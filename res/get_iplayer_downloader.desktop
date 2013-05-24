@@ -6,6 +6,6 @@ Exec=get_iplayer_downloader
 Hidden=false
 Icon=get_iplayer_downloader
 Name=BBC Get iPlayer Downloader
-StartupNotify=false
+StartupNotify=true
 Terminal=false
 Type=Application

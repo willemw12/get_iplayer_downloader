@@ -16,7 +16,7 @@ import get_iplayer_downloader.ui.props_window as props_window
 
 from get_iplayer_downloader import command_util, get_iplayer, settings
 from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX    #, VALUE_INDEX
-from get_iplayer_downloader.tools import command, command_queue, config, string
+from get_iplayer_downloader.tools import command, command_queue, config, file, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
 
 class MainWindowController:
@@ -45,7 +45,7 @@ class MainWindowController:
         """ Update the number of running get_iplayer processes. """
         try:
             if os.name == "posix":
-                self.processes = int(command.run("echo -n $(ps xo cmd | grep '^/usr/bin/perl /usr/bin/get_iplayer' | wc -l) ; exit 0", quiet=True))
+                self.processes = int(command.run("echo -n $(ps xo cmd | grep 'perl /usr/bin/get_iplayer ' | grep -v 'grep' | wc -l) ; exit 0", quiet=True))
             else:
                 self.processes = 0
         except ValueError:
@@ -464,10 +464,55 @@ class MainWindowController:
         #    prog_type = None
         self.main_window.set_window_title(prog_type=prog_type)
 
+    def on_button_similar_clicked(self, button, locate_search_term):
+        # button can be None
+        
+        if os.name == "posix" and locate_search_term is not None:
+            output = ""
+
+            self.main_window.display_busy_mouse_cursor(True)
+            cmd = "locate " + file.sanitize_path(locate_search_term, False)
+            process_output = command.run(cmd, quiet=True)
+            output += cmd + ":\n" + process_output
+            self.main_window.display_busy_mouse_cursor(False)
+                             
+            dialog = ExtendedMessageDialog(self.main_window, 0, Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                           "Similar Episodes")
+            #dialog.format_secondary_text("")
+            dialog.set_default_response(Gtk.ResponseType.CLOSE)
+            dialog.get_content_area().set_size_request(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH_WIDE,
+                                                       get_iplayer_downloader.ui.main_window.WINDOW_LARGE_HEIGHT_WIDE)
+
+            dialog.format_tertiary_scrolled_text(output)
+            label = dialog.get_scrolled_label()
+            label.set_valign(Gtk.Align.START)
+            label.set_halign(Gtk.Align.START)
+            label.set_selectable(True)
+            #label.override_font(Pango.FontDescription("monospace small"))
+            label.override_font(Pango.FontDescription("monospace 10"))
+            dialog.run()
+            dialog.destroy()
+
     ####
     
     def on_accel_go_to_find(self):
         self.tool_bar_box.search_entry.grab_focus()
+
+    def on_accel_locate_similar(self, locate_search_term):
+        model, tree_iter = self.main_tree_view.get_selection().get_selected()
+        if tree_iter is not None:
+            #index = model[tree_iter][SearchResultColumn.INDEX]
+            #if index:
+            locate_search_term = model[tree_iter][SearchResultColumn.LOCATE_SEARCH_TERM]
+            #if locate_search_term:
+            self.on_button_similar_clicked(None, locate_search_term)
+        else:
+            dialog = Gtk.MessageDialog(self.main_window, 0,
+                                       Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+                                       "No episode highlighted")
+            #dialog.format_secondary_text("")
+            dialog.run()
+            dialog.destroy()
 
     def _rotate_combo(self, combo, backward):
         tree_iter = combo.get_active_iter()
