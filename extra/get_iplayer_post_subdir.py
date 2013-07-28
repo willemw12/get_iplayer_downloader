@@ -45,7 +45,7 @@ def _init_argparser():
 get_iplayer "subdir" output option. In addition to the formatting fields
 listed by "get_iplayer --info ...", this script supports:
 
-  <category>            last and most specific category from --categories
+  <categorysub>         last and most specific category from --categories
   <categorymain>        first and most general category from --categories
   <week>                current week number
 
@@ -62,7 +62,7 @@ A get_iplayer "command" option example (one line):
                         --filename="<filename>" 
                         --force
                         --subdir-format=
-                            "bbc.<week>/<categorymain>_<category>/<longname>"
+                            "bbc.<week>/<categorymain>_<categorysub>/<longname>"
 """)
     
     #AlTERNATIVE retrieve category name from subdir
@@ -72,7 +72,7 @@ A get_iplayer "command" option example (one line):
     argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
     argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
     argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")
-    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, help="programme categories (comma-separated list) of the downloaded file. Expected when <category> or <categorymain> is in --subdir-format")
+    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, help="programme categories (comma-separated list) of the downloaded file. Expected when <category>, <categorymain> or <categorysub> is in --subdir-format")
     argparser.add_argument("--dir", dest="dir", metavar="<pathname>", nargs=1, default=None, required=True, help="output directory")
     argparser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="downloaded file to be moved")
     argparser.add_argument("--force", dest="force", action="store_const", const=True, default=False, help="overwrite existing destination file")
@@ -124,9 +124,12 @@ def _move_file(categories, dirname, filename, force, subdir_format):
  
         # Perform additional substitutions (field formatting)
         if main_category == specific_category:
+            # <category> is the same as <categorymain>
+            subdir_format = subdir_format.replace("<category>", "<categorymain>")
+
             # Merge duplicate string values
-            subdir_format = subdir_format.replace("<category><categorymain>", main_category)
-            subdir_format = subdir_format.replace("<categorymain><category>", main_category)
+            subdir_format = subdir_format.replace("<categorysub><categorymain>", main_category)
+            subdir_format = subdir_format.replace("<categorymain><categorysub>", main_category)
 
             # Merge duplicate string values separated by sanitized separators or
             # other valid separator characters (-)
@@ -135,19 +138,19 @@ def _move_file(categories, dirname, filename, force, subdir_format):
         
             #NOTE p.sub replaces that whole search string, not just the group in the search string
             #     --> use non-consuming, fixed-length lookaheads (?=...) and lookbehinds (?<=...)
-            p = re.compile(r"(?<=<category>)([_-]+)(?=<categorymain>)|(?<=(?<=<categorymain>))([_-]+)(?=<category>)")
+            p = re.compile(r"(?<=<categorysub>)([_-]+)(?=<categorymain>)|(?<=(?<=<categorymain>))([_-]+)(?=<categorysub>)")
             subdir_format = p.sub(r"_", subdir_format)
             #ALTERNATIVE use only one group (the start/end pos won't be correct after the first substitution (field formatting))
             #m = re.search(pattern, str)
             #if m and m.groups() > 0:
             #    str = str[0:m.start(1)] + replacement_str + str[m.end(1):len(str)]
-            subdir_format = subdir_format.replace("<category>_<categorymain>", main_category)
-            subdir_format = subdir_format.replace("<categorymain>_<category>", main_category)
-        subdir_format = subdir_format.replace("<category>", specific_category)
+            subdir_format = subdir_format.replace("<categorysub>_<categorymain>", main_category)
+            subdir_format = subdir_format.replace("<categorymain>_<categorysub>", main_category)
+        subdir_format = subdir_format.replace("<categorysub>", specific_category)
         subdir_format = subdir_format.replace("<categorymain>", main_category)
     else:
-        if "<category>" in subdir_format or "<categorymain>" in subdir_format:
-            logger.warning("move_file(): --categories expected when <category> and/or <categorymain> is in --subdir-format")
+        if "<category>" in subdir_format or "<categorymain>" in subdir_format or "<categorysub>" in subdir_format:
+            logger.warning("move_file(): --categories expected when <category>, <categorymain>  and/or <categorysub> is in --subdir-format")
             #sys.exit(1)
 
     # Sanitize everything in subdir again, to sanitize the substituted values and unrecognized substitutions (field formatting)

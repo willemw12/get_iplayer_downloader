@@ -43,6 +43,8 @@ class HelpDialogWrapper(object):
                               #["ctrl+4, ctrl+shift+4", "Since", None],
                               ["ctrl+4, ctrl+5", "Since", None],
                               [" ", None, None],
+                              ["f1", "Help", None],
+                              [" ", None, None],
                               ["down-arrow", None, "Go from tool bar to episode list"],
                               ["space or enter", None, "Toggle selection in the episode list"]]
 

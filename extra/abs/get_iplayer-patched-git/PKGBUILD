@@ -1,14 +1,14 @@
-# Maintainer: Mark Foxwell <fastfret79@archlinux.org.uk>
+# Maintainer: willemw <willemw12@gmail.com>
+# Contributor: Mark Foxwell <fastfret79@archlinux.org.uk>
 # Contributor: AshtonBRSC <michael@ashtonbrsc.co.uk>
 # Contributor: pluckypigeon <pluckypigeon@ArchForums.com>
 # Contributor: canton7
-# Contributor: willemw <willemw12@gmail.com>
 
 #PATCH
 #pkgname=get_iplayer-git
 pkgname=get_iplayer-patched-git
 
-pkgver=598.f7fae0f
+pkgver=618.5e5d398
 pkgrel=1
 pkgdesc="Allows you to download or stream any iPlayer programme from the BBC in H.264 (Quicktime/mp4) format, any radio programmes in MP3 or RealAudio format"
 arch=('any')
@@ -33,13 +33,13 @@ source=($pkgname::git://git.infradead.org/get_iplayer.git)
 md5sums=(SKIP)
 
 pkgver() {
-  cd "$srcdir/$pkgname"
+  cd $pkgname
   echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
 }
 
 #PATCH
 build() {
-  cd "$srcdir/$pkgname"
+  cd $pkgname
 
   # Apply the following patches
   #
@@ -72,12 +72,14 @@ build() {
 }
 
 package() {
-  cd "$srcdir/$pkgname"
-	install -m755 -D get_iplayer $pkgdir/usr/bin/get_iplayer
-	install -m644 -D README.txt $pkgdir/usr/share/doc/get_iplayer/README.txt
-	install -D -m644 get_iplayer.1 ${pkgdir}/usr/share/man/man1/get_iplayer.1
-	install -m755 -d $pkgdir/usr/share/get_iplayer/plugins
-	install -m644 plugins/*.plugin $pkgdir/usr/share/get_iplayer/plugins/
-	install -m755 plugins/plugin.template $pkgdir/usr/share/get_iplayer/plugins/
+  cd $pkgname
+  install -m755 -D get_iplayer "$pkgdir/usr/bin/get_iplayer"
+  install -m644 -D README.md "$pkgdir/usr/share/doc/get_iplayer/README.md"
+  install -m644 -D get_iplayer.1 "$pkgdir/usr/share/man/man1/get_iplayer.1"
+
+  install -m755 -d "$pkgdir/usr/share/get_iplayer/plugins"
+  install -m644 plugins/*.plugin "$pkgdir/usr/share/get_iplayer/plugins/"
+  install -m755 plugins/plugin.template "$pkgdir/usr/share/get_iplayer/plugins/"
+  install -m755 plugins/plugin.template "$pkgdir/usr/share/get_iplayer/plugins/"
 }
 

@@ -64,12 +64,12 @@ TOOLTIP_HELP_ABOUT = "About this program"
 
 ####
 
-WINDOW_MAIN_HEIGHT = 716
+WINDOW_MAIN_HEIGHT = 680
 
 WINDOW_LARGE_WIDTH = 800
 WINDOW_LARGE_HEIGHT = WINDOW_MAIN_HEIGHT
 
-WINDOW_LARGE_WIDTH_WIDE = 1000
+WINDOW_LARGE_WIDTH_WIDE = 980
 WINDOW_LARGE_HEIGHT_WIDE = WINDOW_MAIN_HEIGHT
 
 #WINDOW_MEDIUM_WIDTH = 600
@@ -147,7 +147,7 @@ class MainWindow(Gtk.Window):
         self.add(self.main_grid)
 
     def _init_menu_bar(self):
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")):
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-menu-bar")):
             self.menu_bar = self.ui_manager.get_menu_bar()
             self.main_grid.add(self.menu_bar)
         
@@ -201,9 +201,7 @@ class MainToolBarBox(Gtk.Box):
 
         focus_chain = []
         
-        ####
-        
-        compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar"))
+        compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-tool-bar"))
         if compact_toolbar:
             show_button_labels = False
         else:
@@ -211,24 +209,26 @@ class MainToolBarBox(Gtk.Box):
 
         ####
         
-        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
-        if show_button_labels:
-            button.set_label("Play")
-        button.set_tooltip_text(TOOLTIP_VIEW_PLAYER)
-        button.connect("clicked", self.main_window.controller().on_button_play_clicked_by_pid, None)
-        self.pack_start(button, False, False, 0)
-        focus_chain.append(button)
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-button-menu")):
 
-        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_PROPERTIES))
-        if show_button_labels:
-            button.set_label("Properties")
-        button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
-        button.connect("clicked", self.main_window.controller().on_button_properties_clicked)
-        self.pack_start(button, False, False, 0)
-        focus_chain.append(button)
-
+            button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+            button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
+            if show_button_labels:
+                button.set_label("Play")
+            button.set_tooltip_text(TOOLTIP_VIEW_PLAYER)
+            button.connect("clicked", self.main_window.controller().on_button_play_clicked_by_pid, None)
+            self.pack_start(button, False, False, 0)
+            focus_chain.append(button)
+    
+            button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+            button.set_image(Gtk.Image(stock=Gtk.STOCK_PROPERTIES))
+            if show_button_labels:
+                button.set_label("Properties")
+            button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
+            button.connect("clicked", self.main_window.controller().on_button_properties_clicked)
+            self.pack_start(button, False, False, 0)
+            focus_chain.append(button)
+    
         button = Gtk.Button(use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         #Gtk.STOCK_GO_DOWN
@@ -252,31 +252,33 @@ class MainToolBarBox(Gtk.Box):
         self.pack_start(button, False, False, 0)
         focus_chain.append(button)
 
-        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_CLEAR))
-        if show_button_labels:
-            button.set_label("Clear")
-        button.set_tooltip_text(TOOLTIP_TOOLS_CLEAR)
-        button.set_focus_on_click(False)
-        button.connect("clicked", self.main_window.controller().on_button_clear_clicked)
-        self.pack_start(button, False, False, 0)
-        focus_chain.append(button)
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-button-menu")):
 
-        button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
-        if show_button_labels:
-            button.set_label("Refresh")
-        button.set_tooltip_text(TOOLTIP_TOOLS_REFRESH)
-        button.set_focus_on_click(False)
-        button.connect("clicked", self.main_window.controller().on_button_refresh_clicked)
-        self.pack_start(button, False, False, 0)
-        focus_chain.append(button)
+            button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+            button.set_image(Gtk.Image(stock=Gtk.STOCK_CLEAR))
+            if show_button_labels:
+                button.set_label("Clear")
+            button.set_tooltip_text(TOOLTIP_TOOLS_CLEAR)
+            button.set_focus_on_click(False)
+            button.connect("clicked", self.main_window.controller().on_button_clear_clicked)
+            self.pack_start(button, False, False, 0)
+            focus_chain.append(button)
+    
+            button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+            button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
+            if show_button_labels:
+                button.set_label("Refresh")
+            button.set_tooltip_text(TOOLTIP_TOOLS_REFRESH)
+            button.set_focus_on_click(False)
+            button.connect("clicked", self.main_window.controller().on_button_refresh_clicked)
+            self.pack_start(button, False, False, 0)
+            focus_chain.append(button)
 
-        ####
-        
         separator = Gtk.VSeparator()
         self.pack_start(separator, False, False, 0)
 
+        ####
+        
         if show_button_labels:
             button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
                                 image_position=Gtk.PositionType.TOP)
@@ -777,7 +779,7 @@ class MainTreeView(Gtk.TreeView):
         # First column
         self.set_show_expanders(False)
         self.set_level_indentation(10)
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-treelines")):
+        if string.str2bool(settings.config().get(config.NOSECTION, "show-tree-lines")):
             self.set_enable_tree_lines(True)
             ##self.set_property("grid-line-pattern", "\000\001")
             ##self.set_style(grid_line_pattern="\000\001")
@@ -795,7 +797,7 @@ class MainTreeView(Gtk.TreeView):
         self.connect("visibility-notify-event", self._on_visibility_notify_event)
 
     def _init_columns(self):
-        compact_treeview = string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview"))
+        compact_treeview = string.str2bool(settings.config().get(config.NOSECTION, "compact-tree-view"))
         
         #WORKAROUND. TODO get text label height
         row_height = 20

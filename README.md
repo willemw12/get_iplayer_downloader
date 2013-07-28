@@ -19,7 +19,7 @@ Screenshots:
 
 This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note, however, that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
 
-This is a small utility program for me to try and find out the capabilities of the standard Python libraries and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+It is a small utility program for me to try and find out the capabilities of the standard Python libraries and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
 For the latest version, go to:
 
@@ -29,7 +29,7 @@ For other news, go to:
 
 * [https://github.com/willemw12/get\_iplayer\_downloader/wiki](https://github.com/willemw12/get_iplayer_downloader/wiki)
 
-This program is licensed under GPLv3 (see included file COPYING).
+This program is licensed under GPLv3 (see included COPYING file).
 
 Disclaimer: this program does not perform any downloading itself. It relies on the get\_iplayer program to perform the actual downloading.
 
@@ -57,7 +57,7 @@ In short:
 
 * The get\_iplayer preset configuration in get\_iplayer has to match the preset configuration in get\_iplayer\_downloader
 * The get\_iplayer "info" property needs to be disabled by default
-* To change the category or channel filters, the configuration file needs to be edited manually
+* To modify the category or channel filters, the configuration file needs to be edited manually
 
 ### get\_iplayer
 
@@ -75,7 +75,7 @@ Here are two preset file examples. Lines starting with # are commented out. The 
 File ~/.get\_iplayer/presets/radio:
 
     aactomp3 1
-    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --force
+    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<categorysub>/<longname>" --force
     #ffmpeg avconv
     info 0
     output /home/willemw12/Music/bbc
@@ -83,7 +83,7 @@ File ~/.get\_iplayer/presets/radio:
 
 File ~/.get\_iplayer/presets/tv:
 
-    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>" --force
+    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<categorysub>/<longname>" --force
     info 0
     output /home/willemw12/Videos/bbc
     tvmode flashhigh,flashstd,flashnormal
@@ -106,7 +106,7 @@ If the program crashes immediately on startup or when the mouse cursor moves ove
 
 #### Categories and channels
 
-The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (they are lists of key-value pairs, i.e. lists of "search term"-"GUI label" pairs). File ./extra/my\_config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
+The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (they are lists of key-value pairs, i.e. lists of "search term"-"GUI label" pairs). File ./extra/my\_default.config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
     ./get_iplayer_downloader.py --list-categories --quiet
     ./get_iplayer_downloader.py --list-channels --quiet
@@ -132,7 +132,7 @@ and then run:
 There are several ways to install the program.
 
 
-### Install with installation script
+### Installation script
 
 This should work on any Linux distribution. Run from this directory:
 
@@ -143,7 +143,7 @@ To uninstall, run from this directory:
     ./uninstall.sh
 
 
-### Install an Arch Linux package
+### Arch Linux package
 
 To install the latest git version:
 
@@ -153,7 +153,7 @@ To install the latest version:
 
     ./install-pkg.sh
 
-### Install a Debian/Ubuntu package
+### Debian/Ubuntu package
 
 __Warning: this does not work. Distutils command "bdist_deb" in package "python-stdeb" is not available for Python 3.__
 
@@ -198,13 +198,13 @@ Extra
 
 Want to group downloaded episodes by their specific category or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. It requires get\_iplayer\_downloader and it does not update the download location recorded in the (localfiles) download history. The script supports additional formatting fields (category, categorymain, week) in the subdirectory names. For more information, run:
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. It requires get\_iplayer\_downloader and it does not update the download location recorded in the (localfiles) download history. The script supports additional formatting fields (categorymain, categorysub, week) in the subdirectory names. Field <categorymain\> is the same as <category\> from get\_iplayer. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 
 The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /usr/local/share/get\_iplayer\_downloader/scripts.
 
-To configure, put for example in ~/.get\_iplayer/presets/tv:
+To configure it, put for example in ~/.get\_iplayer/presets/tv:
 
-    command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --force --subdir-format="bbc.<week>/<categorymain>_<category>/<longname>"
+    command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --force --subdir-format="bbc.<week>/<categorymain>_<categorysub>/<longname>"
 

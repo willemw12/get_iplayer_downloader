@@ -48,8 +48,7 @@ setup(name = get_iplayer_downloader.PROGRAM_NAME,
     # Moving .desktop and .svg file: for Arch Linux and Debian/Ubuntu packaging
     # Linux specific
     #WORKAROUND Make menu item visible on the (kde) desktop, by installing a short .desktop file name
-    #data_files = [("share/applications", ["res/get_iplayer_downloader.desktop"]),
-    data_files = [("share/applications", ["res/get_iplayer_dl.desktop", "res/get_iplayer_downloader.desktop"]),
+    data_files = [("share/applications", ["res/get_iplayer_downloader.desktop"]),
                   ("share/get_iplayer_downloader/scripts", ["extra/get_iplayer_post_subdir.py"]),
                   ("share/get_iplayer_downloader/scripts/get_iplayer_downloader", ["extra/__init__.py"]),
                   ("share/get_iplayer_downloader/scripts/get_iplayer_downloader/tools", ["extra/__init__.py"]),
@@ -60,9 +59,6 @@ setup(name = get_iplayer_downloader.PROGRAM_NAME,
     # Linux specific
     scripts = ["bin/get_iplayer_downloader"]
     )
-
-# This does not work, because distutils does not expose the installation prefix path, only the default prefix path
-#copy_file(PREFIX + "/share/applications/get_iplayer_downloader.desktop", PREFIX + "/share/applications/get_iplayer_dl.desktop", link="sym", verbose=1)
 
 #os.remove("src/get_iplayer_downloader/get_iplayer_downloader.svg")
 

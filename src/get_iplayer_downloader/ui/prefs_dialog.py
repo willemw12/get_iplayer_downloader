@@ -25,6 +25,7 @@ class PreferencesDialogWrapper(object):
         self.general_disable_presets_check_button = self.builder.get_object("PrefsGeneralDisablePresetsCheckButton")
         self.general_disable_proxy_check_button = self.builder.get_object("PrefsGeneralDisableProxyCheckButton")
         self.general_refresh_cache_on_startup_check_button = self.builder.get_object("PrefsGeneralRefreshCacheOnStartupCheckButton")
+        self.general_show_buttonmenu_check_button = self.builder.get_object("PrefsGeneralShowButtonMenuCheckButton")
         self.general_show_menubar_check_button = self.builder.get_object("PrefsGeneralShowMenuBarCheckButton")
         self.general_show_tooltip_check_button = self.builder.get_object("PrefsGeneralShowTooltipCheckButton")
         self.general_start_maximized_check_button = self.builder.get_object("PrefsGeneralStartMaximizedCheckButton")
@@ -71,12 +72,13 @@ class PreferencesDialogWrapper(object):
         """ Retrieve in-memory settings and put them in dialog fields. """
 
         self.general_clear_cache_on_exit_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "clear-cache-on-exit")))
-        self.general_compact_toolbar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-toolbar")))
-        self.general_compact_treeview_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-treeview")))
+        self.general_compact_toolbar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-tool-bar")))
+        self.general_compact_treeview_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "compact-tree-view")))
         self.general_disable_presets_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")))
         self.general_disable_proxy_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy")))
         self.general_refresh_cache_on_startup_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "refresh-cache-on-startup")))
-        self.general_show_menubar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menubar")))
+        self.general_show_buttonmenu_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-button-menu")))
+        self.general_show_menubar_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-menu-bar")))
         self.general_show_tooltip_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")))
         self.general_start_maximized_check_button.set_active(string.str2bool(settings.config().get(config.NOSECTION, "start-maximized")))
 
@@ -122,12 +124,13 @@ class PreferencesDialogWrapper(object):
         """ Retrieve settings from dialog fields and put them in in-memory settings. """
 
         settings.config().set(config.NOSECTION, "clear-cache-on-exit", str(self.general_clear_cache_on_exit_check_button.get_active()))
-        settings.config().set(config.NOSECTION, "compact-toolbar", str(self.general_compact_toolbar_check_button.get_active()))
-        settings.config().set(config.NOSECTION, "compact-treeview", str(self.general_compact_treeview_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "compact-tool-bar", str(self.general_compact_toolbar_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "compact-tree-view", str(self.general_compact_treeview_check_button.get_active()))
         settings.config().set(config.NOSECTION, "disable-presets", str(self.general_disable_presets_check_button.get_active()))
         settings.config().set(config.NOSECTION, "disable-proxy", str(self.general_disable_proxy_check_button.get_active()))
         settings.config().set(config.NOSECTION, "refresh-cache-on-startup", str(self.general_refresh_cache_on_startup_check_button.get_active()))
-        settings.config().set(config.NOSECTION, "show-menubar", str(self.general_show_menubar_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "show-button-menu", str(self.general_show_buttonmenu_check_button.get_active()))
+        settings.config().set(config.NOSECTION, "show-menu-bar", str(self.general_show_menubar_check_button.get_active()))
         settings.config().set(config.NOSECTION, "show-tooltip", str(self.general_show_tooltip_check_button.get_active()))
         settings.config().set(config.NOSECTION, "start-maximized", str(self.general_start_maximized_check_button.get_active()))
         settings.config().set(config.NOSECTION, "terminal-emulator", self.general_terminal_emulator_entry.get_text())
