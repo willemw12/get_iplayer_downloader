@@ -41,7 +41,7 @@ _SINCE_FOREVER_LABEL = SINCE_FOREVER_LABEL if _COMPACT_TOOLBAR else ""
 # List of key-value pairs
 #SINCE_LIST = [[0, _SINCE_FOREVER_LABEL], [1, _SINCE_FUTURE_LABEL],
 SINCE_LIST = [[0, _SINCE_FOREVER_LABEL],
-              [  4, "4 hours"], [8, "8 hours"], [12, "12 hours"],
+              [  4, "4 hours"], [8, "8 hours"], [12, "12 hours"], [16, "16 hours"], [20, "20 hours"],
               [ 24 + _SINCE_HOUR_MARGIN, "1 day" ], [ 48 + _SINCE_HOUR_MARGIN, "2 days"],
               [ 72 + _SINCE_HOUR_MARGIN, "3 days"], [ 96 + _SINCE_HOUR_MARGIN, "4 days"],
               [120 + _SINCE_HOUR_MARGIN, "5 days"], [144 + _SINCE_HOUR_MARGIN, "6 days"],
@@ -229,7 +229,9 @@ def search(search_text, preset=None, prog_type=None,
         Return table with columns: download (False), followed by columns listed in SearchResultColumn.
     """
     
-    cmd = _GET_IPLAYER_PROG + " --tree"
+    # PERL_UNICODE=S : avoid "Wide character in print" warning/error messages
+    #cmd = _GET_IPLAYER_PROG + " --tree"
+    cmd = "PERL_UNICODE=S " + _GET_IPLAYER_PROG + " --tree"
     #if not preset:
     #    #cmd += " --type=all"
     #    cmd += " --type=" + ProgType.ALL
