@@ -397,11 +397,11 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
 
         if prog_type:
             cmd += " --type=" + prog_type
+        cmd += " --nocopyright"
         if force:
             cmd += " --force --overwrite"
         if output_path:
             cmd += " --output=\"" + output_path + "\""
-        cmd += " --nocopyright"
     
         #if pvr_queue or future:
         if pvr_queue:

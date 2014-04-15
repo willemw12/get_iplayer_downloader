@@ -17,9 +17,11 @@ Screenshots:
 * [properties](https://github.com/willemw12/get_iplayer_downloader/wiki/images/properties.jpg)
 * [preferences](https://github.com/willemw12/get_iplayer_downloader/wiki/images/preferences.jpg)
 
-This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. Note, however, that get\_iplayer has a fixed download list size (info\_limit = 40). There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
+About:
 
-It is a small utility program for me to try and find out the capabilities of the standard Python libraries and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
+
+This is a small utility program for me to try and find out the capabilities of the standard Python libraries and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
 
 For the latest version, go to:
 
@@ -43,10 +45,10 @@ The dependencies are:
 * get\_iplayer and its dependencies  
   [http://www.infradead.org/get\_iplayer/html/get\_iplayer.html](http://www.infradead.org/get_iplayer/html/get_iplayer.html)
 * Python 3 (3.2 or higher)
-* Python 3 setuptools for Distutils, to install get\_iplayer\_downloader. On Debian/Ubuntu, package: python3-setuptools
+* Python 3 setuptools for Distutils, used to install get\_iplayer\_downloader. On Debian/Ubuntu, package: python3-setuptools
 * Python 3 GI/GIR (GObject Introspection Repository) libraries. On Debian/Ubuntu, packages: python3-gi, python3-gi-cairo
 * GTK+ 3 libraries. On Debian/Ubuntu, package: gir\*-gtk-3\* (\* is a wildcard character)
-* Linux. This program may work on other platforms (with a few minor changes), however, that has not been tested
+* Linux. This program may work on other platforms with a few minor changes, however, that has not been tested
 
 
 
@@ -55,7 +57,7 @@ Configuration
 
 In short:
 
-* The get\_iplayer preset configuration in get\_iplayer has to match the preset configuration in get\_iplayer\_downloader
+* The get\_iplayer\_downloader preset names should refer to existing get\_iplayer presets
 * The get\_iplayer "info" property needs to be disabled by default
 * To modify the category or channel filters, the configuration file needs to be edited manually
 
@@ -117,6 +119,8 @@ Add a minus sign in front of a channel or a category to exclude it from the sear
 Installation
 ------------
 
+There are several ways to install the program. See below.
+
 To execute without installing, run:
 
     <path to this directory>/src/get_iplayer_downloader.py
@@ -128,8 +132,6 @@ Or create a symbolic link of get\_iplayer\_downloader.py to a directory in $PATH
 and then run:
 
     gipd
-    
-There are several ways to install the program.
 
 
 ### Installation script
@@ -141,6 +143,8 @@ This should work on any Linux distribution. Run from this directory:
 To uninstall, run from this directory:
 
     ./uninstall.sh
+
+When python is upgraded to a newer minor version, then uninstall and install again.
 
 
 ### Arch Linux package
@@ -198,13 +202,13 @@ Extra
 
 Want to group downloaded episodes by their specific category or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. It requires get\_iplayer\_downloader and it does not update the download location recorded in the (localfiles) download history. The script supports additional formatting fields (categorymain, categorysub, week) in the subdirectory names. Field <categorymain\> is the same as <category\> from get\_iplayer. For more information, run:
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. It requires get\_iplayer\_downloader and it does not update the download location recorded in the (localfiles) download history. The script supports additional formatting fields (categorymain, categorysub, week) in the subdirectory names. Field \<categorymain\> is the same as field \<category\> from get\_iplayer. For more information, run:
 
     ./extra/get_iplayer_post_subdir.py --help 
 
 The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /usr/local/share/get\_iplayer\_downloader/scripts.
 
-To configure it, put for example in ~/.get\_iplayer/presets/tv:
+To configure get\_iplayer to use this script, put for example in ~/.get\_iplayer/presets/tv:
 
     command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --force --subdir-format="bbc.<week>/<categorymain>_<categorysub>/<longname>"
 

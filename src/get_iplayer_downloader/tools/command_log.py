@@ -33,6 +33,7 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
     #with open(filepathname, "r", encoding="UTF-8") as file:
     with open(filepathname, "r", encoding="LATIN-1") as file:
         #NOTE To join all lines at once (list2string): log_output = "".join(lines)
+        #NOTE for lines in file.readlines(): reads one character at a time
         #NOTE readline() reads one character
         lines = file.readlines()
         prev_line_index = -99

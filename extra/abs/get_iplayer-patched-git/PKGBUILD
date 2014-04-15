@@ -8,7 +8,7 @@
 #pkgname=get_iplayer-git
 pkgname=get_iplayer-patched-git
 
-pkgver=618.5e5d398
+pkgver=r673.a95ca65
 pkgrel=1
 pkgdesc="Allows you to download or stream any iPlayer programme from the BBC in H.264 (Quicktime/mp4) format, any radio programmes in MP3 or RealAudio format"
 arch=('any')
@@ -34,7 +34,7 @@ md5sums=(SKIP)
 
 pkgver() {
   cd $pkgname
-  echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 #PATCH
@@ -63,7 +63,7 @@ build() {
   sed -i "s|\(^[ \t]*\)\('--COMM', \$tags->{comment},.*\)|\n\1#PATCH\n\1#\2\n\1'--COMM', \$tags->{longDescription},\n|" get_iplayer
 
   # Patch: disable Akamai
-  sudo sed -i "s|\(^[ \t]*\)\(if ( \$cattribs->{kind} eq 'akamai' ) {.*\)|\n\1#PATCH\n\1#\2\n\1if ( \$cattribs->{kind} eq 'DISABLED_akamai' ) {\n|" get_iplayer
+  sed -i "s|\(^[ \t]*\)\(if ( \$cattribs->{kind} eq 'akamai' ) {.*\)|\n\1#PATCH\n\1#\2\n\1if ( \$cattribs->{kind} eq 'DISABLED_akamai' ) {\n|" get_iplayer
 
   # Check applied patches
   if [ $(grep "#PATCH" get_iplayer | wc -l) -ne 4 ]; then

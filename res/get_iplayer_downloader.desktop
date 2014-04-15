@@ -1,11 +1,11 @@
 [Desktop Entry]
+Name=BBC Get iPlayer Downloader
+Exec=get_iplayer_downloader
+Icon=get_iplayer_downloader
+Terminal=false
+Type=Application
 Categories=Network;FileTransfer
 Comment=Download BBC programmes
 Encoding=UTF-8
-Exec=get_iplayer_downloader
-Hidden=false
-Icon=get_iplayer_downloader
-Name=BBC Get iPlayer Downloader
 StartupNotify=true
-Terminal=false
-Type=Application
+Hidden=false

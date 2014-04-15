@@ -2,7 +2,7 @@
 
 _pkgname=get_iplayer_downloader
 pkgname=$_pkgname-git
-pkgver=186.1ee3fcc
+pkgver=187.4f7043d
 pkgrel=1
 pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')
@@ -19,7 +19,7 @@ md5sums=(SKIP)
 
 pkgver() {
   cd $_pkgname
-  echo $(git rev-list --count HEAD).$(git rev-parse --short HEAD)
+  git describe --long --tags | sed -r 's/([^-]*-g)/r\1/;s/-/./g'
 }
 
 #prepare() {
