@@ -25,7 +25,7 @@ class LogViewerDialogWrapper(object):
         
     def _init_dialog(self):
         self.dialog = ExtendedMessageDialog(self.main_controller.main_window, 0,
-                                Gtk.MessageType.INFO, None, #Gtk.ButtonsType.CLOSE,
+                                Gtk.MessageType.INFO, Gtk.ButtonsType.NONE,
                                 "", title="download log - " + get_iplayer_downloader.PROGRAM_NAME)
 
         label = self.dialog.get_scrolled_label()
@@ -47,22 +47,22 @@ class LogViewerDialogWrapper(object):
         self.dialog.add_button("Log", SUMMARY_LOG_BUTTON_ID)
         self.dialog.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
         
-        # Dialog buttons are laid out from right to left
-        button = self.dialog.get_action_area().get_children()[4]
+        # Dialog buttons are laid out from left to right
+        button = self.dialog.get_action_area().get_children()[0]
         #button.set_image(Gtk.Image(stock=Gtk.STOCK_DELETE))
         button.set_tooltip_text("Remove log files and image cache files")
-        button = self.dialog.get_action_area().get_children()[3]
+        button = self.dialog.get_action_area().get_children()[1]
         #button.set_image(Gtk.Image(stock=Gtk.STOCK_CLEAR))
         button.set_tooltip_text("Reset error count in the progress bar")
         button = self.dialog.get_action_area().get_children()[2]
         button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
         button.set_tooltip_text("Refresh today's download log")
-        button = self.dialog.get_action_area().get_children()[1]
+        button = self.dialog.get_action_area().get_children()[3]
         button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
         button.set_tooltip_text("Refresh today's summary download log")
         #button.grab_focus()
         # Close button
-        button = self.dialog.get_action_area().get_children()[0]
+        button = self.dialog.get_action_area().get_children()[4]
         button.grab_focus()
         
         self.dialog.set_default_response(Gtk.ResponseType.CLOSE)

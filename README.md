@@ -47,7 +47,7 @@ The dependencies are:
 * Python 3 (3.2 or higher)
 * Python 3 setuptools for Distutils, used to install get\_iplayer\_downloader. On Debian/Ubuntu, package: python3-setuptools
 * Python 3 GI/GIR (GObject Introspection Repository) libraries. On Debian/Ubuntu, packages: python3-gi, python3-gi-cairo
-* GTK+ 3 libraries. On Debian/Ubuntu, package: gir\*-gtk-3\* (\* is a wildcard character)
+* GTK+ 3 libraries (3.12 or higher). On Debian/Ubuntu, package: gir\*-gtk-3\* (\* is a wildcard character)
 * Linux. This program may work on other platforms with a few minor changes, however, that has not been tested
 
 
