@@ -249,23 +249,14 @@ class MainWindowController:
         #PVR_CHECK_BUTTON
         #if gipd_processes == 1 and not pvr_queue:
         if gipd_processes == 1:
-            pid_set = set(pid_list)
             # Update self.processes now, to avoid any progress bar update delay
             self._update_processes_count()
             if self.processes > 0:
-                if force or self.downloaded_pid_set is None:
-                    # Create new download PID list
-                    self.downloaded_pid_set = pid_set
-                else:
-                    # Remove already downloaded PIDs from the PID list
-                    pid_list = list(pid_set.difference(self.downloaded_pid_set))
-                    # Add PIDs to the downloaded PID list
-                    #.union(set(pid_list))
-                    self.downloaded_pid_set = self.downloaded_pid_set.union(pid_set)
-            #elif self.processes == 0:
-            else:
-                self.downloaded_pid_set = pid_set
-                
+                #if not force:
+                # Remove already downloaded PIDs from the PID set (copy of pid_list)
+                pid_set = set(pid_list)
+                downloaded_pid_set = set(self.downloaded_pid_list)
+                pid_list = list(pid_set.difference(downloaded_pid_set))
             if len(pid_list) == 0:
                 dialog = Gtk.MessageDialog(self.main_window, 0,
                                            Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
@@ -320,8 +311,9 @@ class MainWindowController:
             label.override_font(Pango.FontDescription("monospace 10"))
             dialog.run()
             dialog.destroy()
-        #else:
-        #    self.main_window.main_tree_view.grab_focus()
+        else:
+            #self.main_window.main_tree_view.grab_focus()
+            self.downloaded_pid_list = pid_list
 
     def on_button_pvr_queue_clicked(self, button):
         self.on_button_download_clicked(None, pvr_queue=True)
@@ -463,6 +455,9 @@ class MainWindowController:
         #if disable_presets:
         #    prog_type = None
         self.main_window.set_window_title(prog_type=prog_type)
+
+        # Invalidate downloaded PID list
+        self.downloaded_pid_list = None
 
     def on_button_similar_clicked(self, button, locate_search_term):
         # button can be None
