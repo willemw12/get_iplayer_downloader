@@ -457,7 +457,7 @@ class MainWindowController:
         self.main_window.set_window_title(prog_type=prog_type)
 
         # Invalidate downloaded PID list
-        self.downloaded_pid_list = None
+        self.downloaded_pid_list = []
 
     def on_button_similar_clicked(self, button, locate_search_term):
         # button can be None
