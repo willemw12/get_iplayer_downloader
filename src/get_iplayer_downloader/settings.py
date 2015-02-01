@@ -5,7 +5,8 @@ import tempfile
 
 # Load application-wide definitions
 import get_iplayer_downloader
-# "as Config": to avoid conflict with package method config() (and local variable config)
+
+# "as Config": to avoid conflict with local variable get_config
 from get_iplayer_downloader.tools import config as Config
 
 # The default config file serves as a, per property, factory setting fallback
@@ -19,6 +20,14 @@ else:
     
 TEMP_PATHNAME = tempfile.gettempdir() + os.sep + get_iplayer_downloader.PROGRAM_NAME
 
+####
+
+# Singletons
+
+_default_config = None
+_config = None
+_args = None
+
 #### "Stateless" utility configuration methods
 
 def _revert_config(config):
@@ -30,16 +39,16 @@ def _reload_config(config):
     """ Reload configuration. Create user's configuration file (copy of the default configuration file)
         if it did not exist.
     """
-    config_filename = args().config[0]
+    config_filename = get_args().config[0]
     if os.path.isfile(config_filename):
         #config.read(config_filename)
         config.read_file(open(config_filename))
         
         #ALTERNATIVE read from string
-        #    default_config = """
+        #    get_default_config = """
         #...
         #"""
-        #config.read_file(io.BytesIO(default_config))
+        #config.read_file(io.BytesIO(get_default_config))
     else:
         _save_config(config, config_filename)
 
@@ -50,7 +59,6 @@ def _save_config(config, config_filename):
             os.makedirs(config_pathname)
 
     try:
-        # Create a configuration file
         with open(config_filename, "wb") as config_file:
             config.write(config_file)
     except IOError as exc:
@@ -78,46 +86,46 @@ def _create_args():
 ####
 
 # "Alternative" initialization method
-def revert():
+def revert_config():
     """ Revert configuration to the default values. """
-    conf = config(load_values=False)
+    conf = get_config(load_values=False)
     _revert_config(conf)
 
 # "Alternative" initialization method
-def reload():
+def reload_config():
     """ Reload configuration from file. """
-    conf = config(load_values=False)
+    conf = get_config(load_values=False)
     _reload_config(conf)
 
-def save():
+def save_config():
     """ Save configuration to file. """
-    _save_config(config(), args().config[0])
+    _save_config(get_config(), get_args().config[0])
 
 # Convenience methods for properties that are both in _args and in _config
 
 def get_log_level():
     """ Return the log level. """
-    if args().debug:
+    if get_args().debug:
         #level = logging.DEBUG
         level = "DEBUG"
-    elif args().verbose:
+    elif get_args().verbose:
         #level = logging.INFO
         level = "INFO"
-    elif args().quiet:
+    elif get_args().quiet:
         #level = logging.WARNING
         level = "WARNING"
     else:
         #NOTE ConfigParser already trims spaces
-        level = config().get(Config.NOSECTION, "log-level")
+        level = get_config().get(Config.NOSECTION, "log-level")
         if not level:
             level = None
     return level
 
 # Convenience config methods
 
-#def get_download_path(section):
+#def get_config_download_path(section):
 #    # @section is ignored
-#    download_path = config().get(section, "download-path")
+#    download_path = get_config().get(section, "download-path")
 #    if not download_path:
 #        # None or empty string path
 #        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
@@ -125,18 +133,14 @@ def get_log_level():
 #            download_path = os.path.expanduser("~")
 #    return download_path
 
-def revert_option(section, option):
+def revert_config_option(section, option):
     """ Revert in memory @option in @section to the default value. """
-    default_value = default_config().get(section, option)
-    config().set(section, option, default_value)
+    default_value = get_default_config().get(section, option)
+    get_config().set(section, option, default_value)
 
-# Singletons
+####
 
-_default_config = None
-_config = None
-_args = None
-
-def default_config(load_values=True):
+def get_default_config(load_values=True):
     """ Return default configuration. """
     global _default_config
     if _default_config is None:
@@ -147,7 +151,8 @@ def default_config(load_values=True):
             _revert_config(_default_config)
     return _default_config
 
-def config(load_values=True):
+#NOTE Or for properties use @property def config()  ,  @config.setter def config()  ,  @config.deleter def config()
+def get_config(load_values=True):
     """ Return configuration. """
     global _config
     if _config is None:
@@ -159,7 +164,7 @@ def config(load_values=True):
             _reload_config(_config)
     return _config
 
-def args():
+def get_args():
     """ Return program arguments. """
     global _args
     #if _args is None:

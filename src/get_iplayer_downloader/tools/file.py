@@ -17,7 +17,10 @@ def load_url(url, pathname, **urlopen_keywords):
     if not os.path.isfile(filename):
         stream = None
         try:
-            stream = urllib.request.urlopen(url, **urlopen_keywords)
+            # Need to specify an HTTP User-Agent when downloading a thumbnail in a non-default size (150x84), otherwise a default size image will downloaded
+            #stream = urllib.request.urlopen(url, **urlopen_keywords)
+            request = urllib.request.Request(url, headers={"User-Agent": "curl"})        # "curl/7.39.0"
+            stream = urllib.request.urlopen(request, **urlopen_keywords)
         #NOTE Some timeout exceptions are not caught by URLError:
         #    File "/usr/lib/python3.2/socket.py", line 276, in readinto
         #NOTE Combined exception handling
@@ -67,7 +70,7 @@ def sanitize_path(path, include_substitution_markers):
         @include_substitution_markers: include substitution marker characters < and > in the sanitization process    
     """
 
-    # Partly based on 'sub StringUtils::sanitize_path' in get_iplayer
+    # Partly based on a version of 'sub StringUtils::sanitize_path' in get_iplayer
     r"""
     sub StringUtils::sanitize_path {
         my $string = shift;

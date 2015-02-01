@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 ####
 
-RADIO_DOWNLOAD_PATH = settings.config().get("radio", "download-path")
-TV_DOWNLOAD_PATH = settings.config().get("tv", "download-path")
+RADIO_DOWNLOAD_PATH = settings.get_config().get("radio", "download-path")
+TV_DOWNLOAD_PATH = settings.get_config().get("tv", "download-path")
 
 # Labels for disabled filters
 ALL_CATEGORIES_LABEL = "Categories"
@@ -28,9 +28,9 @@ VALUE_INDEX = 1
 _GET_IPLAYER_PROG = "get_iplayer"
 
 #_SINCE_HOUR_MARGIN = 6
-_SINCE_HOUR_MARGIN = string.str2int(settings.config().get(config.NOSECTION, "since-margin-hours", fallback=6))
+_SINCE_HOUR_MARGIN = string.str2int(settings.get_config().get(config.NOSECTION, "since-margin-hours", fallback=6))
 
-_COMPACT_TOOLBAR = string.str2bool(settings.config().get(config.NOSECTION, "compact-tool-bar"))
+_COMPACT_TOOLBAR = string.str2bool(settings.get_config().get(config.NOSECTION, "compact-tool-bar"))
 _ALL_CATEGORIES_LABEL = ALL_CATEGORIES_LABEL if _COMPACT_TOOLBAR else ""
 _ALL_CHANNELS_LABEL = ALL_CHANNELS_LABEL if _COMPACT_TOOLBAR else ""
 _SINCE_FOREVER_LABEL = SINCE_FOREVER_LABEL if _COMPACT_TOOLBAR else ""
@@ -49,8 +49,8 @@ SINCE_LIST = [[0, _SINCE_FOREVER_LABEL],
 
 class Preset:
     # "preset-file": filename in folder ~/.get_iplayer/presets
-    RADIO = settings.config().get("radio", "preset-file")
-    TV = settings.config().get("tv", "preset-file")
+    RADIO = settings.get_config().get("radio", "preset-file")
+    TV = settings.get_config().get("tv", "preset-file")
     
 class ProgType:
     ##ALL = "all"
@@ -69,8 +69,8 @@ class ProgType:
 #  RADIO = [[None, "Genre"]]    -->    #RADIO = [["", "Genre"]]
 
 class Channels:
-    RADIO = _ALL_CHANNELS_LABEL + "," + settings.config().get("radio", "channels")
-    TV = _ALL_CHANNELS_LABEL + "," + settings.config().get("tv", "channels")
+    RADIO = _ALL_CHANNELS_LABEL + "," + settings.get_config().get("radio", "channels")
+    TV = _ALL_CHANNELS_LABEL + "," + settings.get_config().get("tv", "channels")
     CH4 = _ALL_CHANNELS_LABEL
     ITV = _ALL_CHANNELS_LABEL
 
@@ -99,14 +99,17 @@ class Categories:
 
     # The filter lists below consists of all categories in the first item, followed by the categories separately
     
-    RADIO = ast.literal_eval(settings.config().get("radio", "categories-radio"))
-    RADIO.insert(0, [_merge_keys(RADIO) , _ALL_CATEGORIES_LABEL])
+    RADIO = ast.literal_eval(settings.get_config().get("radio", "categories-radio"))
+    # Prepend
+    RADIO.insert(0, [_merge_keys(RADIO), _ALL_CATEGORIES_LABEL])
     
-    PODCAST = ast.literal_eval(settings.config().get("radio", "categories-podcast"))
-    PODCAST.insert(0, [_merge_keys(PODCAST) , _ALL_CATEGORIES_LABEL])
+    PODCAST = ast.literal_eval(settings.get_config().get("radio", "categories-podcast"))
+    # Prepend
+    PODCAST.insert(0, [_merge_keys(PODCAST), _ALL_CATEGORIES_LABEL])
     
-    TV = ast.literal_eval(settings.config().get("tv", "categories"))
-    TV.insert(0, [_merge_keys(TV) , _ALL_CATEGORIES_LABEL])
+    TV = ast.literal_eval(settings.get_config().get("tv", "categories"))
+    # Prepend
+    TV.insert(0, [_merge_keys(TV), _ALL_CATEGORIES_LABEL])
 
 ####
 
@@ -143,7 +146,7 @@ def precheck(quiet=False):
         log_output += "WARNING:{0}".format(process_output)
         
     # Check get_iplayer preset files
-    if not string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
+    if not string.str2bool(settings.get_config().get(config.NOSECTION, "disable-presets")):
         pathname = os.path.join(os.path.expanduser("~"), ".get_iplayer", "presets")
         for preset in [Preset.RADIO, Preset.TV]:
             filename = os.path.join(pathname, preset)
@@ -288,7 +291,7 @@ def search(search_text, preset=None, prog_type=None,
             # Match string containing only spaces
             #ALTERNATIVE
             #1) all(c in " " for c in l)
-            #2) CHECK_RE = re.compile('[ -]+$'); CHECK_RE.match(l)
+            #2) p = re.compile('[ -]+$'); p.match(l)
             #3) re.match("^[ ]+$", l)
             if level == 0 and l[0].isspace():
                 # Going from series level (parent/root/level 0) to episode level (child/leave/level 1)
@@ -341,8 +344,8 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         output_path = None
         
     #WORKAROUND Preset can be None: disable-presets is true AND data models and configuration are based on presets, not on programme types
-    #if preset and string.str2bool(settings.config().get(preset, "run-in-terminal")):
-    #    terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
+    #if preset and string.str2bool(settings.get_config().get(preset, "run-in-terminal")):
+    #    terminal_prog = settings.get_config().get(config.NOSECTION, "terminal-emulator")
     #else:
     #    terminal_prog = None
     preset_fallback = None
@@ -354,8 +357,8 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
             preset_fallback = Preset.RADIO
         elif prog_type == ProgType.TV:
             preset_fallback = Preset.RADIO
-    if prog_type and string.str2bool(settings.config().get(preset_fallback, "run-in-terminal")):
-            terminal_prog = settings.config().get(config.NOSECTION, "terminal-emulator")
+    if prog_type and string.str2bool(settings.get_config().get(preset_fallback, "run-in-terminal")):
+            terminal_prog = settings.get_config().get(config.NOSECTION, "terminal-emulator")
     else:
         terminal_prog = None
 
@@ -367,8 +370,8 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
             alt_radio_modes = ""
             alt_tv_modes = "itvnormal,itvhigh,itvlow"
         else:
-            alt_radio_modes = settings.config().get(Preset.RADIO, "recording-modes")
-            alt_tv_modes = settings.config().get(Preset.TV, "recording-modes")
+            alt_radio_modes = settings.get_config().get(Preset.RADIO, "recording-modes")
+            alt_tv_modes = settings.get_config().get(Preset.TV, "recording-modes")
     
     #cmd = "( for i in"
     #for search_term_row in search_term_list:
@@ -462,7 +465,9 @@ def info(pid, search_term, preset=None, prog_type=None, proxy_disabled=False, fu
     if future:
         cmd += " --future"
     cmd += " --nocopyright"
-
+    # index size 4 (width 512)
+    cmd += " --thumbsizecache=5"
+    
     # --fields: perform the same search as with --long plus on PID
     #cmd += " --fields=\"name,episode,desc,pid\"
     cmd += " --pid=" + pid

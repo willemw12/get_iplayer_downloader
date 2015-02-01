@@ -114,13 +114,13 @@ class MainWindowController:
             model = combo.get_model()
             #search_all = self.tool_bar_box.search_all_presets_check_button.get_active()
             #if search_all_presets:
-            if string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
+            if string.str2bool(settings.get_config().get(config.NOSECTION, "disable-presets")):
                 preset = None
             else:
                 preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
             prog_type = model[tree_iter][self.PresetComboModelColumn.PROG_TYPE]
 
-        proxy_disabled = string.str2bool(settings.config().get(config.NOSECTION, "disable-proxy"))
+        proxy_disabled = string.str2bool(settings.get_config().get(config.NOSECTION, "disable-proxy"))
 
         future = self.tool_bar_box.future_check_button.get_active()
 
@@ -171,7 +171,7 @@ class MainWindowController:
             #     get_iplayer does not determine the programme type by it self
             #search_all = self.tool_bar_box.search_all_presets_check_button.get_active()
             #if search_all_presets:
-            if string.str2bool(settings.config().get(config.NOSECTION, "disable-presets")):
+            if string.str2bool(settings.get_config().get(config.NOSECTION, "disable-presets")):
                 preset = None
             else:
                 preset = model[tree_iter][self.PresetComboModelColumn.PRESET]
@@ -382,7 +382,7 @@ class MainWindowController:
         # button can be None
         search_text = self.tool_bar_box.search_entry.get_text()
         search_all = self.tool_bar_box.search_all_check_button.get_active()
-        disable_presets = string.str2bool(settings.config().get(config.NOSECTION, "disable-presets"))
+        disable_presets = string.str2bool(settings.get_config().get(config.NOSECTION, "disable-presets"))
         
         preset = None
         prog_type = None
@@ -400,7 +400,7 @@ class MainWindowController:
         exclude_categories = None
         combo = self.tool_bar_box.category_combo
         if not search_all or combo.get_active() > 0:
-            # A specific set of categories is selected
+            # A specific set of categories has been selected
             tree_iter = combo.get_active_iter()
             if tree_iter is not None:
                 model = combo.get_model()
@@ -415,7 +415,7 @@ class MainWindowController:
         exclude_channels = None
         combo = self.tool_bar_box.channel_combo
         if not search_all or combo.get_active() > 0:
-            # A specific set of channels is selected
+            # A specific set of channels has been selected
             tree_iter = combo.get_active_iter()
             if tree_iter is not None:
                 model = combo.get_model()
@@ -702,7 +702,7 @@ class MainWindowController:
     ####
     
     def session_save(self):
-        restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
+        restore_session = string.str2bool(settings.get_config().get(config.NOSECTION, "restore-session"))
         if restore_session:
             #preset = None
             prog_type = None
@@ -716,7 +716,7 @@ class MainWindowController:
                 #channel = model[tree_iter][PresetComboModelColumn.CHANNEL]
 
             categories = None
-            if string.str2bool(settings.config().get(config.NOSECTION, "enable-category-filter")):
+            if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-category-filter")):
                 categories = ""
                 combo = self.tool_bar_box.category_combo
                 tree_iter = combo.get_active_iter()
@@ -725,7 +725,7 @@ class MainWindowController:
                     categories = model[tree_iter][KEY_INDEX]
 
             channels = None
-            if string.str2bool(settings.config().get(config.NOSECTION, "enable-channel-filter")):
+            if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-channel-filter")):
                 channels = ""
                 combo = self.tool_bar_box.channel_combo
                 tree_iter = combo.get_active_iter()
@@ -734,7 +734,7 @@ class MainWindowController:
                     channels = model[tree_iter][KEY_INDEX]
 
             since = -1
-            if string.str2bool(settings.config().get(config.NOSECTION, "enable-since-filter")):
+            if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-since-filter")):
                 since = 0
                 combo = self.tool_bar_box.since_combo
                 tree_iter = combo.get_active_iter()
@@ -748,34 +748,34 @@ class MainWindowController:
 
             # If not an empty string (and not None)
             if prog_type is not None:
-                settings.config().set("session", "programme-type", prog_type)
+                settings.get_config().set("session", "programme-type", prog_type)
             if categories is not None:
-                settings.config().set("session", "categories", categories)
+                settings.get_config().set("session", "categories", categories)
             if channels is not None:
-                settings.config().set("session", "channels", channels)
+                settings.get_config().set("session", "channels", channels)
             if since >= 0:
-                settings.config().set("session", "since", str(since))
-            settings.config().set("session", "search-all", str(search_all))
+                settings.get_config().set("session", "since", str(since))
+            settings.get_config().set("session", "search-all", str(search_all))
             
-            settings.save()
+            settings.save_config()
     
     def session_restore(self):
-        restore_session = string.str2bool(settings.config().get(config.NOSECTION, "restore-session"))
+        restore_session = string.str2bool(settings.get_config().get(config.NOSECTION, "restore-session"))
         if restore_session:
-            prog_type = settings.config().get("session", "programme-type")
-            categories = settings.config().get("session", "categories")
-            channels = settings.config().get("session", "channels")
+            prog_type = settings.get_config().get("session", "programme-type")
+            categories = settings.get_config().get("session", "categories")
+            channels = settings.get_config().get("session", "channels")
             #NOTE Variables created in the try clause or except clause remain allocated after the try-except statement
             try:
-                since = int(settings.config().get("session", "since"))
+                since = int(settings.get_config().get("session", "since"))
             except ValueError:
                 since = 0
-            search_all = string.str2bool(settings.config().get("session", "search-all"))
+            search_all = string.str2bool(settings.get_config().get("session", "search-all"))
 
             # If empty string or None (in case of an error) or ch4/itv has been disabled, then set the default value
             if not prog_type or \
-                    (prog_type == "ch4" and not string.str2bool(settings.config().get(config.NOSECTION, "enable-ch4"))) or \
-                    (prog_type == "itv" and not string.str2bool(settings.config().get(config.NOSECTION, "enable-itv"))):
+                    (prog_type == "ch4" and not string.str2bool(settings.get_config().get(config.NOSECTION, "enable-ch4"))) or \
+                    (prog_type == "itv" and not string.str2bool(settings.get_config().get(config.NOSECTION, "enable-itv"))):
                 prog_type = get_iplayer.ProgType.RADIO
             if not categories:
                 categories = ""
@@ -783,11 +783,11 @@ class MainWindowController:
                 channels = ""
 
             # Don't restore when filter widget is disabled
-            if not string.str2bool(settings.config().get(config.NOSECTION, "enable-category-filter")):
+            if not string.str2bool(settings.get_config().get(config.NOSECTION, "enable-category-filter")):
                 categories = None
-            if not string.str2bool(settings.config().get(config.NOSECTION, "enable-channel-filter")):
+            if not string.str2bool(settings.get_config().get(config.NOSECTION, "enable-channel-filter")):
                 channels = None
-            if not string.str2bool(settings.config().get(config.NOSECTION, "enable-since-filter")):
+            if not string.str2bool(settings.get_config().get(config.NOSECTION, "enable-since-filter")):
                 since = -1
 
             # Restore values

@@ -3,6 +3,7 @@
 import os
 import signal
 
+from datetime import datetime, timedelta
 from gi.repository import Gdk, GObject, Gtk
 
 # Load application-wide definitions
@@ -13,7 +14,7 @@ import get_iplayer_downloader
 import get_iplayer_downloader.ui.main_controller as main_controller
 import get_iplayer_downloader.ui.main_menu as main_menu
 
-from get_iplayer_downloader import command_util, get_iplayer, settings
+from get_iplayer_downloader import cache, command_util, get_iplayer, settings
 from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn
 from get_iplayer_downloader.tools import config, markup, string
 from get_iplayer_downloader.ui.tools import image as Image
@@ -47,7 +48,7 @@ TOOLTIP_FILTER_PROGRAMME_CATEGORIES = "Filter on programme categories. Filter on
 TOOLTIP_FILTER_PROGRAMME_CHANNELS = "Filter on channels. Filter on all listed (configured) channels, when the filter is off. The filter is off when the filter label in the tool bar is 'Channels' or empty"
 TOOLTIP_FILTER_SINCE = "Filter on episodes recently added to the cache. The filter is off when filter label in the tool bar is 'Since' or empty"
 
-TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue episodes with the alternative set of recording modes"
+TOOLTIP_OPTION_ALT_RECORDING_MODES = "Download or queue episodes with the alternative set of recording modes, instead of the default get_iplayer modes"
 TOOLTIP_OPTION_SEARCH_ALL = "Search in all the available categories and/or channels when the filter is off. The filter is off when the filter label in the tool bar is 'Categories', 'Channels' or empty"
 TOOLTIP_OPTION_FORCE = "Force download or force refresh of the episode cache"
 TOOLTIP_OPTION_FUTURE = "Include or exclude future episodes in the episode list and future episode information in the property list. Click 'Refresh', with 'Future' enabled, to update the list of future episodes in the cache. The category filter is disabled in 'Future' mode"
@@ -102,12 +103,30 @@ class MainWindow(Gtk.Window):
         # Set minimal size: self.set_size_request(...)
         self.set_default_size(-1, WINDOW_MAIN_HEIGHT)
         self.set_border_width(WIDGET_BORDER_WIDTH)
-        start_maximized = string.str2bool(settings.config().get(config.NOSECTION, "start-maximized"))
+        start_maximized = string.str2bool(settings.get_config().get(config.NOSECTION, "start-maximized"))
         if start_maximized:
             self.maximize()
 
         self.busy_cursor = Gdk.Cursor(Gdk.CursorType.WATCH)
         self.normal_cursor = Gdk.Cursor(Gdk.CursorType.LEFT_PTR)
+        
+        ####
+        
+        # Get and update last visited cached timestamp
+        last_visit_time_dt = cache.get_last_visit_time()
+        cache.save_last_visit_time()
+
+        if last_visit_time_dt is not None:
+            last_visit_time_td = datetime.now() - last_visit_time_dt
+            if last_visit_time_td.days >= 0:
+                # Round up to the nearest hour
+                last_visit_time_td += timedelta(hours=1)
+                last_visit_hours = last_visit_time_td.seconds // 3600
+                TOOLTIP_FILTER_SINCE_LAST_VISIT_TIME = "Last visit: " + \
+                        str(last_visit_time_td.days) + " days " + \
+                        str(last_visit_hours) + " hours ago"
+                global TOOLTIP_FILTER_SINCE
+                TOOLTIP_FILTER_SINCE = TOOLTIP_FILTER_SINCE_LAST_VISIT_TIME + "\n" + TOOLTIP_FILTER_SINCE
         
         ####
         
@@ -147,7 +166,7 @@ class MainWindow(Gtk.Window):
         self.add(self.main_grid)
 
     def _init_menu_bar(self):
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-menu-bar")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "show-menu-bar")):
             self.menu_bar = self.ui_manager.get_menu_bar()
             self.main_grid.add(self.menu_bar)
         
@@ -199,19 +218,19 @@ class MainToolBarBox(Gtk.Box):
 
         INDENT_STR = "   "
         
-        #disable_presets = string.str2bool(settings.config().get(config.NOSECTION, "disable-presets"))
+        #disable_presets = string.str2bool(settings.get_config().get(config.NOSECTION, "disable-presets"))
 
         focus_chain = []
         
-        compact_toolbar = string.str2bool(settings.config().get(config.NOSECTION, "compact-tool-bar"))
+        compact_toolbar = string.str2bool(settings.get_config().get(config.NOSECTION, "compact-tool-bar"))
         if compact_toolbar:
             show_button_labels = False
         else:
-            show_button_labels = string.str2bool(settings.config().get(config.NOSECTION, "show-button-labels"))
+            show_button_labels = string.str2bool(settings.get_config().get(config.NOSECTION, "show-button-labels"))
 
         ####
         
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-button-menu")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "show-button-menu")):
 
             button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
             button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
@@ -254,7 +273,7 @@ class MainToolBarBox(Gtk.Box):
         self.pack_start(button, False, False, 0)
         focus_chain.append(button)
 
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-button-menu")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "show-button-menu")):
 
             button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
             button.set_image(Gtk.Image(stock=Gtk.STOCK_CLEAR))
@@ -314,9 +333,9 @@ class MainToolBarBox(Gtk.Box):
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, "Radio"],
                    [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, "Podcast"],
                    [get_iplayer.Preset.TV, get_iplayer.ProgType.TV, "TV"]]
-        if string.str2bool(settings.config().get(config.NOSECTION, "enable-ch4")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-ch4")):
             presets.append([get_iplayer.Preset.TV, get_iplayer.ProgType.CH4, "CH4"])
-        if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-itv")):
             presets.append([get_iplayer.Preset.TV, get_iplayer.ProgType.ITV, "ITV"])
 
         store = Gtk.ListStore(str, str, str)
@@ -400,7 +419,7 @@ class MainToolBarBox(Gtk.Box):
         #if disable_presets:
         #    self.category_combo.set_sensitive(False) 
         
-        if string.str2bool(settings.config().get(config.NOSECTION, "enable-category-filter")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-category-filter")):
             self.pack_start(self.category_combo, False, False, 0)
             focus_chain.append(self.category_combo)
 
@@ -420,7 +439,7 @@ class MainToolBarBox(Gtk.Box):
             key = label = channel.strip()
             if first:
                 # The first item in the list represents all configured channels
-                #key = settings.config().get("radio", "channels")
+                #key = settings.get_config().get("radio", "channels")
                 key = ",".join(channel_list[1:])
                 first = False
             else:
@@ -446,7 +465,7 @@ class MainToolBarBox(Gtk.Box):
             key = label = channel.strip()
             if first:
                 # The first item in the list represents all configured channels
-                #key = settings.config().get("tv", "channels")
+                #key = settings.get_config().get("tv", "channels")
                 key = ",".join(channel_list[1:])
                 first = False
             else:
@@ -464,7 +483,7 @@ class MainToolBarBox(Gtk.Box):
         #    self.chan_tv_store.append([None, "ANY"])
 
         self.chan_ch4_store = None
-        if string.str2bool(settings.config().get(config.NOSECTION, "enable-ch4")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-ch4")):
             # Create ch4 model list
             channels = get_iplayer.Channels.CH4
             channel_list = channels.split(",")
@@ -474,7 +493,7 @@ class MainToolBarBox(Gtk.Box):
                 key = label = channel.strip()
                 if first:
                     # The first item in the list represents all configured channels
-                    #key = settings.config().get("tv", "channels")
+                    #key = settings.get_config().get("tv", "channels")
                     key = ",".join(channel_list[1:])
                     first = False
                 else:
@@ -492,7 +511,7 @@ class MainToolBarBox(Gtk.Box):
             #    self.chan_ch4_store.append([None, "ANY"])
 
         self.chan_itv_store = None
-        if string.str2bool(settings.config().get(config.NOSECTION, "enable-itv")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-itv")):
             # Create itv model list
             channels = get_iplayer.Channels.ITV
             channel_list = channels.split(",")
@@ -502,7 +521,7 @@ class MainToolBarBox(Gtk.Box):
                 key = label = channel.strip()
                 if first:
                     # The first item in the list represents all configured channels
-                    #key = settings.config().get("tv", "channels")
+                    #key = settings.get_config().get("tv", "channels")
                     key = ",".join(channel_list[1:])
                     first = False
                 else:
@@ -536,7 +555,7 @@ class MainToolBarBox(Gtk.Box):
         #if disable_presets:
         #    self.channel_combo.set_sensitive(False)
 
-        if string.str2bool(settings.config().get(config.NOSECTION, "enable-channel-filter")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-channel-filter")):
             self.pack_start(self.channel_combo, False, False, 0)
             focus_chain.append(self.channel_combo)
 
@@ -563,7 +582,7 @@ class MainToolBarBox(Gtk.Box):
         # Render second store column 
         self.since_combo.add_attribute(renderer_text, "text", 1)
 
-        if string.str2bool(settings.config().get(config.NOSECTION, "enable-since-filter")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-since-filter")):
             self.pack_start(self.since_combo, False, False, 0)
             focus_chain.append(self.since_combo)
 
@@ -712,7 +731,7 @@ class MainToolBarBox(Gtk.Box):
 
     #KEYBOARD FOCUS:
     #def _on_menu_button_key_release_event(self, widget, event):
-    #    if event.string == "\r":
+    #    if event.string == "\r":        #NOTE deprecated (see GdkEventKey documentation) 
     #        # Enter key released
     #        self.main_window.controller().ui_manager.get_popup_menu().popup(None, None, None, None, 0, event.time)
     #    #return True
@@ -750,8 +769,8 @@ class MainTreeView(Gtk.TreeView):
         #self.set_property("fixed-height-mode", True)
         self.main_window = main_window
         self.button_pressed = False
-        self.load_image_timeout_seconds = string.str2float(settings.config().get(config.NOSECTION, "load-image-timeout-seconds"))
-        self.show_images = string.str2bool(settings.config().get(config.NOSECTION, "show-images"))
+        self.load_image_timeout_seconds = string.str2float(settings.get_config().get(config.NOSECTION, "load-image-timeout-seconds"))
+        self.show_images = string.str2bool(settings.get_config().get(config.NOSECTION, "show-images"))
 
         #selection = self.get_selection().set_mode(Gtk.SelectionMode.MULTIPLE)
         ##self.set_style(allow_rules=True)
@@ -766,10 +785,12 @@ class MainTreeView(Gtk.TreeView):
         
         self.connect("button-press-event", self._on_button_press_event)
         self.connect("button-release-event", self._on_button_release_event)
+        self.connect("key-press-event", self._on_key_press_event)
+        self.connect("key-release-event", self._on_key_release_event)
         self.connect("popup-menu", self._on_popup_menu_event)
         self.connect("row-activated", self._on_row_activated)
 
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-tooltip")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "show-tooltip")):
             #self.set_tooltip_column(3)
             #self.get_tooltip_window().set_default_size(200, -1)
             self.set_has_tooltip(True)
@@ -781,7 +802,7 @@ class MainTreeView(Gtk.TreeView):
         # First column
         self.set_show_expanders(False)
         self.set_level_indentation(10)
-        if string.str2bool(settings.config().get(config.NOSECTION, "show-tree-lines")):
+        if string.str2bool(settings.get_config().get(config.NOSECTION, "show-tree-lines")):
             self.set_enable_tree_lines(True)
             ##self.set_property("grid-line-pattern", "\000\001")
             ##self.set_style(grid_line_pattern="\000\001")
@@ -791,7 +812,7 @@ class MainTreeView(Gtk.TreeView):
     def init_store(self):
         self.main_window.controller().session_restore()
         
-        #if string.str2bool(settings.config().get(config.NOSECTION, "start-treeview-populated")):
+        #if string.str2bool(settings.get_config().get(config.NOSECTION, "start-treeview-populated")):
         #    self.main_window.controller().on_button_find_clicked(None)
         
         # Lazy treeview initialization
@@ -799,7 +820,7 @@ class MainTreeView(Gtk.TreeView):
         self.connect("visibility-notify-event", self._on_visibility_notify_event)
 
     def _init_columns(self):
-        compact_treeview = string.str2bool(settings.config().get(config.NOSECTION, "compact-tree-view"))
+        compact_treeview = string.str2bool(settings.get_config().get(config.NOSECTION, "compact-tree-view"))
         
         #WORKAROUND. TODO get text label height
         row_height = 20
@@ -962,7 +983,7 @@ class MainTreeView(Gtk.TreeView):
         tooltip.set_markup(tooltip_text)
 
         if self.show_images and image_url is not None:
-            image = Image.image(image_url, timeout=self.load_image_timeout_seconds,
+            image = Image.image(image_url, relpath="thumbnails", timeout=self.load_image_timeout_seconds,
                                 max_width=ICON_IMAGE_MAX_WIDTH, max_height=ICON_IMAGE_MAX_HEIGHT)
             if image is not None:
                 tooltip.set_icon(image.get_pixbuf())
@@ -1095,7 +1116,7 @@ class MainTreeView(Gtk.TreeView):
                             parent_row[SearchResultColumn.DOWNLOAD] = new_parent_toggle_value
 
     def set_store(self, tree_rows):
-        # Columns in the store: download (True/False), followed by columns listed in get_iplayer.SearchResultColumn
+        # Columns in the store: columns listed in get_iplayer.SearchResultColumn
         store = Gtk.TreeStore(bool, str, str, str, str, str, str, str, str, str, str)
         
         locate_search_term = None
@@ -1114,7 +1135,7 @@ class MainTreeView(Gtk.TreeView):
                 #TODO try catch: if rows[i+ 1][SearchResultColumn.EPISODE] and not rows[i+ 2][SearchResultColumn.EPISODE]:
                 if (i + 1 < len(tree_rows) and tree_rows[i + 1][SearchResultColumn.EPISODE]) and \
                    (i + 2 >= len(tree_rows) or not tree_rows[i + 2][SearchResultColumn.EPISODE]):
-                    # Series (parent/root/level 0) has only episode (child/leave/level 1)
+                    # Series (parent/root/level 0) has only one episode (child/leave/level 1)
                     # Merge the two rows into one
                     #TODO
                     # [1:] means skip the first tree row value: SearchResultColumn.DOWNLOAD
@@ -1148,6 +1169,8 @@ class MainTreeView(Gtk.TreeView):
                         j += 1
                 locate_search_term = row[SearchResultColumn.SERIES]
                 row[SearchResultColumn.LOCATE_SEARCH_TERM] = locate_search_term
+                if repeat_categories:
+                    row[SearchResultColumn.CATEGORIES] = None
                 root_iter = store.append(None, row)            
             else:
                 # Episode level (child/leave/level 1)
@@ -1181,7 +1204,7 @@ class SearchEntry(Gtk.Entry):
         #if icon_pos == Gtk.EntryIconPosition.PRIMARY:
         #    # Emit an "activate" signal
         #    signal = GObject.signal_new(...)
-        #    signal.emity_by_name(...)
+        #    signal.emit_by_name(...)
         if icon_pos == Gtk.EntryIconPosition.SECONDARY:
             entry.set_text("")
             #entry.set_placeholder_text("Search")
@@ -1211,7 +1234,7 @@ class Builder(object):
 def _main_quit(main_window, event):
     main_window.controller().session_save()
 
-    if string.str2bool(settings.config().get(config.NOSECTION, "clear-cache-on-exit")):
+    if string.str2bool(settings.get_config().get(config.NOSECTION, "clear-cache-on-exit")):
         command_util.clear_cache()
 
     #WORKAROUND get_root_window()
