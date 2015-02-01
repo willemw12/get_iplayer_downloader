@@ -446,10 +446,10 @@ class MainWindowController:
 
         self.main_tree_view.set_store(output_lines)
         # Scroll to top
-        adjustment = self.main_window.main_tree_view_scrollbar.get_vadjustment()
+        adjustment = self.main_window.main_tree_view_scrollbars.get_vadjustment()
         adjustment.set_value(0.0)
         adjustment.value_changed()
-        #adjustment = self.main_window.main_tree_view_scrollbar.set_vadjustment(adjustment)
+        #adjustment = self.main_window.main_tree_view_scrollbars.set_vadjustment(adjustment)
 
         #if disable_presets:
         #    prog_type = None

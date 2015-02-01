@@ -156,14 +156,16 @@ class MainWindow(Gtk.Window):
         self.main_grid.add(self.tool_bar_box)
         
     def _init_main_tree_view(self):
-        self.main_tree_view_scrollbar = Gtk.ScrolledWindow()
-        self.main_tree_view_scrollbar.set_hexpand(True)
-        self.main_tree_view_scrollbar.set_vexpand(True)
-        self.main_grid.attach_next_to(self.main_tree_view_scrollbar, self.tool_bar_box, Gtk.PositionType.BOTTOM, 1, 2)
+        self.main_tree_view_scrollbars = Gtk.ScrolledWindow()
+        self.main_tree_view_scrollbars.set_hexpand(True)
+        self.main_tree_view_scrollbars.set_vexpand(True)
+        #self.main_tree_view_scrollbars.set_policy(Gtk.PolicyType.ALWAYS,
+        #                                          Gtk.PolicyType.ALWAYS)
+        self.main_grid.attach_next_to(self.main_tree_view_scrollbars, self.tool_bar_box, Gtk.PositionType.BOTTOM, 1, 2)
 
         self.main_tree_view = MainTreeView(self)
-        self.main_tree_view_scrollbar.add(self.main_tree_view)
-        
+        self.main_tree_view_scrollbars.add(self.main_tree_view)
+                
     def controller(self):
         return self._main_controller
     
@@ -825,26 +827,44 @@ class MainTreeView(Gtk.TreeView):
         #### Second column
 
         #max_width_chars=256
-        renderer = Gtk.CellRendererText(width=256)
+        # Initial size when column is not resizable
+        #renderer = Gtk.CellRendererText(width=256)
+        renderer = Gtk.CellRendererText()
         renderer.set_property("height", row_height)
         if compact_treeview:
             renderer.set_property("ypad", 0)
-        #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Series", renderer, text=SearchResultColumn.SERIES)
-        column.set_resizable(True)
+        #column.set_expand(True)
+        column.set_min_width(100)
         column.set_max_width(600)
+
+        # Resizable column
+        column.set_resizable(True)
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        # Initial size when column is resizable
+        column.set_fixed_width(256)
+
         self.append_column(column)
         
         #### Third column
 
-        renderer = Gtk.CellRendererText(width=192)
+        # Initial size when column is not resizable
+        #renderer = Gtk.CellRendererText(width=192)
+        renderer = Gtk.CellRendererText()
         renderer.set_property("height", row_height)
         if compact_treeview:
             renderer.set_property("ypad", 0)
-        #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Categories", renderer, text=SearchResultColumn.CATEGORIES)
-        column.set_resizable(True)
+        #column.set_expand(True)
+        column.set_min_width(100)
         column.set_max_width(600)
+        
+        # Resizable column
+        column.set_resizable(True)
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        # Initial size when column is resizable
+        column.set_fixed_width(192)
+
         self.append_column(column)
 
         #### Fourth column
@@ -853,9 +873,18 @@ class MainTreeView(Gtk.TreeView):
         renderer.set_property("height", row_height)
         if compact_treeview:
             renderer.set_property("ypad", 0)
-        #sizing=Gtk.TreeViewColumn.FIXED
         column = Gtk.TreeViewColumn("Episode ~ Description", renderer, text=SearchResultColumn.EPISODE)
+        #column.set_expand(True)
+        column.set_min_width(40)
+        #column.set_max_width(600)
+
+        # Resizable column
         column.set_resizable(True)
+        #TODO? Horizontal scrollbar instead resizable last column.
+        #      Horizontal scrollbar appears when the following line and the same line of one of the other resizable columns are commented out
+        column.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+        #column.set_fixed_width(-1)
+        
         self.append_column(column)
 
     def _get_column_width(self, n):
