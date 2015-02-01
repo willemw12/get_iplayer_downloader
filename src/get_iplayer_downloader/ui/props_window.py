@@ -124,7 +124,7 @@ class PropertiesWindow(Gtk.Window):
 
         ##
         
-        PROP_LABEL_LIST = ["available", "categories", "channel", "desc", "dir",
+        PROP_LABEL_LIST = ["available", "categories", "channel", "desclong", "dir",
                            "duration", "episode", "expiry", "expiryrel",
                            "firstbcast", "firstbcastrel", "index", "lastbcast",
                            "lastbcastrel", "longname", "modes", "modesizes",
@@ -145,6 +145,7 @@ class PropertiesWindow(Gtk.Window):
                     try:
                         # Convert into hours and minutes
                         #NOTE // is the integer division operator
+                        #DUPLICATE
                         duration_mins = int(prop_value) // 60
                         prop_value = "{0:2}".format(duration_mins // 60) + ":" + \
                                      "{0:02}".format(duration_mins % 60)
