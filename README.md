@@ -77,7 +77,7 @@ Here are two preset file examples. Lines starting with # are commented out. The 
 File ~/.get\_iplayer/presets/radio:
 
     aactomp3 1
-    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<categorysub>/<longname>" --force
+    #command /usr/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>//<categorymain>_<categorysub>//<longname>" --force
     #ffmpeg avconv
     info 0
     output /home/willemw12/Music/bbc
@@ -85,7 +85,7 @@ File ~/.get\_iplayer/presets/radio:
 
 File ~/.get\_iplayer/presets/tv:
 
-    #command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>/<categorymain>_<categorysub>/<longname>" --force
+    #command /usr/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>//<categorymain>_<categorysub>//<longname>" --force
     info 0
     output /home/willemw12/Videos/bbc
     tvmode flashhigh,flashstd,flashnormal
@@ -210,5 +210,5 @@ The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /us
 
 To configure get\_iplayer to use this script, put for example in ~/.get\_iplayer/presets/tv:
 
-    command /usr/local/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --force --subdir-format="bbc.<week>/<categorymain>_<categorysub>/<longname>"
+    command /usr/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --force --subdir-format="bbc.<week>//<categorymain>_<categorysub>//<longname>"
 

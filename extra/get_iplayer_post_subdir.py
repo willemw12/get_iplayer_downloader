@@ -157,7 +157,6 @@ def _move_file(categories, dirname, filename, force, subdir_format):
     # Sanitize everything in subdir again, to sanitize the substituted values and unrecognized substitutions (field formatting)
     subdir_format = file.sanitize_path(subdir_format, True)
 
-    # Move the file
     try:
         if filename.endswith(".wma"):
             # Get all wma part filenames
