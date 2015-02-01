@@ -731,13 +731,13 @@
                       <object class="GtkLabel" id="label23">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Alternative recording modes. Comma-separated list. Set 'Alt' in the tool bar to enable the alternative recording modes</property>
+                        <property name="tooltip_text" translatable="yes">Override the get_iplayer default recording modes. Comma-separated list. Set 'Alt' in the tool bar to enable the alternative recording modes</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
                         <property name="margin_top">4</property>
                         <property name="margin_bottom">4</property>
-                        <property name="label" translatable="yes">Recording modes</property>
+                        <property name="label" translatable="yes">Alternative recording modes</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
@@ -859,7 +859,7 @@
                       <object class="GtkLabel" id="label7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Override default channels. Comma-separated list. Add a minus sign in front of a channel to exclude it. Requires a program restart</property>
+                        <property name="tooltip_text" translatable="yes">Override the default channels. Comma-separated list. Add a minus sign in front of a channel to exclude it. Requires a program restart</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
@@ -997,13 +997,13 @@
                       <object class="GtkLabel" id="label24">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
-                        <property name="tooltip_text" translatable="yes">Alternative recording modes. Comma-separated list. Set 'Alt' in the tool bar to enable the alternative recording modes</property>
+                        <property name="tooltip_text" translatable="yes">Override get_iplayer default recording modes. Comma-separated list. Set 'Alt' in the tool bar to enable the alternative recording modes</property>
                         <property name="halign">end</property>
                         <property name="margin_left">4</property>
                         <property name="margin_right">4</property>
                         <property name="margin_top">4</property>
                         <property name="margin_bottom">4</property>
-                        <property name="label" translatable="yes">Recording modes</property>
+                        <property name="label" translatable="yes">Alternative recording modes</property>
                       </object>
                       <packing>
                         <property name="left_attach">0</property>
