@@ -225,46 +225,50 @@ class MainWindowController:
         
         ####
         
-        # Avoid downloading a episode twice in parallel, otherwise continue downloading
-        # twice and let get_iplayer generate an "Already in history" INFO log message.
-        # The user can download episodes in parallel without having
-        # to clear the previous download selection and therefore avoiding
-        # download errors because of two threads trying to download the same episode
-
-        try:
-            if os.name == "posix":
-                gipd_processes = int(command.run("echo -n $(ps xo cmd | grep 'get_iplayer_downloader' | grep 'python' | grep -v 'grep' | wc -l) ; exit 0", quiet=True))
-            else:
-                gipd_processes = 1
-        except ValueError:
-            # Sometimes gipd_processes is not a valid int (empty string?)
-            gipd_processes = 1
-
-        # If there are more than one get_iplayer_downloader processes running,
-        # then don't perform the 'running in parallel' check (self.processes is
-        # the number of >all< the get_iplayer processes on the system)
-        # (TODO Limit self.processes to the get_iplayer processes which belong
-        # to the current get_iplayer_downloader process)
-        #PVR_CHECK_BUTTON
-        #if gipd_processes == 1 and not pvr_queue:
-        if gipd_processes == 1:
-            # Update self.processes now, to avoid any progress bar update delay
-            self._update_processes_count()
-            if self.processes > 0:
-                #if not force:
-                # Remove already downloaded PIDs from the PID set (copy of pid_list)
-                pid_set = set(pid_list)
-                downloaded_pid_set = set(self.downloaded_pid_list)
-                pid_list = list(pid_set.difference(downloaded_pid_set))
-            if len(pid_list) == 0:
-                dialog = Gtk.MessageDialog(self.main_window, 0,
-                                           Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
-                                           "Already downloading all the selected episodes")
-                #dialog.format_secondary_text("")
-                dialog.run()
-                dialog.destroy()
-                #return True
-                return        
+        ## Avoid downloading an episode twice in parallel, otherwise continue downloading
+        ## twice and let get_iplayer generate an "Already in history" INFO log message.
+        ## The user can download episodes in parallel without having
+        ## to clear the previous download selection and therefore avoiding
+        ## download errors because of two threads trying to download the same episode
+        #
+        #try:
+        #    if os.name == "posix":
+        #        #NOTE 2>/dev/null: to surpress error messages, e.g.:
+        #        #    Signal 18 (CONT) caught by ps (procps-ng version 3.3.9).
+        #        #    ps:display.c:66: please report this bug
+        #        gipd_processes = int(command.run("echo -n $(ps xo cmd 2>/dev/null | grep 'get_iplayer_downloader' | grep 'python' | grep -v 'grep' | wc -l) ; exit 0", quiet=True))
+        #    else:
+        #        gipd_processes = 1
+        #except ValueError:
+        #    # Sometimes gipd_processes is not a valid int (empty string?)
+        #    gipd_processes = 1
+        #
+        ## If there are more than one get_iplayer_downloader processes running,
+        ## then don't perform the 'running in parallel' check (self.processes is
+        ## the number of >all< the get_iplayer processes on the system).
+        ## (TODO Limit self.processes to the get_iplayer processes which belong
+        ## to the current get_iplayer_downloader process).
+        ## TODO detect 'programme type' change
+        ##PVR_CHECK_BUTTON
+        ##if gipd_processes == 1 and not dry_run and not pvr_queue:
+        #if gipd_processes == 1 and not dry_run:
+        #    # Update self.processes now, to avoid any progress bar update delay
+        #    self._update_processes_count()
+        #    if self.processes > 0:
+        #        #if not force:
+        #        # Remove already downloaded PIDs from the PID set (copy of pid_list)
+        #        pid_set = set(pid_list)
+        #        downloaded_pid_set = set(self.downloaded_pid_list)
+        #        pid_list = list(pid_set.difference(downloaded_pid_set))
+        #    if len(pid_list) == 0:
+        #        dialog = Gtk.MessageDialog(self.main_window, 0,
+        #                                   Gtk.MessageType.INFO, Gtk.ButtonsType.CLOSE,
+        #                                   "Already downloading all the selected episodes")
+        #        #dialog.format_secondary_text("")
+        #        dialog.run()
+        #        dialog.destroy()
+        #        #return True
+        #        return        
         
         ####
         
