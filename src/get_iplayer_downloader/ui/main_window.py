@@ -916,7 +916,7 @@ class MainTreeView(Gtk.TreeView):
         if not duration or duration == "Unknown" or duration == "<duration>":
             duration = None
 
-        #
+        ####
 
         tooltip_text = "" + markup.text2html(channel)
         #if categories is not None:
@@ -924,7 +924,11 @@ class MainTreeView(Gtk.TreeView):
         if available is not None:
             tooltip_text += "\navailable: " + available
         if duration is not None:
-            tooltip_text += "\nduration: " + duration
+            duration_mins = int(duration) // 60
+            string = "{0:2}".format(duration_mins // 60) + ":" + \
+                         "{0:02}".format(duration_mins % 60)
+            string = string.strip()
+            tooltip_text += "\nduration: " + string
 
         tooltip.set_markup(tooltip_text)
 
