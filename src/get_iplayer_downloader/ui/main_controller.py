@@ -584,10 +584,23 @@ class MainWindowController:
                 tree_iter = combo.get_active_iter()
                 if tree_iter is not None:
                     #model = combo.get_model()
+                    
                     since = model[tree_iter][KEY_INDEX]
                     if since == 0:
+                        # Limit the initial amount of podcast episodes being displayed,
+                        # if the current (radio or tv) since filter is set to unlimited (since == 0)
+                        
                         # Set to longest, but not unlimited, since filter
-                        combo.set_active(len(model) - 1)
+                        combo.set_active(len(model) - 1)                        
+                        #OR
+                        #combo.set_active(SinceListIndex.PODCAST_DEFAULT)
+                    
+                    #30 DAYS EPISODE AVAILABILITY
+                    #since_index = combo.get_active()
+                    #if since_index == 0 or since_index > SinceListIndex.PODCAST_DEFAULT:
+                    #    # Limit the initial amount of podcast episodes being displayed,
+                    #    # if the current (radio or tv) since filter is larger
+                    #    combo.set_active(SinceListIndex.PODCAST_DEFAULT)
             elif combo.get_active() == len(model) - 1:
                 # Disable since filter
                 combo.set_active(SinceListIndex.FOREVER)

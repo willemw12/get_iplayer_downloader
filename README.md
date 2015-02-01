@@ -19,9 +19,9 @@ Screenshots:
 
 About:
 
-This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
-
 This is a small utility program for me to try and find out the capabilities of the standard Python libraries and GTK+ 3. This is after I tried creating a version of the downloader with zenity in bash, which was far too slow.
+
+This program works best on a high resolution screen. You can continue using the program, while get\_iplayer is downloading in the background. There is also an option to run get\_iplayer in a terminal emulator window when it is downloading episodes.
 
 For the latest version, go to:
 
@@ -57,8 +57,8 @@ Configuration
 
 In short:
 
-* The get\_iplayer\_downloader preset names should refer to existing get\_iplayer presets
-* The get\_iplayer "info" property needs to be disabled by default
+* The get\_iplayer\_downloader preset names should refer to existing get\_iplayer presets (by default, files "tv" and "radio" in ~/.get\_iplayer/presets/)
+* The get\_iplayer "info" property needs to be disabled by default (in the preset files)
 * To modify the category or channel filters, the configuration file needs to be edited manually
 
 ### get\_iplayer
@@ -81,7 +81,7 @@ File ~/.get\_iplayer/presets/radio:
     #ffmpeg avconv
     info 0
     output /home/willemw12/Music/bbc
-    radiomode flashaudio,flashaac,wma,realaudio
+    radiomode flashaudio,flashaac,realaudio
 
 File ~/.get\_iplayer/presets/tv:
 
@@ -103,6 +103,8 @@ Leave options, such as Channels and Download folder, empty in Preferences to use
 
 Before downloading episodes for the first time, verify the download paths and, optionally, the terminal emulator program name and program arguments.
 
+When searching for episodes, add a minus sign in front of the whole search term to exclude it from the search.
+
 If the program crashes immediately on startup or when the mouse cursor moves over the first column in the episode list, disable the "show-tooltip" option or update GNOME 3 (or just update the GTK+ 3 and GI/GIR libraries).
 
 
@@ -110,10 +112,11 @@ If the program crashes immediately on startup or when the mouse cursor moves ove
 
 The radio and tv category lists and the radio channel list are very long and have been reduced to what is on the BBC iPlayer Radio and TV web pages. You can define your own search categories by editing the configuration file (they are lists of key-value pairs, i.e. lists of "search term"-"GUI label" pairs). File ./extra/my\_default.config is an example of that. To generate lists containing all the available categories and channels, which can be put in the configuration file, run from this directory:
 
-    ./get_iplayer_downloader.py --list-categories --quiet
-    ./get_iplayer_downloader.py --list-channels --quiet
+    $ ./get_iplayer_downloader.py --list-categories --quiet
+    $ ./get_iplayer_downloader.py --list-channels --quiet
 
-Add a minus sign in front of a channel or a category to exclude it from the search and cache refresh. When searching episodes, add a minus sign in front of the whole search term to exclude it from the search.
+Add a minus sign in front of a channel or a category to exclude it from the search and cache refresh.
+
 
 
 Installation
@@ -123,26 +126,26 @@ There are several ways to install the program. See below.
 
 To execute without installing, run:
 
-    <path to this directory>/src/get_iplayer_downloader.py
+    $ <path to this directory>/src/get_iplayer_downloader.py
 
 Or create a symbolic link of get\_iplayer\_downloader.py to a directory in $PATH. From this directory, run:
 
-    ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/gipd
+    $ ln -s $(pwd)/src/get_iplayer_downloader.py ~/bin/gipd
 
 and then run:
 
-    gipd
+    $ gipd
 
 
 ### Installation script
 
 This should work on any Linux distribution. Run from this directory:
 
-    ./install.sh
+    $ ./install.sh
 
 To uninstall, run from this directory:
 
-    ./uninstall.sh
+    $ ./uninstall.sh
 
 When python is upgraded to a newer minor version, then uninstall and install again.
 
@@ -151,20 +154,23 @@ When python is upgraded to a newer minor version, then uninstall and install aga
 
 To install the latest git version:
 
-    ./install-pkg-git.sh
+    $ ./install-pkg-git.sh
 
 To install the latest version:
 
-    ./install-pkg.sh
+    $ ./install-pkg.sh
 
 ### Debian/Ubuntu package
 
 __Warning: this does not work. Distutils command "bdist_deb" in package "python-stdeb" is not available for Python 3.__
 
-    # Install build and package tools
-    sudo apt-get install python-stdeb
+Install build and package tools (run as root)
 
-    ./install-deb.sh
+    # apt-get install python-stdeb
+
+Then
+
+    $ ./install-deb.sh
 
 
 
@@ -200,11 +206,13 @@ The keyboard shortcuts are:
 Extra
 -----
 
-Want to group downloaded episodes by their specific category or by week?
+Q: How to have episodes in separate subfolders, grouped by main category and subcategories or by week?
 
-File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. It requires get\_iplayer\_downloader and it does not update the download location recorded in the (localfiles) download history. The script supports additional formatting fields (categorymain, categorysub, week) in the subdirectory names. Field \<categorymain\> is the same as field \<category\> from get\_iplayer. For more information, run:
+A: Use the get\_iplayer\_post\_subdir.py script.
 
-    ./extra/get_iplayer_post_subdir.py --help 
+File ./extra/get\_iplayer\_post\_subdir.py is a get\_iplayer post-processing script. It is an extension to the get\_iplayer "subdir" output option. It requires get\_iplayer\_downloader to be installed and it does not update the download location recorded in the (localfiles) download history. The script supports additional formatting fields (categorymain, categorysub, week) in the subdirectory names. Field \<categorymain\> is the same as field \<category\> from get\_iplayer. For more information, run:
+
+    $ ./extra/get_iplayer_post_subdir.py --help 
 
 The script is installed in /usr/share/get\_iplayer\_downloader/scripts or in /usr/local/share/get\_iplayer\_downloader/scripts.
 

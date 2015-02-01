@@ -7,7 +7,7 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 #def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False, **keywords):
-def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False, temp_pathname=None):
+def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False, ignore_returncode=False, temp_pathname=None):
     """ @terminal_prog is a terminal emulator program name, compatible with xterm options (-geometry instead of --geometry). 
         If @temp_pathname is specified, then also log to separate *-cmd.log file.
     """
@@ -81,25 +81,27 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
             # Cannot seek a pipe (proc.stdout) to retry another encoding on the command/process output
             # Copy pipe content into memory
 
-            #bytes_buffer = proc.stdout.read()
-            bytes_buffer, unused_errs = proc.communicate()
+            #stdout_bytes = proc.stdout.read()
+            stdout_bytes, unused_stderr_bytes = proc.communicate()
             #
             #TODO in Python 3.3
             #try:
-            #    bytes_buffer, unused_errs = proc.communicate(timeout=60)
+            #    stdout_bytes, unused_errs = proc.communicate(timeout=60)
             #except subprocess.TimeoutExpired:
             #    proc.kill()
-            #    bytes_buffer, unused_errs = proc.communicate()
+            #    stdout_bytes, unused_errs = proc.communicate()
 
             #proc.stdout.close()            
 
-            if proc.returncode != 0:
+            #TODO? Cleanup
+            if not ignore_returncode and proc.returncode != 0:
                 #return (process_output, proc.returncode)
-                process_output = bytes_buffer.decode()
+                #process_output = stdout_bytes.decode()
+                process_output = stdout_bytes.decode()
                 raise subprocess.CalledProcessError(proc.returncode, cmd_exec, process_output)
- 
+
             try:
-                process_output = bytes_buffer.decode("UTF-8", "strict")
+                process_output = stdout_bytes.decode(encoding="UTF-8", errors="strict")
             except (UnicodeDecodeError, ValueError) as exc:
                 try:
                     #WORKAROUND non-UTF-8 command output from BBC Alba programmes
@@ -108,12 +110,12 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
                     #NOTE Trying LATIN-1 first, to try to avoid unreadable characters (i.e. replacement marker '?' in a diamond shape) in the GUI
                     logger.debug(exc)
                     logger.debug("trying 'LATIN-1' codec")
-                    process_output = bytes_buffer.decode("LATIN-1", "strict")
+                    process_output = stdout_bytes.decode(encoding="LATIN-1", errors="strict")
                 except (UnicodeDecodeError, ValueError) as exc:
                     try:
                         logger.debug(exc)
                         logger.debug("trying 'UTF-8' codec and replacing non-utf-8 characters")
-                        process_output = bytes_buffer.decode("UTF-8", "replace")
+                        process_output = stdout_bytes.decode(encoding="UTF-8", errors="replace")
                     except (UnicodeDecodeError, ValueError) as exc:
                         # Should not happen
                         logger.warning(exc)

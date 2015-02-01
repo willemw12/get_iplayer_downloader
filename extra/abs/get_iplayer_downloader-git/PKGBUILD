@@ -2,7 +2,7 @@
 
 _pkgname=get_iplayer_downloader
 pkgname=$_pkgname-git
-pkgver=187.4f7043d
+pkgver=0.2.r0.g792eaf0
 pkgrel=1
 pkgdesc="A GUI download utility for BBC get_iplayer"
 arch=('any')

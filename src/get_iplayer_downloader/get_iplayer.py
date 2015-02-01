@@ -4,7 +4,7 @@ import ast
 import logging
 import os
 
-from get_iplayer_downloader import settings
+from get_iplayer_downloader import search_cache, settings
 from get_iplayer_downloader.tools import command, command_queue, config, string
 
 logger = logging.getLogger(__name__)
@@ -41,11 +41,23 @@ _SINCE_FOREVER_LABEL = SINCE_FOREVER_LABEL if _COMPACT_TOOLBAR else ""
 # List of key-value pairs
 #SINCE_LIST = [[0, _SINCE_FOREVER_LABEL], [1, _SINCE_FUTURE_LABEL],
 SINCE_LIST = [[0, _SINCE_FOREVER_LABEL],
-              [  4, "4 hours"], [8, "8 hours"], [12, "12 hours"], [16, "16 hours"], [20, "20 hours"],
-              [ 24 + _SINCE_HOUR_MARGIN, "1 day" ], [ 48 + _SINCE_HOUR_MARGIN, "2 days"],
-              [ 72 + _SINCE_HOUR_MARGIN, "3 days"], [ 96 + _SINCE_HOUR_MARGIN, "4 days"],
-              [120 + _SINCE_HOUR_MARGIN, "5 days"], [144 + _SINCE_HOUR_MARGIN, "6 days"],
+#              [  4, "4 hours"], [8, "8 hours"], [12, "12 hours"], [16, "16 hours"], [20, "20 hours"],
+#              [ 24 + _SINCE_HOUR_MARGIN, "1 day" ],  [ 48 + _SINCE_HOUR_MARGIN, "2 days"],
+              [  2, "2 hours"],  [  4, "4 hours"],  [6, "6 hours"],  [8, "8 hours"], [10, "10 hours"], 
+              [ 12, "12 hours"], [14, "14 hours"], [16, "16 hours"], [18, "18 hours"], [20, "20 hours"],
+              [ 24 + _SINCE_HOUR_MARGIN, "1 day" ],  [ 48 + _SINCE_HOUR_MARGIN, "2 days"],
+              [ 72 + _SINCE_HOUR_MARGIN, "3 days"],  [ 96 + _SINCE_HOUR_MARGIN, "4 days"],
+              [120 + _SINCE_HOUR_MARGIN, "5 days"],  [144 + _SINCE_HOUR_MARGIN, "6 days"],
               [168 + _SINCE_HOUR_MARGIN, "7 days"]]
+
+#30 DAYS EPISODE AVAILABILITY
+#SINCE_LIST = [[0, _SINCE_FOREVER_LABEL],
+#              [  4, "4 hours"], [8, "8 hours"], [12, "12 hours"], [16, "16 hours"], [20, "20 hours"],
+#              [ 24 + _SINCE_HOUR_MARGIN, "1 day" ],  [ 48 + _SINCE_HOUR_MARGIN, "2 days"],
+#              [ 72 + _SINCE_HOUR_MARGIN, "3 days"],  [ 96 + _SINCE_HOUR_MARGIN, "4 days"],
+#              [120 + _SINCE_HOUR_MARGIN, "5 days"],  [144 + _SINCE_HOUR_MARGIN, "6 days"],
+#              [168 + _SINCE_HOUR_MARGIN, "1 week"],  [336 + _SINCE_HOUR_MARGIN, "2 weeks"],
+#              [504 + _SINCE_HOUR_MARGIN, "3 weeks"], [672 + _SINCE_HOUR_MARGIN, "4 weeks"]]
 
 class Preset:
     # "preset-file": filename in folder ~/.get_iplayer/presets
@@ -116,6 +128,10 @@ class Categories:
 class SinceListIndex:
     FOREVER = 0
     #FUTURE = 1
+
+    #30 DAYS EPISODE AVAILABILITY
+    ## Initial podcast since filter index (1 week) in the SINCE_LIST
+    #PODCAST_DEFAULT = 12
 
 class SearchResultColumn:
     DOWNLOAD = 0
@@ -225,13 +241,20 @@ def channels(search_text, preset=None, prog_type=None, compact=False):
     return output_line
 
 def search(search_text, preset=None, prog_type=None,
-            channels=None, exclude_channels=None,
-            categories=None, exclude_categories=None,
-            since=0, future=False):
-    """ Run get_iplayer (--search).
-        Return table with columns: download (False), followed by columns listed in SearchResultColumn.
+           channels=None, exclude_channels=None,
+           categories=None, exclude_categories=None,
+           since=0, future=False):
+    """ Run get_iplayer (--search). If precached search results are present, return that instead.
+        Return table with columns listed in SearchResultColumn.
     """
-    
+
+    # Don't search now with get_iplayer if there are cached search results available
+    output_lines = search_cache.get(prog_type)
+    if output_lines is not None:
+        return output_lines
+
+    ####
+
     # PERL_UNICODE=S : avoid "Wide character in print" warning/error messages
     #cmd = _GET_IPLAYER_PROG + " --tree"
     cmd = "PERL_UNICODE=S " + _GET_IPLAYER_PROG + " --tree"
@@ -490,6 +513,11 @@ def info(pid, search_term, preset=None, prog_type=None, proxy_disabled=False, fu
 
 def refresh(preset=None, prog_type=None, channels=None, exclude_channels=None, force=False, future=False):
     """ Run get_iplayer --refresh. Return error code. """
+
+    if search_cache.has_cache(prog_type):
+        return
+
+    ####
     
     #if not preset:
     #    #preset = Preset.RADIO + "," + Preset.TV

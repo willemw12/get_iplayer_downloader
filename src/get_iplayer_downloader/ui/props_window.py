@@ -1,4 +1,5 @@
 import os
+import re
 
 from gi.repository import Gtk, Pango
 
@@ -63,7 +64,8 @@ class PropertiesWindow(Gtk.Window):
                 longname = prop_value
             if prop_label == "name":
                 name = prop_value
-            if prop_label == "thumbnail" or prop_label == "thumbnail4":
+            #OLD if prop_label == "thumbnail" or prop_label == "thumbnail4":
+            if prop_label == "thumbnail":
                 image_url = prop_value
             if prop_label == "pid":
                 pid = prop_value
@@ -82,9 +84,12 @@ class PropertiesWindow(Gtk.Window):
         #    image_url = prop_table[i][InfoResultColumn.PROP_VALUE /* 1 */]
 
         if image_url is not None:
-            if string.str2bool(settings.config().get(config.NOSECTION, "show-images")):
-                timeout = string.str2float(settings.config().get(config.NOSECTION, "load-image-timeout-seconds"))
-                image = Image.image(image_url, timeout=timeout,
+            #WORKAROUND for getting a larger image (used to be "thumbnail4")
+            #image_url = re.sub("/[0-9]+x[0-9]+/", "/640x360/", image_url)
+            
+            if string.str2bool(settings.get_config().get(config.NOSECTION, "show-images")):
+                timeout = string.str2float(settings.get_config().get(config.NOSECTION, "load-image-timeout-seconds"))
+                image = Image.image(image_url, relpath="large", timeout=timeout,
                                     max_width=get_iplayer_downloader.ui.main_window.IMAGE_MAX_WIDTH,
                                     max_height=get_iplayer_downloader.ui.main_window.IMAGE_MAX_HEIGHT)
                 if image is not None:

@@ -13,8 +13,208 @@ from datetime import datetime
 
 from get_iplayer_downloader.tools import file
 
-progname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
-logger = logging.getLogger(progname)
+# List is based on based on 'sub genres' in get_iplayer
+GENRES = [
+    "Children's",
+    "Comedy",
+    "Drama",
+    "Entertainment",
+    "Factual",
+    "Learning",
+    "Weather",
+    "Music",
+    "News",
+    "Religion & Ethics",
+    "Sport",
+    "Weather",
+]
+
+# List is based on based on 'sub subgenres' in get_iplayer
+SUBGENRES = [
+    # childrens
+    "Activities",
+    "Drama", 
+    "Entertainment & Comedy", 
+    "Factual", 
+    "Music", 
+    "News", 
+    "Sport",
+    
+    # comedy
+    "Character", 
+    "Impressionists", 
+    "Music", 
+    "Satire", 
+    "Sitcoms", 
+    "Sketch", 
+    "Spoof", 
+    "Standup", 
+    "Stunt",
+    
+    # drama
+    "Action & Adventure", 
+    "Biographical", 
+    "Classic & Period", 
+    "Crime", 
+    "Historical", 
+    "Horror & Supernatural",
+    "Legal & Courtroom", 
+    "Medical", 
+    "Musical", 
+    "Political",
+    "Psychological",
+    "Relationships & Romance",
+    "SciFi & Fantasy",
+    "Soaps",
+    "Spiritual",
+    "Thriller",
+    "War & Disaster",
+    "Western",
+
+    # entertainment
+    "Variety Shows",
+    
+    # factual
+    "Antiques",
+    # Also including comma
+    "Arts Culture & the Media", "Arts, Culture & the Media",
+    "Beauty & Style",
+    "Cars & Motors",
+    "Consumer",
+    "Crime & Justice",
+    "Disability",
+    "Families & Relationships",
+    "Food & Drink",
+    "Health & Wellbeing",
+    "History",
+    "Homes & Gardens",
+    "Life Stories",
+    "Money",
+    "Pets & Animals",
+    "Politics",
+    "Science & Nature",
+    "Travel",
+    
+    # learning
+    "Adults",
+    "Pre-School",
+    "Primary",
+    "Secondary",
+    
+    # music
+    "Classic Pop & Rock",
+    "Classical",
+    "Country",
+    "Dance & Electronica",
+    "Desi",
+    # Also including comma
+    "Easy Listening Soundtracks & Musicals", "Easy Listening, Soundtracks & Musicals",
+    "Folk",
+    # Also including comma
+    "Hip Hop RnB & Dancehall", "Hip Hop, RnB & Dancehall",
+    "Jazz & Blues",
+    "Pop & Chart",
+    "Rock & Indie",
+    "Soul & Reggae",
+    "World",
+    
+    #news
+
+    #religionandethics
+    
+    # sport => {
+    "Alpine Skiing",
+    "American Football",
+    "Archery",
+    "Athletics",
+    "Badminton",
+    "Baseball",
+    "Basketball",
+    "Beach Volleyball",
+    "Biathlon",
+    "Bobsleigh",
+    "Bowls",
+    "Boxing",
+    "Canoeing",
+    "Commonwealth Games",
+    "Cricket",
+    "Cross Country Skiing",
+    "Curling",
+    "Cycling",
+    "Darts",
+    "Disability Sport",
+    "Diving",
+    "Equestrian",
+    "Fencing",
+    "Figure Skating",
+    "Football",
+    "Formula One",
+    "Freestyle Skiing",
+    "Gaelic Games",
+    "Golf",
+    "Gymnastics",
+    "Handball",
+    "Hockey",
+    "Horse Racing",
+    "Ice Hockey",
+    "Judo",
+    "Luge",
+    "Modern Pentathlon",
+    "Motorsport",
+    "Netball",
+    "Nordic Combined",
+    "Olympics",
+    "Rowing",
+    "Rugby League",
+    "Rugby Union",
+    "Sailing",
+    "Shinty",
+    "Shooting",
+    "Short Track Skating",
+    "Skeleton",
+    "Ski Jumping",
+    "Snooker",
+    "Snowboarding",
+    "Softball",
+    "Speed Skating",
+    "Squash",
+    "Swimming",
+    "Synchronised Swimming",
+    "Table Tennis",
+    "Taekwondo",
+    "Tennis",
+    "Triathlon",
+    "Volleyball",
+    "Water Polo",
+    "Weightlifting",
+    "Winter Olympics",
+    "Winter Sports",
+    "Wrestling",
+
+    # weather
+]
+
+# # List is based on based on 'sub formats' in get_iplayer
+# FORMATS = [
+#     "Animation",
+#     "Appeals",
+#     "Bulletins",
+#     "Discussion & Talk",
+#     "Docudramas",
+#     "Documentaries",
+#     "Films",
+#     "Games & Quizzes",
+#     "Magazines & Reviews",
+#     "Makeovers",
+#     "Performances & Events",
+#     "Phone-ins",
+#     "Readings",
+#     "Reality",
+#     "Talent Shows",
+# ]
+
+PROGNAME = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+logger = logging.getLogger(PROGNAME)
 
 #ALTERNATIVE global declaration: however, it is less obvious in the code that the variable is global
 #global args
@@ -41,19 +241,21 @@ args = None
 ####
 
 def _init_argparser():
-    argparser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                        description="""This is a get_iplayer post-processing script. It is an extension to the
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     description="""This is a get_iplayer post-processing script. It is an extension to the
 get_iplayer "subdir" output option. In addition to the formatting fields
 listed by "get_iplayer --info ...", this script supports:
 
-  <categorysub>         last and most specific category from --categories
-  <categorymain>        first and most general category from --categories
+  <categorysub>         last category from --categories
+  <categorymain>        first category from --categories
   <week>                current week number
 
 Arguments --categories, --dir and --filename are there to transfer values from 
 get_iplayer to this script and are usually always specified as:
 
   --categories="<categories>" --dir="<dir>" --filename="<filename>"
+
+Forward-slashes in --subdir need to be escaped by an extra forward-slash.
 
 A get_iplayer "command" option example (one line):
 
@@ -63,31 +265,31 @@ A get_iplayer "command" option example (one line):
                         --filename="<filename>" 
                         --force
                         --subdir-format=
-                            "bbc.<week>/<categorymain>_<categorysub>/<longname>"
+                            "bbc.<week>//<categorymain>_<categorysub>//<longname>"
 """)
     
     #AlTERNATIVE retrieve category name from subdir
     #        subdir 1
     #        subdir-format <categories>
     
-    argparser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
-    argparser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
-    argparser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")
-    argparser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, help="programme categories (comma-separated list) of the downloaded file. Expected when <category>, <categorymain> or <categorysub> is in --subdir-format")
-    argparser.add_argument("--dir", dest="dir", metavar="<pathname>", nargs=1, default=None, required=True, help="output directory")
-    argparser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="downloaded file to be moved")
-    argparser.add_argument("--force", dest="force", action="store_const", const=True, default=False, help="overwrite existing destination file")
-    argparser.add_argument("--subdir-format", dest="subdir_format", metavar="<format>", nargs=1, default=None, required=True, help="subdirectory path")
-    #argparser.add_argument("filename", nargs=1)
-    #argparser.add_argument("categories", nargs=1)
+    parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
+    parser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
+    parser.add_argument("-v", "--verbose", dest="verbose", action="store_const", const=True, default=False, help="set log level to info")
+    parser.add_argument("--categories", dest="categories", metavar="<categories>", nargs=1, default=None, help="programme categories (comma-separated list) of the downloaded file. Expected when <category>, <categorymain> or <categorysub> is in --subdir-format")
+    parser.add_argument("--dir", dest="dir", metavar="<pathname>", nargs=1, default=None, required=True, help="output directory")
+    parser.add_argument("--filename", dest="filename", metavar="<filename>", nargs=1, default=None, required=True, help="downloaded file to be moved")
+    parser.add_argument("--force", dest="force", action="store_const", const=True, default=False, help="overwrite existing destination file")
+    parser.add_argument("--subdir-format", dest="subdir_format", metavar="<format>", nargs=1, default=None, required=True, help="subdirectory path")
+    #parser.add_argument("filename", nargs=1)
+    #parser.add_argument("categories", nargs=1)
     global args
-    args = argparser.parse_args()
+    args = parser.parse_args()
 
 def _init_loggers():
     logging.basicConfig(level=logging.WARNING)
 
     log_pathname = tempfile.gettempdir()
-    log_filename = os.path.join(log_pathname, progname + ".log")
+    log_filename = os.path.join(log_pathname, PROGNAME + ".log")
     if not os.path.exists(log_pathname):
         os.mkdir(log_pathname)
     handler = logging.FileHandler(log_filename)
@@ -102,12 +304,56 @@ def _init_loggers():
     elif args.quiet:
         logger.setLevel(logging.FATAL)
 
+def _split(string, sep):
+    """ Split at @sep, except if split string starts with a space character, i.e. is part of a split string containing @sep. @sep is a single character """
+    l = string.split(sep)
+    r = []
+    for i, e in enumerate(l):
+        if i > 0 and i < len(l) -1 and l[i].startswith(" "):
+            #r[i - 1] += e
+            r[i - 1] += sep + e
+        else:
+            r.append(e)
+    return r
+        
+def _sub_categories(category_list):
+    sub_categories_list = []
+    #if len(category_list) > 1:
+    for category in category_list[1:]:
+        #if category in FORMATS:
+        #    # Skip format
+        #    continue
+        if category in SUBGENRES:
+            sub_categories_list.append(category)
+            
+    #return ",".join(sorted(sub_categories_list))
+    sub_categories_list.sort()
+    return "_".join(sub_categories_list)
+
+def _main_categories(category_list):
+    main_categories_list = []
+    #if len(category_list) > 1:
+    for category in category_list:
+        #if category in FORMATS:
+        #    # Skip format
+        #    continue
+        if category in GENRES:
+            main_categories_list.append(category)
+    #return ",".join(sorted(main_categories_list))
+    main_categories_list.sort()
+    return "_".join(main_categories_list)
+
 def _move_file(categories, dirname, filename, force, subdir_format):
     logger.debug("move_file(): filename = \"{0}\", categories = \"{1}\", dirname = \"{2}\", force = {3}, subdir_format = \"{4}\"".format(filename, categories, dirname, force, subdir_format))
 
     src_dirname = os.path.dirname(filename)
 
     # Perform additional substitution (field formatting)
+    
+    # Path separators are escaped ('//').
+    # For example <longname> in '--subdir-format="...<longname>"' can contain '/' characters
+    subdir_format = subdir_format.replace("//", "/")
+    
     #NOTE Find substring
     if "<week>" in subdir_format:
         week_number = datetime.today().isocalendar()[1]
@@ -117,14 +363,17 @@ def _move_file(categories, dirname, filename, force, subdir_format):
         #AlTERNATIVE retrieve category name from the last subdirectory in @filename,
         #    which is formatted with the <categories> property value.
         #categories = os.path.basename(src_dirname)
-        #specific_category = last_camel_case(categories)
-        category_list = categories.split(",")
+        #sub_category = last_camel_case(categories)
+        #
+        #category_list = categories.split(",")
+        category_list = _split(categories, ",")
         # lstrip(): trim leading whitespaces
-        specific_category = category_list[len(category_list) - 1].lstrip()
-        main_category = category_list[0].lstrip()
+        #sub_category = category_list[len(category_list) - 1].lstrip()         # Last in the list
+        sub_categories = _sub_categories(category_list)
+        main_category = _main_categories(category_list)
  
         # Perform additional substitutions (field formatting)
-        if main_category == specific_category:
+        if main_category == sub_categories or sub_categories == "":
             # <category> is the same as <categorymain>
             subdir_format = subdir_format.replace("<category>", "<categorymain>")
 
@@ -147,7 +396,7 @@ def _move_file(categories, dirname, filename, force, subdir_format):
             #    str = str[0:m.start(1)] + replacement_str + str[m.end(1):len(str)]
             subdir_format = subdir_format.replace("<categorysub>_<categorymain>", main_category)
             subdir_format = subdir_format.replace("<categorymain>_<categorysub>", main_category)
-        subdir_format = subdir_format.replace("<categorysub>", specific_category)
+        subdir_format = subdir_format.replace("<categorysub>", sub_categories)
         subdir_format = subdir_format.replace("<categorymain>", main_category)
     else:
         if "<category>" in subdir_format or "<categorymain>" in subdir_format or "<categorysub>" in subdir_format:

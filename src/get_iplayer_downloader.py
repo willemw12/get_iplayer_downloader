@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# For more information about this program, see https://github.com/willemw12/get_iplayer_downloader
+
 import logging
 import os
 
@@ -32,7 +34,7 @@ def main():
 
     _init_loggers()
 
-    args = settings.args()
+    args = settings.get_args()
     #if args.compact and not args.list_channels:
     #    logger.info("--compact is only used with --list-channels")
     if args.list_categories:
