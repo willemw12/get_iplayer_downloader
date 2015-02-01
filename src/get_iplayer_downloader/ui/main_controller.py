@@ -132,8 +132,7 @@ class MainWindowController:
             if pid:
                 self.main_window.display_busy_mouse_cursor(True)
                 get_iplayer_output_lines = get_iplayer.info(
-                                                #index, ...
-                                                pid, preset=preset, prog_type=prog_type,
+                                                pid, None, preset=preset, prog_type=prog_type,
                                                 proxy_disabled=proxy_disabled, future=future)
                 self.main_window.display_busy_mouse_cursor(False)
 

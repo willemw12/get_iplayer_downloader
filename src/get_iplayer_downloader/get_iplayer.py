@@ -440,10 +440,13 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
 
     return (launched, process_output)
 
-def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=False):
-    """ Run get_iplayer --info.
+def info(pid, search_term, preset=None, prog_type=None, proxy_disabled=False, future=False):
+    """ Run 'get_iplayer --info [--pid=<pid>] [<search term>]'.
         Return table with columns: series title, episode title plus description.
     """
+    
+    #if not pid:
+    #    return ""
     
     # Only useful from outside the UK:
     #     If proxy_disabled is true then info retrieval may be faster but the info 
@@ -458,10 +461,13 @@ def info(search_term, preset=None, prog_type=None, proxy_disabled=False, future=
         cmd += " --proxy=0"
     if future:
         cmd += " --future"
+    cmd += " --nocopyright"
+
     # --fields: perform the same search as with --long plus on PID
-    cmd += " --fields=\"name,episode,desc,pid\" --nocopyright"
+    #cmd += " --fields=\"name,episode,desc,pid\"
+    cmd += " --pid=" + pid
     if search_term:
-        cmd += " \"" + search_term + "\""
+        cmd += " --long" + " \"" + search_term + "\""
 
     process_output = command.run(cmd)
 
