@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import glob
 import logging
 import os
 import sys
@@ -158,19 +159,34 @@ def _move_file(categories, dirname, filename, force, subdir_format):
 
     # Move the file
     try:
+        if filename.endswith(".wma"):
+            # Get all wma part filenames
+            pathname_wma = filename[:len(filename)-4] + "_part*.wma"    # "_part??.wma"
+            filenames = glob.glob(pathname_wma)
+            if len(filenames) == 1:
+                # Rename <filename>_part01.wma to <filename> if there is only one wma part file
+                filename_wma = filenames[0]
+                logger.info("move_file(): Move \"{0}\" to \"{1}\"".format(filename_wma, filename))
+                shutil.move(filename_wma, filename)
+                
+                filenames = [filename]
+        else:
+            filenames = [filename]
+
+        # Move file(s)
         dest_dirname = os.path.join(dirname, subdir_format)
-        logger.info("move_file(): Move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
-        if not os.path.exists(dest_dirname):
-            os.makedirs(dest_dirname)
-        if force:
-            try:
-                basename = os.path.basename(filename)
-                dest_filename = os.path.join(dest_dirname, basename)
-                os.remove(dest_filename)
-                logger.info("move_file(): Overwriting destination file \"{0}\"".format(dest_filename))
-            except OSError:
-                pass
-        shutil.move(filename, dest_dirname)
+        for filename in filenames:
+            logger.info("move_file(): Move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
+            if not os.path.exists(dest_dirname):
+                os.makedirs(dest_dirname)
+            if force:
+                try:
+                    basename = os.path.basename(filename)
+                    dest_filename = os.path.join(dest_dirname, basename)
+                    os.remove(dest_filename)
+                except OSError:
+                    pass
+            shutil.move(filename, dest_dirname)
     except (IOError, os.error, shutil.Error) as exc:
         logger.warning("move_file(): Failed to move \"{0}\" to \"{1}\"".format(filename, dest_dirname))
         logger.warning(exc)
