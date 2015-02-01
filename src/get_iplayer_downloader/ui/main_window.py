@@ -941,6 +941,35 @@ class MainTreeView(Gtk.TreeView):
         widget.set_tooltip_cell(tooltip, path, None, None)
         return True
 
+    #### PageUp/PageDown scrolling behavior. Keep cursor on the same row, even if the cursor goes outside the scroll viewport
+
+    def _on_key_press_event(self, widget, event):
+        (unused_send_event_explicitly, keyval) =  event.get_keyval()
+        if keyval == Gdk.KEY_Page_Up or keyval == Gdk.KEY_Page_Down:
+            # Stop other handlers from being invoked
+            return True
+        # Pass event to other handlers
+        return False
+    
+    def _on_key_release_event(self, widget, event):
+        (unused_send_event_explicitly, keyval) =  event.get_keyval()
+        if keyval == Gdk.KEY_Page_Up or keyval == Gdk.KEY_Page_Down:
+            # Scroll one page
+            adjustment = self.main_window.main_tree_view_scrollbars.get_vadjustment()
+            value = adjustment.get_value()
+            page_increment = adjustment.get_page_increment()
+            direction = 1 if keyval == Gdk.KEY_Page_Down else -1
+            adjustment.set_value(value + page_increment * direction)
+            adjustment.value_changed()
+            #adjustment = self.main_window.main_tree_view_scrollbars.set_vadjustment(adjustment)
+             
+            # Stop other handlers from being invoked
+            return True
+        # Pass event to other handlers
+        return False
+    
+    ####
+    
     def _on_button_press_event(self, widget, event):
         self.button_pressed = True
 
