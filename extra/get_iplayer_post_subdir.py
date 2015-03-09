@@ -316,20 +316,6 @@ def _split(string, sep):
             r.append(e)
     return r
         
-def _sub_categories(category_list):
-    sub_categories_list = []
-    #if len(category_list) > 1:
-    for category in category_list[1:]:
-        #if category in FORMATS:
-        #    # Skip format
-        #    continue
-        if category in SUBGENRES:
-            sub_categories_list.append(category)
-            
-    #return ",".join(sorted(sub_categories_list))
-    sub_categories_list.sort()
-    return "_".join(sub_categories_list)
-
 def _main_categories(category_list):
     main_categories_list = []
     #if len(category_list) > 1:
@@ -339,9 +325,27 @@ def _main_categories(category_list):
         #    continue
         if category in GENRES:
             main_categories_list.append(category)
-    #return ",".join(sorted(main_categories_list))
-    main_categories_list.sort()
-    return "_".join(main_categories_list)
+    ##return ",".join(sorted(main_categories_list))
+    #main_categories_list.sort()
+    #return "_".join(main_categories_list)
+
+    return sorted(main_categories_list)
+
+def _sub_categories(category_list):
+    sub_categories_list = []
+    #if len(category_list) > 1:
+    for category in category_list:
+        #if category in FORMATS:
+        #    # Skip format
+        #    continue
+        if category in SUBGENRES:
+            sub_categories_list.append(category)
+            
+    ##return ",".join(sorted(sub_categories_list))
+    #sub_categories_list.sort()
+    #return "_".join(sub_categories_list)
+
+    return sorted(sub_categories_list)
 
 def _move_file(categories, dirname, filename, force, subdir_format):
     logger.debug("move_file(): filename = \"{0}\", categories = \"{1}\", dirname = \"{2}\", force = {3}, subdir_format = \"{4}\"".format(filename, categories, dirname, force, subdir_format))
@@ -369,17 +373,24 @@ def _move_file(categories, dirname, filename, force, subdir_format):
         category_list = _split(categories, ",")
         # lstrip(): trim leading whitespaces
         #sub_category = category_list[len(category_list) - 1].lstrip()         # Last in the list
-        sub_categories = _sub_categories(category_list)
-        main_category = _main_categories(category_list)
+
+        main_category_list = _main_categories(category_list)
+        # Some main categories names are also subcategory names.
+        # Remove all main categories to avoid repeating them in the subcategories
+        category_list = list(set(category_list) - set(main_category_list))
+        sub_category_list = _sub_categories(category_list)
+
+        main_categories = "_".join(main_category_list)
+        sub_categories = "_".join(sub_category_list)
  
         # Perform additional substitutions (field formatting)
-        if main_category == sub_categories or sub_categories == "":
+        if main_categories == sub_categories or sub_categories == "":
             # <category> is the same as <categorymain>
             subdir_format = subdir_format.replace("<category>", "<categorymain>")
 
             # Merge duplicate string values
-            subdir_format = subdir_format.replace("<categorysub><categorymain>", main_category)
-            subdir_format = subdir_format.replace("<categorymain><categorysub>", main_category)
+            subdir_format = subdir_format.replace("<categorysub><categorymain>", main_categories)
+            subdir_format = subdir_format.replace("<categorymain><categorysub>", main_categories)
 
             # Merge duplicate string values separated by sanitized separators or
             # other valid separator characters (-)
@@ -394,10 +405,10 @@ def _move_file(categories, dirname, filename, force, subdir_format):
             #m = re.search(pattern, str)
             #if m and m.groups() > 0:
             #    str = str[0:m.start(1)] + replacement_str + str[m.end(1):len(str)]
-            subdir_format = subdir_format.replace("<categorysub>_<categorymain>", main_category)
-            subdir_format = subdir_format.replace("<categorymain>_<categorysub>", main_category)
+            subdir_format = subdir_format.replace("<categorysub>_<categorymain>", main_categories)
+            subdir_format = subdir_format.replace("<categorymain>_<categorysub>", main_categories)
         subdir_format = subdir_format.replace("<categorysub>", sub_categories)
-        subdir_format = subdir_format.replace("<categorymain>", main_category)
+        subdir_format = subdir_format.replace("<categorymain>", main_categories)
     else:
         if "<category>" in subdir_format or "<categorymain>" in subdir_format or "<categorysub>" in subdir_format:
             logger.warning("move_file(): --categories expected when <category>, <categorymain>  and/or <categorysub> is in --subdir-format")
