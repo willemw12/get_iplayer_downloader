@@ -86,7 +86,7 @@ build() {
 
   # Check applied patches
   if [ $(grep "#PATCH" get_iplayer | wc -l) -ne 5 ]; then
-    echo "  -> ERROR: the number of lines patched in /usr/bin/get_iplayer is different than expected" >&2
+    echo "  -> ERROR: incorrect number of patched lines in /usr/bin/get_iplayer" >&2
   fi
 }
 

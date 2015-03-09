@@ -190,8 +190,6 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                     #TODO pid instead of url
                     #pid = _regex_substring("^\[(.*)\]", line)
                     pid = _regex_substring("^\[(.*)\]", lines[i])
-                    if pid == "b04n2fmv":
-                        pass
                        
                     series = _regex_substring("\](.*) -- ", lines[i])
                     if series is not None:
@@ -223,10 +221,9 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                         # Add episode
                         # Don't add if url is a format url
 
-
-#ISSUE when episode is in 'format', but episode not in one of the 'Filter by' filters
-# For example, "Act your age": Games & Quizes --> Comedy,Games & Quizes
-
+                        #ISSUE in case of subcategory support:
+                        # when episode is in 'format', but episode not in one of the 'Filter by' filters
+                        # For example, "Act your age": Games & Quizes --> Comedy,Games & Quizes
 
                         if not is_format_url:
                             logger.info("episode = %s|%s|%s|%s|%s" % (series, episode, categories, channel, pid))
@@ -256,7 +253,7 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                                 None, 
                                 None])
                                 #series])    #TEMP
-                skip_lines = 4
+                    skip_lines = 4
                 #continue
             elif next_page_parse_state == ParseState.BUSY:
                 #if "Next" in line:
@@ -294,7 +291,8 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
     
     #return search_result_lines
 
-# #TODO?
+# Subcategory support. Inefficient and genre web pages don't list all the subgenres.
+#
 # #def _search_results_main_category(url, search_result_lines, is_date_url, is_format_url, fast):
 # def _search_results_main_category(url, search_result_lines, is_date_url=False, is_format_url=False, fast=False):
 #     sub_category_urls = []
@@ -387,14 +385,7 @@ def cleanup():
     except:
         traceback.print_exc()
     
-#TODO? category_list --> genre_list?
 def write_cache(prog_type, category_list, days, fast=False):
-#     #TEST
-#     logger.debug("TEST2")
-#     print(logging.getLogger().name)
-#     import sys
-#     sys.exit(0)
-    
     if prog_type == "all":
         prog_type_list = PROG_TYPE_LIST
     else:
@@ -524,6 +515,7 @@ def get(prog_type):
 # ...
 
 
+
 # SUBCATEGORIES (AND ALL MAIN CATEGORY EPISODES)
 # http://www.bbc.co.uk/tv/programmes/genres/drama/player/episodes
 # ...
@@ -549,6 +541,7 @@ def get(prog_type):
 #     9. ...
 #    10. [http://www.bbc.co.uk/tv/programmes/genres/drama/player/episodes?page=13]13
 #    11. [http://www.bbc.co.uk/tv/programmes/genres/drama/player/episodes?page=2]Next
+
 
 
 # SUBCATEGORY EPISODES (FIRST PAGE)
@@ -580,6 +573,7 @@ def get(prog_type):
 # ...
 
 
+
 # SUBCATEGORY EPISODES (LAST PAGE)
 # http://www.bbc.co.uk/tv/programmes/genres/drama/crime/player/episodes?page=2
 # ...
@@ -587,6 +581,7 @@ def get(prog_type):
 #     2. [http://www.bbc.co.uk/tv/programmes/genres/drama/crime/player/episodes]1
 #     3. 2
 #     4. Next
+
 
 
 # SUBCATEGORY EPISODES (SINGLE PAGE)
@@ -606,6 +601,7 @@ def get(prog_type):
 # Explore the BBC
 # 
 #      * [http://www.bbc.co.uk/news/]News
+
 
 
 #    Accessibility links

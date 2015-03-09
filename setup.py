@@ -50,9 +50,14 @@ setup(name = get_iplayer_downloader.PROGRAM_NAME,
     #WORKAROUND Make menu item visible on the (kde) desktop, by installing a short .desktop file name
     data_files = [("share/applications", ["res/get_iplayer_downloader.desktop"]),
                   ("share/get_iplayer_downloader/scripts", ["extra/get_iplayer_post_subdir.py", "extra/generate_search_cache.py"]),
-                  ("share/get_iplayer_downloader/scripts/get_iplayer_downloader", ["extra/__init__.py"]),
+
+                  #TODO avoid installing files twice and also avoid installing more executables in /usr/bin.
+                  #("share/get_iplayer_downloader/scripts/get_iplayer_downloader", ["extra/__init__.py"]),
+                  ("share/get_iplayer_downloader/scripts/get_iplayer_downloader", ["src/get_iplayer_downloader/__init__.py"]),
+                  ("share/get_iplayer_downloader/scripts/get_iplayer_downloader", ["src/get_iplayer_downloader/search_cache.py"]),
                   ("share/get_iplayer_downloader/scripts/get_iplayer_downloader/tools", ["extra/__init__.py"]),
-                  ("share/get_iplayer_downloader/scripts/get_iplayer_downloader/tools", ["src/get_iplayer_downloader/tools/file.py"]),
+                  ("share/get_iplayer_downloader/scripts/get_iplayer_downloader/tools", ["src/get_iplayer_downloader/tools/command.py", "src/get_iplayer_downloader/tools/file.py"]),
+
                   #("share/icons/scalable/apps", ["res/get_iplayer_downloader.svg"]),
                   ("share/pixmaps", ["res/get_iplayer_downloader.svg"])],
 
