@@ -8,8 +8,8 @@
 #pkgname=get_iplayer-git
 pkgname=get_iplayer-patched-git
 
-pkgver=2.91
-pkgrel=2
+pkgver=2.92.r1.gebdea4b
+pkgrel=1
 pkgdesc="Download TV and radio from BBC iPlayer"
 arch=('any')
 url="https://github.com/get-iplayer/get_iplayer"
@@ -42,8 +42,8 @@ optdepends=(
 makedepends=('git')
 conflicts=('get_iplayer')
 provides=('get_iplayer')
-#source=($pkgname::git://git.infradead.org/get_iplayer.git)
-source=($pkgname::git://github.com/get-iplayer/get_iplayer.git)
+source=($pkgname::git://github.com/get-iplayer/get_iplayer.git#branch=develop)
+#source=($pkgname::git://github.com/get-iplayer/get_iplayer.git)
 md5sums=(SKIP)
 
 pkgver() {
@@ -77,6 +77,7 @@ build() {
   sed -i "s|\(^[ \t]*\)\(\$mp3->select_id3v2_frame_by_descr('COMM(eng,#0)\[\]', \$tags->{comment});.*\)|\n\1#PATCH\n\1#\2\n\1\$mp3->select_id3v2_frame_by_descr('COMM(eng,#0)\[\]', \$tags->{longDescription});\n|" get_iplayer
   sed -i "s|\(^[ \t]*\)\('--COMM', \$tags->{comment},.*\)|\n\1#PATCH\n\1#\2\n\1'--COMM', \$tags->{longDescription},\n|" get_iplayer
 
+  #TODO use for example --exclude-supplier=level3 instead
   # Patch: disable Akamai
   sed -i "s|\(^[ \t]*\)\(if ( \$cattribs->{kind} eq 'akamai' ) {.*\)|\n\1#PATCH\n\1#\2\n\1if ( \$cattribs->{kind} eq 'DISABLED_akamai' ) {\n|" get_iplayer
 

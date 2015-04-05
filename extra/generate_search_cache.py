@@ -11,14 +11,15 @@ from get_iplayer_downloader import search_cache
 PROGNAME = os.path.splitext(os.path.basename(sys.argv[0]))[0]
 logger = logging.getLogger(PROGNAME)
 
-DEFAULT_PROG_TYPE="tv"
+DEFAULT_PROG_TYPE = "tv"
 #NOTE Categories for radio and tv are the same
-#DEFAULT_CATEGORIES="Childrens,Comedy,Drama,Entertainment,Learning,Music,News,ReligionAndEthics,Sport,Weather"
-DEFAULT_CATEGORIES="News"
-DEFAULT_DAYS=1
+#DEFAULT_CATEGORIES = "childrens,comedy,drama,entertainment,learning,music,news,religionandethics,sport,weather"
+DEFAULT_CATEGORIES = "news"
+DEFAULT_DAYS = 1
+DEFAULT_DAYS_OFFSET = 0
 
 def _init_argparser():
-    parser = argparse.ArgumentParser(description="Generate search result cache for get_iplayer_downloader from BBC web pages")
+    parser = argparse.ArgumentParser(description="Generate search result cache for get_iplayer_downloader from BBC web pages. Today's programmes may include programmes which are not yet available. Requires the 'lynx' command line web browser.")
     
     parser.add_argument("-d", "--debug", dest="debug", action="store_const", const=True, default=False, help="set log level to debug")
     parser.add_argument("-q", "--quiet", dest="quiet", action="store_const", const=True, default=False, help="set log level to fatal")
@@ -27,12 +28,13 @@ def _init_argparser():
 #     parser.add_argument("--quiet-log-file", action="store_const", const=True, default=False, help="set log level to fatal (log file only)")
 #     parser.add_argument("--verbose-log-file", action="store_const", const=True, default=False, help="set log level to info (log file only)")
     
-    parser.add_argument("--categories", default=DEFAULT_CATEGORIES, help="Default: " + DEFAULT_CATEGORIES)
+    parser.add_argument("--categories", default=DEFAULT_CATEGORIES, help="<genre>,<subgenre,...;<genre>.... For example, comedy,sitcoms;drama,crime;factual. Default: " + DEFAULT_CATEGORIES)
     #parser.add_argument("--channels", default="", help="")
     parser.add_argument("--clean-all", action="store_const", const=True, default=False, help="clear all cache")
     parser.add_argument("--fast", action="store_const", const=True, default=False, help="do not 'sleep' before downloading a web page (not recommended)")
     parser.add_argument("--days", type=int, default=DEFAULT_DAYS, help="number of days to cache. 0 days is 'all available on iPlayer'. Default: %d" % DEFAULT_DAYS)
-    parser.add_argument("--type", dest="prog_type", metavar="TYPE", default=DEFAULT_PROG_TYPE, help="programme types (radio, tv, radio,tv, all). Default: " + DEFAULT_PROG_TYPE)
+    parser.add_argument("--days-offset", type=int, default=DEFAULT_DAYS_OFFSET, help="number of days from today to exclude from the cache. Default: %d" % DEFAULT_DAYS_OFFSET)
+    parser.add_argument("--type", dest="prog_type", metavar="TYPE", default=DEFAULT_PROG_TYPE, help="programme types ('radio', 'tv', 'radio,tv', 'all'). Default: " + DEFAULT_PROG_TYPE)
     
     global args
     args = parser.parse_args()
@@ -150,14 +152,10 @@ def _main():
     _init_argparser()
     _init_loggers()
     
-#     #TEST
-#     logger.debug("TEST1")
-    
     if args.clean_all:
         search_cache.cleanup()
 
-    category_list = args.categories.split(",")
-    search_cache.write_cache(args.prog_type, category_list, args.days, fast=args.fast)
+    search_cache.write_cache(args.prog_type, args.categories, args.days, args.days_offset, fast=args.fast)
 
 if __name__ == "__main__":
     _main()

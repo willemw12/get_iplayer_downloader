@@ -81,14 +81,14 @@ File ~/.get\_iplayer/presets/radio:
     #ffmpeg avconv
     info 0
     output /home/willemw12/Music/bbc
-    radiomode flashaudio,flashaac,realaudio
+    #radiomode flashaudio,flashaac,realaudio
 
 File ~/.get\_iplayer/presets/tv:
 
     #command /usr/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>//<categorymain>_<categorysub>//<longname>" --force
     info 0
     output /home/willemw12/Videos/bbc
-    tvmode flashhigh,flashstd,flashnormal
+    #tvmode flashhigh,flashstd,flashnormal
 
 Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` work properly from the command line.
 

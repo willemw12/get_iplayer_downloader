@@ -109,6 +109,31 @@ def _http_dump(url):
 #         key = "2" + series + episode
 #     return key
 
+#DOUBLE
+def _split(string, sep):
+    """ Split at @sep, except if split string starts with a space character, i.e. is part of a split string containing @sep. @sep is a single character """
+    l = string.split(sep)
+    r = []
+    for i, e in enumerate(l):
+        if i > 0 and i < len(l) -1 and l[i].startswith(" "):
+            #r[i - 1] += e
+            r[i - 1] += sep + e
+        else:
+            r.append(e)
+    return r
+    
+def _merge_categories(categories1, categories2):
+    category_list1 = _split(categories1, ',')
+    category_list2 = _split(categories2, ',')
+    subcategory_list1 = category_list1[1:]
+    subcategory_list2 = category_list2[1:]
+    subcategory_list1.extend(subcategory_list2)
+    #NOTE Cannot perform "[:1]" and "extend()" in one statement
+    #category_list1[:1].extend(sorted(set(subcategory_list1)))
+    category_list1 = category_list1[:1]
+    category_list1.extend(sorted(set(subcategory_list1)))
+    return ",".join(category_list1)
+
 def _search_results_category(url, search_result_lines, is_format_url=False, fast=False):
     """ Collect episode search results of a single category (either main or subcategory). """
     
@@ -211,12 +236,15 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                     #        break
                     found_line = _find(lambda line: line[SearchResultColumn.PID] == pid, search_result_lines)
                     if found_line:
+                        logger.info("episode = %s|%s|%s|%s|%s (episode already found)" % (series, episode, categories, channel, pid))
                         # Add subcategory to existing episode categories
                         #logger.debug(...)
                         #found_line[SearchResultColumn.CATEGORIES] += ",%s" % category2
-                        subcategories = _rsubstring(categories, ',')
-                        if subcategories:
-                            found_line[SearchResultColumn.CATEGORIES] += ",%s" % subcategories
+                        #
+                        #subcategories = _rsubstring(categories, ',')
+                        #if subcategories:
+                        #    found_line[SearchResultColumn.CATEGORIES] += ",%s" % subcategories
+                        found_line[SearchResultColumn.CATEGORIES] = _merge_categories(found_line[SearchResultColumn.CATEGORIES], categories)
                     else:
                         # Add episode
                         # Don't add if url is a format url
@@ -385,7 +413,7 @@ def cleanup():
     except:
         traceback.print_exc()
     
-def write_cache(prog_type, category_list, days, fast=False):
+def write_cache(prog_type, categories, days, days_offset, fast=False):
     if prog_type == "all":
         prog_type_list = PROG_TYPE_LIST
     else:
@@ -393,87 +421,110 @@ def write_cache(prog_type, category_list, days, fast=False):
     for prog_type in prog_type_list:
         if days ==  0:
             # All available on iPlayer
-            url_genre_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/genres/%(genre)s/player/episodes"
-            url_format_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/formats/%(format)s/player/episodes"
+            url_genre_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/genres/%(subgenre)s/player/episodes"
+            url_subgenre_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/genres/%(genre)s/%(subgenre)s/player/episodes"
+            #url_format_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/formats/%(format)s/player/episodes"
         else:
             # "http://www.bbc.co.uk/tv/programmes/genres/comedy/schedules/<YYYY>/<MM>/<DD>"
             # "http://www.bbc.co.uk/tv/programmes/genres/factual/schedules/<YYYY>/<MM>/<DD>#programmes-main-content"
             url_genre_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/genres/%(genre)s/schedules/%(year)s/%(month)s/%(day)s"
-            url_format_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/formats/%(format)s/schedules/%(year)s/%(month)s/%(day)s"
+            url_subgenre_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/genres/%(genre)s/%(subgenre)s/schedules/%(year)s/%(month)s/%(day)s"
+            #url_format_template = "http://www.bbc.co.uk/%(prog_type)s/programmes/formats/%(format)s/schedules/%(year)s/%(month)s/%(day)s"
 
         today_dt = datetime.today()
     
         search_result_lines = []
         
-        # Add subcatergories/subgenres to episode categories
-        for category in category_list:
-            if days == 0:
-                url_dict = dict(prog_type=prog_type, genre=category.lower())
-                url = url_genre_template % url_dict
-                
-                ##lines = _search_results_main_category(url, is_date_url=False)
-                #lines = _search_results_category(url)
-                #search_result_lines.extend(lines)
-                #
-                #_search_results_main_category(url, search_result_lines, is_date_url=False, is_format_url=False, fast=fast)
-                _search_results_category(url, search_result_lines)
-            else:
-                #NOTE range is from 'days -1' to and including 0 (today)
-                for days_back in range(days - 1, -1, -1):
-                    dt = today_dt - timedelta(days=days_back)
-                    url_dict = dict(prog_type=prog_type, genre=category.lower(), year=dt.year, month=dt.month, day=dt.day)
-                    url = url_genre_template % url_dict
-                    
-                    ##lines = _search_results_main_category(url, is_date_url=True)
-                    #lines = _search_results_category(url)
-                    #search_result_lines.extend(lines)
-                    #
-                    #_search_results_main_category(url, search_result_lines, is_date_url=True, is_format_url=False, fast=fast)
-                    _search_results_category(url, search_result_lines)
+        categories_list = categories.split(";")
+        for categories2 in categories_list:
+            category_list = categories2.split(",")
 
-#         ####
-#         
-#         #NOTE This is even more inefficient!
-#         # Add formats to episode categories
-#         format_list = [ "animation",
-#                         "appeals",
-#                         "bulletins",
-#                         "discussionandtalk",
-#                         "docudramas",
-#                         "documentaries",
-#                         "films",
-#                         "gamesandquizzes",
-#                         "magazinesandreviews",
-#                         "makeovers",
-#                         "performancesandevents",
-#                         "phoneins",
-#                         "readings",
-#                         "reality",
-#                         "talentshows"]
-#  
-#         for frmt in format_list:
-#             if days == 0:
-#                 url_dict = dict(prog_type=prog_type, format=frmt.lower())
-#                 url = url_format_template % url_dict
-#                  
-#                 _search_results_main_category(url, search_result_lines, is_date_url=False, is_format_url=True, fast=fast)
-#             else:
-#                 #NOTE range is from 'days -1' to and including 0 (today)
-#                 for days_back in range(days - 1, -1, -1):
-#                     dt = today_dt - timedelta(days=days_back)
-#                     url_dict = dict(prog_type=prog_type, format=frmt.lower(), year=dt.year, month=dt.month, day=dt.day)
+            main_category = category_list[0]
+            subcategories = category_list[1:]
+            if len(subcategories) > 0:
+                # Main category with subcategories
+                for subcategory in subcategories:
+                    if days == 0:
+                        url_dict = dict(prog_type=prog_type, genre=main_category.lower(), subgenre=subcategory.lower())
+                        url = url_subgenre_template % url_dict
+                        
+                        ##lines = _search_results_main_category(url, is_date_url=False)
+                        #lines = _search_results_category(url)
+                        #search_result_lines.extend(lines)
+                        #
+                        #_search_results_main_category(url, search_result_lines, is_date_url=False, is_format_url=False, fast=fast)
+                        _search_results_category(url, search_result_lines)
+                    else:
+                        #NOTE range is from 'days -1' to and including 0 (today)
+                        for days_back in range(days - 1, -1, -1):
+                            dt = today_dt - timedelta(days=days_back - days_offset)
+                            url_dict = dict(prog_type=prog_type, genre=main_category.lower(), subgenre=subcategory.lower(), year=dt.year, month=dt.month, day=dt.day)
+                            url = url_subgenre_template % url_dict
+                            
+                            ##lines = _search_results_main_category(url, is_date_url=True)
+                            #lines = _search_results_category(url)
+                            #search_result_lines.extend(lines)
+                            #
+                            #_search_results_main_category(url, search_result_lines, is_date_url=True, is_format_url=False, fast=fast)
+                            _search_results_category(url, search_result_lines)
+            else:
+                # Main category without subcategories
+                if days == 0:
+                    url_dict = dict(prog_type=prog_type, genre=main_category.lower())
+                    url = url_genre_template % url_dict
+                    _search_results_category(url, search_result_lines)
+                else:
+                    #NOTE range is from 'days -1' to and including 0 (today)
+                    for days_back in range(days - 1, -1, -1):
+                        dt = today_dt - timedelta(days=days_back)
+                        url_dict = dict(prog_type=prog_type, genre=main_category.lower(), year=dt.year, month=dt.month, day=dt.day)
+                        url = url_genre_template % url_dict
+    
+                        _search_results_category(url, search_result_lines)
+                
+#             ####
+#              
+#             #NOTE This is even more inefficient!
+#             # Add formats to episode categories
+#             format_list = [ "animation",
+#                             "appeals",
+#                             "bulletins",
+#                             "discussionandtalk",
+#                             "docudramas",
+#                             "documentaries",
+#                             "films",
+#                             "gamesandquizzes",
+#                             "magazinesandreviews",
+#                             "makeovers",
+#                             "performancesandevents",
+#                             "phoneins",
+#                             "readings",
+#                             "reality",
+#                             "talentshows"]
+#       
+#             for frmt in format_list:
+#                 if days == 0:
+#                     url_dict = dict(prog_type=prog_type, format=frmt.lower())
 #                     url = url_format_template % url_dict
-#                      
-#                     _search_results_main_category(url, search_result_lines, is_date_url=True, is_format_url=True, fast=fast)
-# 
-#         ####
+#                       
+#                     _search_results_main_category(url, search_result_lines, is_date_url=False, is_format_url=True, fast=fast)
+#                 else:
+#                     #NOTE range is from 'days -1' to and including 0 (today)
+#                     for days_back in range(days - 1, -1, -1):
+#                         dt = today_dt - timedelta(days=days_back)
+#                         url_dict = dict(prog_type=prog_type, format=frmt.lower(), year=dt.year, month=dt.month, day=dt.day)
+#                         url = url_format_template % url_dict
+#                           
+#                         _search_results_main_category(url, search_result_lines, is_date_url=True, is_format_url=True, fast=fast)
+#      
+#             ####
         
         if not os.path.exists(SEARCH_RESULT_CACHE_PATHNAME):
             os.mkdir(SEARCH_RESULT_CACHE_PATHNAME)
             
         cache_file = os.path.join(SEARCH_RESULT_CACHE_PATHNAME, prog_type + ".pickle")
         with open(cache_file, "wb") as f:
-            #pickle.dump(search_result_lines, f, PICKLE_PROTOCOL_HUMAN_READABLE)
+            #pickle.dump(search_result_lines, f, pickle=pickle.HIGHEST_PROTOCOL)
             pickle.dump(search_result_lines, f)
 
 def has_cache(prog_type):

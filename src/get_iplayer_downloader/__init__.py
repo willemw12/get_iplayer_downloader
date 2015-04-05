@@ -10,7 +10,9 @@ import subprocess
 # Default value (for the non-git downloaded version)
 _GENERAL_VERSION = "0.2-x"
 
-_GIT_VERSION_FILENAME = os.path.join(os.path.dirname(os.path.realpath(__file__)), "GIT_VERSION")
+_GIT_VERSION_FILEPATH = os.path.dirname(os.path.realpath(__file__))
+_GIT_DOT_DIRNAME = os.path.join(_GIT_VERSION_FILEPATH , ".git")
+_GIT_VERSION_FILENAME = os.path.join(_GIT_VERSION_FILEPATH , "GIT_VERSION")
 
 def _version():
     if os.path.exists(_GIT_VERSION_FILENAME):
@@ -37,7 +39,7 @@ def _version():
             p = re.compile(r"(^[^0-9]+)")
             version = p.sub("", version)
 
-            if os.path.exists(".git"):
+            if os.path.exists(_GIT_DOT_DIRNAME):
                 file = open(_GIT_VERSION_FILENAME, "w")
                 file.write(version + "\n")
                 file.close()

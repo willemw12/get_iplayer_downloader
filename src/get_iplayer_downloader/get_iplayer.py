@@ -453,7 +453,8 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
             cmd += search_term
         
         if (i < len(search_term_list) - 1):
-            cmd += "; "
+            #cmd += "; "
+            cmd += "; echo '----'; "
 
     if pvr_queue or dry_run:
         launched = True
