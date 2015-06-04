@@ -8,7 +8,7 @@
 #pkgname=get_iplayer-git
 pkgname=get_iplayer-patched-git
 
-pkgver=2.92.r1.gebdea4b
+pkgver=2.94.r1.g8946c25
 pkgrel=1
 pkgdesc="Download TV and radio from BBC iPlayer"
 arch=('any')
@@ -79,14 +79,14 @@ build() {
 
   #TODO use for example --exclude-supplier=level3 instead
   # Patch: disable Akamai
-  sed -i "s|\(^[ \t]*\)\(if ( \$cattribs->{kind} eq 'akamai' ) {.*\)|\n\1#PATCH\n\1#\2\n\1if ( \$cattribs->{kind} eq 'DISABLED_akamai' ) {\n|" get_iplayer
+  #sed -i "s|\(^[ \t]*\)\(if ( \$cattribs->{kind} eq 'akamai' ) {.*\)|\n\1#PATCH\n\1#\2\n\1if ( \$cattribs->{kind} eq 'DISABLED_akamai' ) {\n|" get_iplayer
 
   # Radio categories in search results
   #NOTE Or use --refresh-feeds=ion (listview feed) or --refresh-feeds=ion2 (atoz feed)
-  sed -i "s|\(^[ \t]*\)\(.*\)\(\$self->get_links_aod\)\(.*\)|\1#PATCH\n\1#\2\3\4\n\1\2\$self->get_links_ion\4|" get_iplayer
+  #sed -i "s|\(^[ \t]*\)\(.*\)\(\$self->get_links_aod\)\(.*\)|\1#PATCH\n\1#\2\3\4\n\1\2\$self->get_links_ion\4|" get_iplayer
 
   # Check applied patches
-  if [ $(grep "#PATCH" get_iplayer | wc -l) -ne 5 ]; then
+  if [ $(grep "#PATCH" get_iplayer | wc -l) -ne 3 ]; then
     echo "  -> ERROR: incorrect number of patched lines in /usr/bin/get_iplayer" >&2
   fi
 }
