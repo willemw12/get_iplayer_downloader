@@ -8,7 +8,7 @@ fi
 
 DAYS="$1"
 
-#/usr/share/get_iplayer_downloader/scripts/generate_search_cache.py --type=radio,tv --categories=Childrens,Comedy,Drama,Entertainment,Factual,Learning --days="$DAYS" --verbose
-/usr/share/get_iplayer_downloader/scripts/generate_search_cache.py --type=radio --categories=Childrens,Comedy,Drama,Factual,Learning --days="$DAYS" --verbose
-/usr/share/get_iplayer_downloader/scripts/generate_search_cache.py --type=tv    --categories=Childrens,Comedy,Drama,Entertainment,Factual,Learning --days="$DAYS" --verbose
+#/usr/share/get_iplayer_downloader/scripts/generate_search_cache.py --type=radio,tv --categories="childrens;comedy;drama;entertainment;factual;learning" --days="$DAYS" --verbose
+/usr/share/get_iplayer_downloader/scripts/generate_search_cache.py --type=radio --categories="childrens;comedy;drama;factual;learning" --days="$DAYS" --verbose
+/usr/share/get_iplayer_downloader/scripts/generate_search_cache.py --type=tv    --categories="childrens;comedy;drama;entertainment;factual;learning" --days="$DAYS" --verbose
 

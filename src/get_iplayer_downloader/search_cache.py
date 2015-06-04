@@ -193,15 +193,27 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
             # Read data 
             if categories_parse_state == ParseState.BUSY and line != "":
                 # Found first non-empty line
-                result = re.search("^\[.*\](.*): (.*),", line)
-                category1 = result.group(1) if result is not None else None
-                category2 = result.group(2) if result is not None else None
-                if category1 is None or category2 is None:
-                    #logger.fatal("Categories not found in %s" % url)
-                    #sys.exit(1)
-                    break
                 
-                if category1 == "Categories":
+                # Get the category name(s) from, for example:
+                #     [http://www.bbc.co.uk/radio/categories]Categories: Comedy, Wednesday...
+                #     [http://www.bbc.co.uk/radio/categories]Categories: [http://www.bbc.co.uk/radio/programmes/genres/comedy/schedules/..../../..]Comedy: Sitcoms, Wednesday...
+                result = re.search("^\[.*\](.*): (.*),", line)
+                if result is not None:
+                    category1 = result.group(1) if result is not None else None
+                    category2 = result.group(2) if result is not None else None
+                    if category1 is None or category2 is None:
+                        #logger.fatal("Categories not found in %s" % url)
+                        #sys.exit(1)
+                        break
+                else:
+                    # Get the category name from, for example:
+                    #     Comedy, Wednesday...
+                    result = re.search("^(.*),", line)
+                    #category1 = "Categories"
+                    category1 = None
+                    category2 = result.group(1) if result is not None else None
+                
+                if category1 is None or category1 == "Categories":
                     # There are no subcategories
                     categories = "%s" % (category2)
                 else:
