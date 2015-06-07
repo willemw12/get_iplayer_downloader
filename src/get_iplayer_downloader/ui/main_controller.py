@@ -14,7 +14,7 @@ import get_iplayer_downloader.ui.main_window
 import get_iplayer_downloader.ui.prefs_dialog as prefs_dialog
 import get_iplayer_downloader.ui.props_window as props_window
 
-from get_iplayer_downloader import command_util, get_iplayer, settings
+from get_iplayer_downloader import command_util, get_iplayer, search_cache, settings
 from get_iplayer_downloader.get_iplayer import SinceListIndex, SearchResultColumn, KEY_INDEX    #, VALUE_INDEX
 from get_iplayer_downloader.tools import command, command_queue, config, file, string
 from get_iplayer_downloader.ui.tools.dialog import ExtendedMessageDialog
@@ -61,6 +61,19 @@ class MainWindowController:
 
         # Initialize label text
         self.on_progress_bar_update(None)
+
+    def _set_filters_sensitive(self, prog_type):
+        """ Disable filters when search results have been cached. """
+        enable_filters = not search_cache.has_cache(prog_type)
+        #self.tool_bar_box.search_entry.set_sensitive(enable_filters)
+        #self.tool_bar_box.search_entry.set_icon_sensitive(Gtk.EntryIconPosition.PRIMARY, True)
+        #self.tool_bar_box.search_entry.set_icon_sensitive(Gtk.EntryIconPosition.SECONDARY, enable_filters)
+        self.tool_bar_box.search_entry.set_editable(enable_filters)
+        self.tool_bar_box.category_combo.set_sensitive(enable_filters)
+        self.tool_bar_box.channel_combo.set_sensitive(enable_filters)
+        self.tool_bar_box.since_combo.set_sensitive(enable_filters)
+        self.tool_bar_box.search_all_check_button.set_sensitive(enable_filters)
+        self.tool_bar_box.future_check_button.set_sensitive(enable_filters)
 
     def on_button_play_clicked_by_pid(self, button, pid):
         """ Visit BBC iPlayer web site. If @pid is None, then play selected episode in the tree view """
@@ -461,6 +474,9 @@ class MainWindowController:
 
         # Invalidate downloaded PID list
         self.downloaded_pid_list = []
+        
+        # Disable filters when there are cached search results available
+        self._set_filters_sensitive(prog_type)
 
     def on_button_similar_clicked(self, button, locate_search_term):
         # button can be None
@@ -604,6 +620,9 @@ class MainWindowController:
             elif combo.get_active() == len(model) - 1:
                 # Disable since filter
                 combo.set_active(SinceListIndex.FOREVER)
+                
+            # Disable filters when there are cached search results available
+            self._set_filters_sensitive(prog_type)
 
     ####
     
