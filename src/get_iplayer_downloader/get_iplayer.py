@@ -244,13 +244,14 @@ def search(search_text, preset=None, prog_type=None,
            channels=None, exclude_channels=None,
            categories=None, exclude_categories=None,
            since=0, future=False):
-    """ Run get_iplayer (--search). If precached search results are present, return that instead.
-        Return table with columns listed in SearchResultColumn.
+    """ Run get_iplayer (--search).
+        Return search result in a table with columns listed in SearchResultColumn.
+        If cached search results are present, return that instead.
     """
 
-    # Don't search now with get_iplayer if there are cached search results available
     output_lines = search_cache.get(prog_type)
     if output_lines is not None:
+        # Skip 'get_iplayer --search' when search results have been cached
         return output_lines
 
     ####
@@ -516,6 +517,7 @@ def refresh(preset=None, prog_type=None, channels=None, exclude_channels=None, f
     """ Run get_iplayer --refresh. Return error code. """
 
     if search_cache.has_cache(prog_type):
+        # Skip 'get_iplayer --refresh' when search results have been cached
         return
 
     ####

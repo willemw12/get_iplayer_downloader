@@ -63,10 +63,17 @@ class ParseState(Enum):
     STOPPED = 2
 
 def _find(f, seq):
-    """Return first item in sequence where f(item) == True."""
+    """ Return first item in sequence where f(item) == True. """
     for item in seq:
         if f(item): 
             return item
+
+def _index(f, seq):
+    """ Return first item index in sequence where f(item) == True. """
+    for item in seq:
+        if f(item): 
+            return seq.index(item)
+    return -1
 
 #def _lsubstring(s, sep):
 #    return s if s.find(sep) == -1 else s.split(sep, 1)[0]
@@ -112,12 +119,13 @@ def _http_dump(url):
 #DOUBLE
 def _split(string, sep):
     """ Split at @sep, except if split string starts with a space character, i.e. is part of a split string containing @sep. @sep is a single character """
+    if string is None:
+        pass
     l = string.split(sep)
     r = []
     for i, e in enumerate(l):
         if i > 0 and i < len(l) -1 and l[i].startswith(" "):
-            #r[i - 1] += e
-            r[i - 1] += sep + e
+            r[len(r) -1] += sep + e
         else:
             r.append(e)
     return r
@@ -266,33 +274,49 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                         # For example, "Act your age": Games & Quizes --> Comedy,Games & Quizes
 
                         if not is_format_url:
-                            logger.info("episode = %s|%s|%s|%s|%s" % (series, episode, categories, channel, pid))
-                            search_result_lines.append(
-                               [False, 
-                                None, 
-                                None, 
-                                series, 
-                                None, 
-                                None, 
-                                None, 
-                                None, 
-                                None,
-                                None, 
-                                None])
-                                #episode])   #TEMP
-                            search_result_lines.append(
-                               [False, 
-                                pid, 
-                                None, 
-                                None, 
-                                episode, 
-                                categories, 
-                                channel, 
-                                None,
-                                None, 
-                                None, 
-                                None])
-                                #series])    #TEMP
+                            found_index = _index(lambda line: line[SearchResultColumn.SERIES] == series, search_result_lines)
+                            if found_index >= 0:
+                                search_result_lines.insert(found_index + 1,
+                                   [False, 
+                                    pid, 
+                                    None, 
+                                    None, 
+                                    episode, 
+                                    categories,
+                                    channel, 
+                                    None,
+                                    None, 
+                                    None, 
+                                    None])
+                                    #series])    #TEMP
+                            else:
+                                logger.info("episode = %s|%s|%s|%s|%s" % (series, episode, categories, channel, pid))
+                                search_result_lines.append(
+                                   [False, 
+                                    None, 
+                                    None, 
+                                    series, 
+                                    None, 
+                                    categories, 
+                                    None, 
+                                    None, 
+                                    None,
+                                    None, 
+                                    None])
+                                    #episode])   #TEMP
+                                search_result_lines.append(
+                                   [False, 
+                                    pid, 
+                                    None, 
+                                    None, 
+                                    episode, 
+                                    categories,
+                                    channel, 
+                                    None,
+                                    None, 
+                                    None, 
+                                    None])
+                                    #series])    #TEMP
                     skip_lines = 4
                 #continue
             elif next_page_parse_state == ParseState.BUSY:
