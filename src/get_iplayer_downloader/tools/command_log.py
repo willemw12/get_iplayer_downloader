@@ -36,23 +36,20 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
         #NOTE for lines in file.readlines(): reads one character at a time
         #NOTE readline() reads one character
         lines = file.readlines()
-        prev_line_index = -99
+        get_iplayer_cmd_line = None
         for i, line in enumerate(lines):
             if line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
                 is_error = True
                 if is_download_cmd:
                     is_error_cmd = True
+                    if get_iplayer_cmd_line is not None:
+                        #log_output += _log_text(get_iplayer_cmd_line, markup)
+                        if markup:
+                            log_output += "<b>" + _log_text(get_iplayer_cmd_line, markup) + "</b>"
+                        else:
+                            log_output += _log_text(get_iplayer_cmd_line, markup)
+                        get_iplayer_cmd_line = None
                 
-                if not full and i > 1:
-                    #for j in range(2, 0, -1):
-                    try:
-                        prev_line = lines[i - 1]
-                        if prev_line_index != i - 1 and prev_line and prev_line != "\n" and not prev_line.startswith("#"):
-                            # prev_line has not yet been added to log_output. Skip empty lines and download progress lines (#)
-                            log_output += _log_text(prev_line, markup)
-                    except IndexError:
-                        pass
-
                 if markup:
                     if line.startswith("FATAL") or line.startswith("ERROR") or line.startswith("WARNING"):
                         log_output += "<b>" + _log_text(line, markup) + "</b>"
@@ -60,21 +57,21 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                         log_output += _log_text(line, markup)
                 else:
                     log_output += line
-                prev_line_index = i
             else:
                 if "get_iplayer " in line:
                     is_error_cmd = False
                     if "--get" in line or "--pid" in line:
                         is_download_cmd = True
+                        get_iplayer_cmd_line = line
+                    else:
+                        get_iplayer_cmd_line = None
 
                 if full:
                     log_output += line
-                    prev_line_index = i
                 else:
                     if is_download_cmd:
-                        if line == "Matches:\n":
+                        if line == "Matches:\n" and lines[i + 1].strip():
                             log_output += _log_text(lines[i + 1], markup)
-                            prev_line_index = i
                         elif line.startswith("INFO: No specified modes") or \
                              (is_error_cmd and (line == "Download complete\n" or
                                                 line.startswith("Resuming download") or
@@ -89,10 +86,8 @@ def _log_cmd_file(dirpath, filename, full=False, markup=False):
                                     log_output += _log_text(line, markup)
                             else:
                                 log_output += line
-                            prev_line_index = i
                         #elif line.startswith("INFO:get_iplayer_post_subdir:move_file(): Move")
                         #    log_output += _log_text(line, markup)
-                        #    prev_line_index = i
 
     if not log_output or (not is_download_cmd and not is_error):
         # Nothing to log

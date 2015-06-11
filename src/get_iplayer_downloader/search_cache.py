@@ -232,7 +232,8 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
             elif episodes_parse_state == ParseState.BUSY:
                 if line.startswith("["):
                     # Found an episode ("^[")
-                    #TODO pid instead of url
+                    #TODO Get the "defaul"/"original" pid, instead of the "iplayer" pid. See the verspid get_iplayer property
+                    #     Now --pvrqueue will not cancel queuing an episode if it is already in the download_history
                     #pid = _regex_substring("^\[(.*)\]", line)
                     pid = _regex_substring("^\[(.*)\]", lines[i])
                        
