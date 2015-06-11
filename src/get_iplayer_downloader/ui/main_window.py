@@ -233,7 +233,7 @@ class MainToolBarBox(Gtk.Box):
         if string.str2bool(settings.get_config().get(config.NOSECTION, "show-button-menu")):
 
             button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-            button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
+            button.set_image(Gtk.Image(icon_name=Gtk.STOCK_MEDIA_PLAY))
             if show_button_labels:
                 button.set_label("Play")
             button.set_tooltip_text(TOOLTIP_VIEW_PLAYER)
@@ -242,7 +242,7 @@ class MainToolBarBox(Gtk.Box):
             focus_chain.append(button)
     
             button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-            button.set_image(Gtk.Image(stock=Gtk.STOCK_PROPERTIES))
+            button.set_image(Gtk.Image(icon_name=Gtk.STOCK_PROPERTIES))
             if show_button_labels:
                 button.set_label("Properties")
             button.set_tooltip_text(TOOLTIP_VIEW_PROPERTIES)
@@ -253,7 +253,7 @@ class MainToolBarBox(Gtk.Box):
         button = Gtk.Button(use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
         #Gtk.STOCK_GO_DOWN
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_GOTO_BOTTOM))
+        button.set_image(Gtk.Image(icon_name=Gtk.STOCK_GOTO_BOTTOM))
         if show_button_labels:
             button.set_label("_Download")
         #PVR_CHECK_BUTTON
@@ -265,7 +265,7 @@ class MainToolBarBox(Gtk.Box):
 
         button = Gtk.Button(use_underline=True, relief=Gtk.ReliefStyle.NONE,
                             image_position=Gtk.PositionType.TOP)
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_COPY))
+        button.set_image(Gtk.Image(icon_name=Gtk.STOCK_COPY))
         if show_button_labels:
             button.set_label("_Queue")
         button.set_tooltip_text(TOOLTIP_OPTION_PVR_QUEUE)
@@ -276,7 +276,7 @@ class MainToolBarBox(Gtk.Box):
         if string.str2bool(settings.get_config().get(config.NOSECTION, "show-button-menu")):
 
             button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-            button.set_image(Gtk.Image(stock=Gtk.STOCK_CLEAR))
+            button.set_image(Gtk.Image(icon_name=Gtk.STOCK_CLEAR))
             if show_button_labels:
                 button.set_label("Clear")
             button.set_tooltip_text(TOOLTIP_TOOLS_CLEAR)
@@ -286,7 +286,7 @@ class MainToolBarBox(Gtk.Box):
             focus_chain.append(button)
     
             button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
-            button.set_image(Gtk.Image(stock=Gtk.STOCK_REFRESH))
+            button.set_image(Gtk.Image(icon_name=Gtk.STOCK_REFRESH))
             if show_button_labels:
                 button.set_label("Refresh")
             button.set_tooltip_text(TOOLTIP_TOOLS_REFRESH)
@@ -301,7 +301,7 @@ class MainToolBarBox(Gtk.Box):
         ####
         
         if show_button_labels:
-            button = Gtk.Button(stock=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
+            button = Gtk.Button(icon_name=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
                                 image_position=Gtk.PositionType.TOP)
             button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
             button.connect("clicked", self.main_window.controller().on_button_find_clicked)
@@ -699,7 +699,7 @@ class MainToolBarBox(Gtk.Box):
         #event_box.connect("key-release-event", self._on_menu_button_key_release_event)
         self.pack_end(event_box, False, False, 0)
 
-        image = Gtk.Image(stock=Gtk.STOCK_PREFERENCES)
+        image = Gtk.Image(icon_name=Gtk.STOCK_PREFERENCES)
         image.set_tooltip_text(TOOLTIP_MENU_BUTTON)
         event_box.add(image)
         

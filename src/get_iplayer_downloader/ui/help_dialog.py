@@ -53,7 +53,7 @@ class HelpDialogWrapper(object):
             for j, label_text in enumerate(keyboard_shortcut):
                 if label_text:
                     label = Gtk.Label(label_text, valign=Gtk.Align.START, halign=Gtk.Align.START,
-                                      margin_left=16, margin_right=16,
+                                      margin_start=16, margin_end=16,
                                       hexpand_set=True, hexpand=True)
                     #label.set_padding(WIDGET_BORDER_WIDTH, 0)
                     grid.attach(label, j, i, 1, 1)

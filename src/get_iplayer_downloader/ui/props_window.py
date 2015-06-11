@@ -112,7 +112,7 @@ class PropertiesWindow(Gtk.Window):
         # The play button URL is the same as the "player" property URL
         #NOTE Do not expand/fill the button in the grid: halign=Gtk.Align.CENTER
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP, halign=Gtk.Align.CENTER)
-        button.set_image(Gtk.Image(stock=Gtk.STOCK_MEDIA_PLAY))
+        button.set_image(Gtk.Image(icon_name=Gtk.STOCK_MEDIA_PLAY))
         #button.set_label("Play")
         #if title is not None:
         #    button.set_label(title)
@@ -165,7 +165,7 @@ class PropertiesWindow(Gtk.Window):
                 #label1.set_selectable(False)
                 prop_grid.attach(label1, 0, i, 1, 1)
 
-                label2 = Gtk.Label(markup.text2html(prop_value), margin_left=40,
+                label2 = Gtk.Label(markup.text2html(prop_value), margin_start=40,
                                    valign=Gtk.Align.START, halign=Gtk.Align.START, use_markup=True)
                 label2.set_padding(get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH, 0)
                 label2.set_line_wrap(True)
@@ -249,7 +249,7 @@ class PropertiesWindow(Gtk.Window):
         box = Gtk.Box(spacing=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(box)
         
-        button = Gtk.Button(stock=Gtk.STOCK_CLOSE, 
+        button = Gtk.Button(icon_name=Gtk.STOCK_CLOSE, 
                             margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         button.connect("clicked", lambda user_data: self.destroy())
         box.pack_end(button, False, False, 0)
@@ -259,7 +259,7 @@ class PropertiesWindow(Gtk.Window):
         if os.name == "posix":
             button = Gtk.Button("Similar",
                                 margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
-            button.set_image(Gtk.Image(stock=Gtk.STOCK_FIND))
+            button.set_image(Gtk.Image(icon_name=Gtk.STOCK_FIND))
             button.set_tooltip_text(get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_LOCATE_SIMILAR)
             button.connect("clicked", controller.on_button_similar_clicked, locate_search_term)
             box.pack_end(button, False, False, 0)
