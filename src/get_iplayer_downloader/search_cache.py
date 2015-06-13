@@ -513,7 +513,7 @@ def write_cache(prog_type, categories, days, days_offset, fast=False):
                 else:
                     #NOTE range is from 'days -1' to and including 0 (today)
                     for days_back in range(days - 1, -1, -1):
-                        dt = today_dt - timedelta(days=days_back)
+                        dt = today_dt - timedelta(days=days_back + days_offset)
                         url_dict = dict(prog_type=prog_type, genre=main_category.lower(), year=dt.year, month=dt.month, day=dt.day)
                         url = url_genre_template % url_dict
     
