@@ -301,8 +301,8 @@ class MainToolBarBox(Gtk.Box):
         ####
         
         if show_button_labels:
-            button = Gtk.Button(icon_name=Gtk.STOCK_FIND, relief=Gtk.ReliefStyle.NONE,
-                                image_position=Gtk.PositionType.TOP)
+            button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP)
+            button.set_image(Gtk.Image(icon_name=Gtk.STOCK_FIND))
             button.set_tooltip_text(TOOLTIP_SEARCH_FIND)
             button.connect("clicked", self.main_window.controller().on_button_find_clicked)
             self.pack_start(button, False, False, 0)

@@ -249,16 +249,15 @@ class PropertiesWindow(Gtk.Window):
         box = Gtk.Box(spacing=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
         self.grid.add(box)
         
-        button = Gtk.Button(icon_name=Gtk.STOCK_CLOSE, 
-                            margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+        button = Gtk.Button("Close", margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+        button.set_image(Gtk.Image(icon_name=Gtk.STOCK_CLOSE))
         button.connect("clicked", lambda user_data: self.destroy())
         box.pack_end(button, False, False, 0)
 
         button.grab_focus()
 
         if os.name == "posix":
-            button = Gtk.Button("Similar",
-                                margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
+            button = Gtk.Button("Similar", margin=get_iplayer_downloader.ui.main_window.WIDGET_BORDER_WIDTH)
             button.set_image(Gtk.Image(icon_name=Gtk.STOCK_FIND))
             button.set_tooltip_text(get_iplayer_downloader.ui.main_window.TOOLTIP_SEARCH_LOCATE_SIMILAR)
             button.connect("clicked", controller.on_button_similar_clicked, locate_search_term)
