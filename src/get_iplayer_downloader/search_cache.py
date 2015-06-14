@@ -11,6 +11,7 @@ import pickle
 import re
 #import sys
 import traceback
+import urllib.parse     #, urllib.error
 
 from datetime import datetime, timedelta
 from enum import Enum
@@ -232,11 +233,13 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
             elif episodes_parse_state == ParseState.BUSY:
                 if line.startswith("["):
                     # Found an episode ("^[")
-                    #TODO Get the "defaul"/"original" pid, instead of the "iplayer" pid. See the verspid get_iplayer property
-                    #     Now --pvrqueue will not cancel queuing an episode if it is already in the download_history
                     #pid = _regex_substring("^\[(.*)\]", line)
                     pid = _regex_substring("^\[(.*)\]", lines[i])
-                       
+                    
+                    # Convert url pid to pid. If pid is a url, get the last part of the url path
+                    # This is done in order to detect if an episode is already in the download history, when queuing an episode
+                    pid = os.path.basename(urllib.parse.urlsplit(pid).path)
+                
                     series = _regex_substring("\](.*) -- ", lines[i])
                     if series is not None:
                         episode = _regex_substring(" -- (.*)$", lines[i])
@@ -339,6 +342,7 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
 
     ####
 
+    #TODO Retry when parse failed because of a web server problem ("Sorry, the server encountered a problem" on a downloaded web page)
     if categories_parse_state != ParseState.STOPPED:
         logger.error("Categories not found in %s" % url)
         #sys.exit(1)
