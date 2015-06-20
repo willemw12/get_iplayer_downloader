@@ -92,11 +92,12 @@ def _regex_substring(regex, string):
     return result.group(1) if result is not None else None
 
 def _http_dump(url):
-    #TODO check for any download error ("Error 500 - Internal Error", etc.)
     process_output = None
     for unused_retry in range(RETRY_COUNT):
         process_output = command.run(LYNX_DUMP_CMD + url, ignore_returncode=True)
-        if process_output is not None and "Error 500 - Internal Error" not in process_output:
+        if process_output is not None and (
+                    "Error 500 - Internal Error" not in process_output or
+                    "Sorry, the server encountered a problem" not in process_output):
             break
         logger.debug("Retry command")
         sleep(randrange(MAX_TIMEOUT_MS, MAX_TIMEOUT_MS * 2) / 1000.0)
@@ -342,7 +343,6 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
 
     ####
 
-    #TODO Retry when parse failed because of a web server problem ("Sorry, the server encountered a problem" on a downloaded web page)
     if categories_parse_state != ParseState.STOPPED:
         logger.error("Categories not found in %s" % url)
         #sys.exit(1)
