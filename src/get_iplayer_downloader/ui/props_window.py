@@ -98,8 +98,11 @@ class PropertiesWindow(Gtk.Window):
         if title is not None:
             props_title = title
         else:
-            # Programme type is "podcast"
-            props_title = longname + " : " + episode     
+            # Programme type is "podcast" or episode info is not available
+            if longname is not None and episode is not None:
+                props_title = longname + " : " + episode
+            else:
+                props_title = episode
         if props_title is not None:
             TITLE_MAX_LENGTH = int(get_iplayer_downloader.ui.main_window.WINDOW_LARGE_WIDTH / 8) + 3        # 8: gestimated character width
             if len(props_title) > TITLE_MAX_LENGTH:
