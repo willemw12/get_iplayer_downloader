@@ -445,14 +445,19 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
      
 ####
 
-def cleanup():
-    try:
-        for prog_type in PROG_TYPE_LIST:
-            os.remove(prog_type + ".pickle")
-    except FileNotFoundError:
-        pass
-    except:
-        traceback.print_exc()
+def clear_cache(prog_type):
+    if prog_type == "all":
+        prog_type_list = PROG_TYPE_LIST
+    else:
+        prog_type_list = prog_type.split()
+    for prog_type in prog_type_list:
+        try:
+            cache_file = os.path.join(SEARCH_RESULT_CACHE_PATHNAME, prog_type + ".pickle")
+            os.remove(cache_file)
+        except FileNotFoundError:
+            pass
+        except:
+            traceback.print_exc()
     
 def write_cache(prog_type, categories, days, days_offset, fast=False):
     if prog_type == "all":

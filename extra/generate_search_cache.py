@@ -28,9 +28,9 @@ def _init_argparser():
 #     parser.add_argument("--quiet-log-file", action="store_const", const=True, default=False, help="set log level to fatal (log file only)")
 #     parser.add_argument("--verbose-log-file", action="store_const", const=True, default=False, help="set log level to info (log file only)")
     
-    parser.add_argument("--categories", default=DEFAULT_CATEGORIES, help="<genre>,<subgenre,...;<genre>.... For example, comedy,sitcoms;drama,crime;factual. Default: " + DEFAULT_CATEGORIES)
+    parser.add_argument("--categories", default=DEFAULT_CATEGORIES, help="<genre>,<subgenre>,...;<genre>.... For example, comedy,sitcoms;drama,crime;factual. Default: " + DEFAULT_CATEGORIES)
     #parser.add_argument("--channels", default="", help="")
-    parser.add_argument("--clean-all", action="store_const", const=True, default=False, help="clear all cache")
+    parser.add_argument("--clear-cache", action="store_const", const=True, default=False, help="clear cache instead of generating cache. See also --type")
     parser.add_argument("--fast", action="store_const", const=True, default=False, help="do not 'sleep' before downloading a web page (not recommended)")
     parser.add_argument("--days", type=int, default=DEFAULT_DAYS, help="number of days to cache. 0 days is 'all available on iPlayer'. Default: %d" % DEFAULT_DAYS)
     parser.add_argument("--days-offset", type=int, default=DEFAULT_DAYS_OFFSET, help="number of days from today to exclude from the cache. Default: %d" % DEFAULT_DAYS_OFFSET)
@@ -152,10 +152,10 @@ def _main():
     _init_argparser()
     _init_loggers()
     
-    if args.clean_all:
-        search_cache.cleanup()
-
-    search_cache.write_cache(args.prog_type, args.categories, args.days, args.days_offset, fast=args.fast)
+    if args.clear_cache:
+        search_cache.clear_cache(args.prog_type)
+    else:
+        search_cache.write_cache(args.prog_type, args.categories, args.days, args.days_offset, fast=args.fast)
 
 if __name__ == "__main__":
     _main()
