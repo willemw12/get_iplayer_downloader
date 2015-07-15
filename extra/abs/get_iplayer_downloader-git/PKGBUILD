@@ -9,7 +9,7 @@ arch=('any')
 url="https://github.com/willemw12/get_iplayer_downloader"
 license=('GPL3')
 depends=('get_iplayer' 'gtk3' 'python>=3.2' 'python-gobject')
-optdepends=('mlocate: find similar episodes')
+optdepends=('lynx: for generating episode cache from web pages' 'mlocate: find similar episodes')
 makedepends=('git' 'python2-distribute')
 provides=($_pkgname)
 conflicts=($_pkgname)
