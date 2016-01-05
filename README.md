@@ -81,7 +81,7 @@ File ~/.get\_iplayer/presets/radio:
     #ffmpeg avconv
     info 0
     output /home/willemw12/Music/bbc
-    #radiomode flashaudio,flashaac,realaudio
+    #radiomode flashstd,flashlow,hlsstd,hlslow
 
 File ~/.get\_iplayer/presets/tv:
 

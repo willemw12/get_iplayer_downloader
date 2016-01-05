@@ -176,10 +176,10 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
             #line_stripped = line.strip()
             
             # Check for "start read" triggers
-            if categories_parse_state == ParseState.READY and line.strip() == "Categories":
+            if categories_parse_state == ParseState.READY and line and not line.startswith(" ") and line.strip() != "Accessibility links" and line.strip() != "BBC navigation":
                 # Found header of main category section
                 categories_parse_state = ParseState.BUSY
-                continue
+                #NOT continue
             #elif categories_parse_state == ParseState.STOPPED and episodes_parse_state == ParseState.READY and _regex_substring("^\[http://www.bbc.co.uk/iplayer/episode/.*\]", lines) is not None:
             #    # Found start of episode list ("^[")
             #    episodes_parse_state = ParseState.BUSY

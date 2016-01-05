@@ -453,7 +453,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
             # search_term_list could be a set of episode indices, so don't surround them with quotes
             cmd += search_term
         
-        if (i < len(search_term_list) - 1):
+        if (i> 0 and i < len(search_term_list) - 1):
             #cmd += "; "
             cmd += "; echo '----'; "
 
