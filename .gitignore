@@ -1,5 +1,6 @@
 *~
 *.bak
+*.iml
 *.log
 *.pyc
 *.pyo
@@ -8,6 +9,7 @@
 __pycache__/
 tmp/
 
+/.idea
 /build/
 /deb_dist/
 /dist/
@@ -15,3 +17,4 @@ tmp/
 /MANIFEST
 
 /src/get_iplayer_downloader/GIT_VERSION
+
