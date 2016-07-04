@@ -1,7 +1,7 @@
 get\_iplayer\_downloader
 ========================
 
-get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. Similar to `get_iplayer --tree`, it displays episodes in a large tree view with three text columns: series title, series categories and episode title plus episode description.
+get\_iplayer\_downloader is a GUI download utility for the BBC get\_iplayer program. It displays episodes in a large tree view with three text columns: series title, series categories and episode title plus episode description.
 
 Features:
 
@@ -68,7 +68,7 @@ get\_iplayer\_downloader's default configuration has two get\_iplayer presets de
 * radio - for radio episodes and podcasts
 * tv - for television episodes
 
-The preset names are configurable. There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets. Note that get\_iplayer ignores the "aactomp3" property in that case.
+The preset names are configurable. There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets.
 
 To configure get\_iplayer for use with two presets, either reuse existing preset files or create new preset files. To create new preset files, run `get_iplayer --preset=radio --prefs-add ...`, etc., or create and edit the preset files ~/.get\_iplayer/presets/radio and ~/.get\_iplayer/presets/tv directly.
 
@@ -76,19 +76,17 @@ Here are two preset file examples. Lines starting with # are commented out. The 
 
 File ~/.get\_iplayer/presets/radio:
 
-    aactomp3 1
     #command /usr/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>//<categorymain>_<categorysub>//<longname>" --force
-    #ffmpeg avconv
     info 0
     output /home/willemw12/Music/bbc
-    #radiomode flashstd,flashlow,hlsstd,hlslow
+    #radiomode dashhigh,dashstd,dashmed
 
 File ~/.get\_iplayer/presets/tv:
 
     #command /usr/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>//<categorymain>_<categorysub>//<longname>" --force
     info 0
     output /home/willemw12/Videos/bbc
-    #tvmode hlshigh,hlsstd,hlsnormal,flashhigh,flashstd,flashnormal
+    #tvmode hlshigh,hlsstd,hlslow,flashhigh,flashstd
 
 Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` work properly from the command line.
 

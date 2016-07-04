@@ -257,8 +257,8 @@ def search(search_text, preset=None, prog_type=None,
     ####
 
     # PERL_UNICODE=S : avoid "Wide character in print" warning/error messages
-    #cmd = _GET_IPLAYER_PROG + " --tree"
-    cmd = "PERL_UNICODE=S " + _GET_IPLAYER_PROG + " --tree"
+    #cmd = _GET_IPLAYER_PROG
+    cmd = "PERL_UNICODE=S " + _GET_IPLAYER_PROG
     #if not preset:
     #    #cmd += " --type=all"
     #    cmd += " --type=" + ProgType.ALL
@@ -279,7 +279,7 @@ def search(search_text, preset=None, prog_type=None,
         cmd += " --since=" + str(since)
     if future:
         cmd += " --future"
-    cmd += " --listformat=\"|<pid>|<index>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\""
+    cmd += " --listformat=\"<pid>|<index>|<name>|<episode> ~ <desc>|<categories>|<channel>|<thumbnail>|<available>|<duration>\""
     # --fields: perform the same search as with "--long" plus on "pid"
     cmd += " --fields=\"name,episode,desc,pid\" --nocopyright"
     if search_text:
@@ -294,10 +294,14 @@ def search(search_text, preset=None, prog_type=None,
     # Convert the process output lines directly to lists, matching the GtkTreeStore model data. Do not create intermediate data/interfaces
     lines = process_output.splitlines()
     output_lines = []
-    l_prev = None
+    title_prev = None
     level = 0
     copy = False
     for line in lines:
+        if not "|" in line:
+            # Skip (log) message lines
+            continue;
+
         #NOTE with "def __len__()" in a metaclass: l = line.split("|", len(SearchResultColumn) - 1)
         l = line.split("|", 11 - 1)     # , len(SearchResultColumn) - 1)
 
@@ -317,38 +321,36 @@ def search(search_text, preset=None, prog_type=None,
             #1) all(c in " " for c in l)
             #2) p = re.compile('[ -]+$'); p.match(l)
             #3) re.match("^[ ]+$", l)
-            if level == 0 and l[0].isspace():
+            if level == 0 and l[2] != title_prev:
                 # Going from series level (parent/root/level 0) to episode level (child/leave/level 1)
                 level = 1
                 copy = True
-                if l_prev:
-                    # Add series line
-                    # Series title is copied from the previous line (parent/root/level 0)
-                    # Categories, channels and thumbnail URL, etc. are copied from the current line (child/leave/level 1)
-                    # No PID or index available for a series from the output of get_iplayer --tree
-                    try:
-                        output_lines.append([False, None, None, l_prev[0], None, l[4], l[5], l[6], l[7], l[8], l_prev[0]])
-                    except IndexError:    # as exc:
-                        pass
-            if level == 1 and not l[0].isspace():
-                # Going from episode level (child/leave/level 1) to series level (parent/root/level 0)
-                level = 0
-                copy = False
-            #if level == 1 and copy:
-            if copy:
-                # Add an episode line. Episode title and description from the current line
+#                if title_prev:
+                # Add series line
+                try:
+                    output_lines.append([False, None, None, l[2], None, l[4], l[5], l[6], l[7], l[8], l[2]])
+                except IndexError:    # as exc:
+                    pass
+            elif level == 1 and l[2] != title_prev:
+               # Going from episode level (child/leave/level 1) to series level (parent/root/level 0)
+               level = 0
+               copy = False
+
+            if level == 1 and copy:
+                # Add an episode line
                 try:
                     if l[3].startswith(" ~ "):
                         # No episode title
-                        output_lines.append([False, l[1], l[2], None, l[3][len(" ~ "):], l[4], l[5], l[6], l[7], l[8], None])
+                        output_lines.append([False, l[0], l[1], None, l[3][len(" ~ "):], l[4], l[5], l[6], l[7], l[8], None])
                     elif l[3].endswith(" ~ "):
                         # No episode description
-                        output_lines.append([False, l[1], l[2], None, l[3][:len(l[3])-len(" ~ ")], l[4], l[5], l[6], l[7], l[8], None])
+                        output_lines.append([False, l[0], l[1], None, l[3][:len(l[3])-len(" ~ ")], l[4], l[5], l[6], l[7], l[8], None])
                     else:
-                        output_lines.append([False, l[1], l[2], None, l[3], l[4], l[5], l[6], l[7], l[8], None])
+                        output_lines.append([False, l[0], l[1], None, l[3], l[4], l[5], l[6], l[7], l[8], None])
                 except IndexError:    # as exc:
                     pass
-            l_prev = l
+
+            title_prev = l[2]
 
     return output_lines
 
