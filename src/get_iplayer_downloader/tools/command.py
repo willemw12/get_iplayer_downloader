@@ -36,11 +36,12 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
             # Linux specific
             #cmd_exec = "gnome-terminal --geometry=131x41 --title=\"" + str(terminal_title) + "\" --command=\"sh -c '" + cmd_exec + " ; cd ; sh'\" ; exit 0"
             #cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'\" ; exit $RET"
-            # Konsole cannot handle a quoted exec string: -e "..."
             if terminal_prog.endswith("xfce4-terminal"):
-                cmd_exec = terminal_prog + " -x $SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'"
+                #cmd_exec = terminal_prog + " -x \"$SHELL -c '" + cmd_exec + " ; read'\""
+                cmd_exec = terminal_prog + " -x \"$SHELL -c '" + cmd_exec + " ; cd ; $SHELL'\""
             else:
-                cmd_exec = terminal_prog + " -e $SHELL -c '" + cmd_exec + " ; RET=$? ; cd ; $SHELL'"
+                #cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; read'\""
+                cmd_exec = terminal_prog + " -e \"$SHELL -c '" + cmd_exec + " ; cd ; $SHELL'\""
 
     if not quiet:
         # If not a silent process, e.g. not a command to update the progress bar
