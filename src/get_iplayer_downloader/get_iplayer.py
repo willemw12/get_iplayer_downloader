@@ -551,3 +551,4 @@ def refresh(preset=None, prog_type=None, channels=None, exclude_channels=None, f
         return ret2 if ret2 != 0 else ret1
     else:
         return command.run(cmd + " --preset=" + preset)
+
