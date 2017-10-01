@@ -176,7 +176,7 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
             #line_stripped = line.strip()
             
             # Check for "start read" triggers
-            if categories_parse_state == ParseState.READY and line and not line.startswith(" ") and line.strip() != "Accessibility links" and line.strip() != "BBC navigation":
+            if categories_parse_state == ParseState.READY and line and not line.startswith(" ") and line.strip() != "Accessibility links":
                 # Found header of main category section
                 categories_parse_state = ParseState.BUSY
                 #NOT continue
@@ -205,24 +205,24 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                 # Found first non-empty line
                 
                 # Get the category name(s) from, for example:
-                #     [http://www.bbc.co.uk/radio/categories]Categories: Comedy, Wednesday...
-                #     [http://www.bbc.co.uk/radio/categories]Categories: [http://www.bbc.co.uk/radio/programmes/genres/comedy/schedules/..../../..]Comedy: Sitcoms, Wednesday...
-                result = re.search("^\[.*\](.*): (.*),", line)
-                if result is not None:
-                    category1 = result.group(1) if result is not None else None
-                    category2 = result.group(2) if result is not None else None
-                    if category1 is None or category2 is None:
-                        #logger.fatal("Categories not found in %s" % url)
-                        #sys.exit(1)
-                        break
-                else:
-                    # Get the category name from, for example:
-                    #     Comedy, Wednesday...
-                    result = re.search("^(.*),", line)
-                    #category1 = "Categories"
-                    category1 = None
-                    category2 = result.group(1) if result is not None else None
-                
+                #     [http://www.bbc.co.uk/radio/categories]Categories: Comedy
+                #     [http://www.bbc.co.uk/radio/categories]Categories: [http://www.bbc.co.uk/radio/categories/comedy?sort=-available_from_date]Comedy: Sitcoms             
+                result = re.search("^\[.*\](.*): (.*)", line)
+                if result is None:
+                    break
+                category1 = result.group(1) if result is not None else None
+                category2 = result.group(2) if result is not None else None
+                if category1 is None or category2 is None:
+                    #logger.fatal("Categories not found in %s" % url)
+                    #sys.exit(1)
+                    break
+
+                # Get the category name from, for example:
+                #     Comedy
+                #if result is None:
+                #    category1 = None
+                #    category2 = line
+
                 if category1 is None or category1 == "Categories":
                     # There are no subcategories
                     categories = "%s" % (category2)
@@ -247,10 +247,13 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                     else:
                         series = _regex_substring("\](.*)$", lines[i])
                         episode = series
-                    episode = episode + " ~ " + lines[i + 1].strip()
-                       
-                    #TODO strip "except ..."
-                    channel = lines[i + 2].strip()
+
+                    #TODO Episode description: concatenate all lines, up to the first line starting with a link ("^[ ]*\[")
+                    episode = episode + " ~ " + lines[i + 2].strip() + ". " + lines[i + 4].strip() + ". " + lines[i + 6].strip()
+
+                    #TODO Get channel name from the next line staring with a link ("^[ ]*\[")
+                    #TODO Strip "except ..."
+                    channel = ""
 
                     # Skip duplicate episodes
                     #if pid not in [line[SearchResultColumn.PID] for line in search_result_lines]:
