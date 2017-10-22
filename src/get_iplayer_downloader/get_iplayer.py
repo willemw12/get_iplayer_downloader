@@ -483,9 +483,8 @@ def info(pid, search_term, preset=None, prog_type=None, proxy_disabled=False, fu
     if future:
         cmd += " --future"
     cmd += " --nocopyright"
-    # index size 4 (width 512)
-    cmd += " --thumbsizecache=5"
-    
+    cmd += " --thumbsize=512"
+ 
     # --fields: perform the same search as with --long plus on PID
     #cmd += " --fields=\"name,episode,desc,pid\"
     cmd += " --pid=" + pid
