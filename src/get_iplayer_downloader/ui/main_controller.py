@@ -107,7 +107,7 @@ class MainWindowController:
 
         if pid:
             if pid.startswith("http"):
-                # Podcast URL
+                # URL
                 self.on_button_play_clicked_by_url(None, pid)
             else:
                 #TODO if prog_type not in [get_iplayer.Channels.CH4, get_iplayer.Channels.ITV]:
@@ -572,8 +572,6 @@ class MainWindowController:
             # Synchronize category filter
             if prog_type == get_iplayer.ProgType.RADIO:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_radio_store)
-            elif prog_type == get_iplayer.ProgType.PODCAST:
-                self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_podcast_store)
             elif prog_type == get_iplayer.ProgType.TV:
                 self.tool_bar_box.category_combo.set_model(self.tool_bar_box.cat_tv_store)
             elif prog_type in [get_iplayer.ProgType.CH4, get_iplayer.ProgType.ITV]:
@@ -593,31 +591,9 @@ class MainWindowController:
                     self.tool_bar_box.channel_combo.set_model(self.tool_bar_box.chan_tv_store)
             self.tool_bar_box.channel_combo.set_active(0)
 
-            # Limit the initial podcast search result by enabling the since filter
             combo = self.tool_bar_box.since_combo
             model = combo.get_model()
-            if prog_type == get_iplayer.ProgType.PODCAST:
-                tree_iter = combo.get_active_iter()
-                if tree_iter is not None:
-                    #model = combo.get_model()
-                    
-                    since = model[tree_iter][KEY_INDEX]
-                    if since == 0:
-                        # Limit the initial amount of podcast episodes being displayed,
-                        # if the current (radio or tv) since filter is set to unlimited (since == 0)
-                        
-                        # Set to longest, but not unlimited, since filter
-                        combo.set_active(len(model) - 1)                        
-                        #OR
-                        #combo.set_active(SinceListIndex.PODCAST_DEFAULT)
-                    
-                    #30 DAYS EPISODE AVAILABILITY
-                    #since_index = combo.get_active()
-                    #if since_index == 0 or since_index > SinceListIndex.PODCAST_DEFAULT:
-                    #    # Limit the initial amount of podcast episodes being displayed,
-                    #    # if the current (radio or tv) since filter is larger
-                    #    combo.set_active(SinceListIndex.PODCAST_DEFAULT)
-            elif combo.get_active() == len(model) - 1:
+            if combo.get_active() == len(model) - 1:
                 # Disable since filter
                 combo.set_active(SinceListIndex.FOREVER)
                 

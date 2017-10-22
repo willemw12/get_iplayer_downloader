@@ -66,9 +66,8 @@ class Preset:
     
 class ProgType:
     ##ALL = "all"
-    #ALL = "radio,podcast,tv"
+    #ALL = "radio,tv"
     RADIO = "radio"
-    PODCAST = "podcast"
     TV = "tv"
     CH4 = "ch4"
     ITV = "itv"
@@ -111,13 +110,9 @@ class Categories:
 
     # The filter lists below consists of all categories in the first item, followed by the categories separately
     
-    RADIO = ast.literal_eval(settings.get_config().get("radio", "categories-radio"))
+    RADIO = ast.literal_eval(settings.get_config().get("radio", "categories"))
     # Prepend
     RADIO.insert(0, [_merge_keys(RADIO), _ALL_CATEGORIES_LABEL])
-    
-    PODCAST = ast.literal_eval(settings.get_config().get("radio", "categories-podcast"))
-    # Prepend
-    PODCAST.insert(0, [_merge_keys(PODCAST), _ALL_CATEGORIES_LABEL])
     
     TV = ast.literal_eval(settings.get_config().get("tv", "categories"))
     # Prepend
@@ -128,10 +123,6 @@ class Categories:
 class SinceListIndex:
     FOREVER = 0
     #FUTURE = 1
-
-    #30 DAYS EPISODE AVAILABILITY
-    ## Initial podcast since filter index (1 week) in the SINCE_LIST
-    #PODCAST_DEFAULT = 12
 
 class SearchResultColumn:
     DOWNLOAD = 0
@@ -379,7 +370,7 @@ def get(search_term_list, pid=True, pvr_queue=False, preset=None, prog_type=None
         preset_fallback = preset
     else:
         # Determine preset from programme type
-        if prog_type == ProgType.RADIO or prog_type == ProgType.PODCAST:
+        if prog_type == ProgType.RADIO:
             preset_fallback = Preset.RADIO
         elif prog_type == ProgType.TV:
             preset_fallback = Preset.RADIO

@@ -98,7 +98,7 @@ class PropertiesWindow(Gtk.Window):
         if title is not None:
             props_title = title
         else:
-            # Programme type is "podcast" or episode info is not available
+            # Episode info is not available
             if longname is not None and episode is not None:
                 props_title = longname + " : " + episode
             else:

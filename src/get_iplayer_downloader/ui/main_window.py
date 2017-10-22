@@ -21,7 +21,7 @@ from get_iplayer_downloader.ui.tools import image as Image
 
 #TOOLTIP_FILE_QUIT
 
-TOOLTIP_VIEW_PLAYER = "View episode's web page or start podcast episode in the web browser"
+TOOLTIP_VIEW_PLAYER = "View episode's web page in the browser"
 TOOLTIP_VIEW_PROPERTIES = "View episode properties"
 TOOLTIP_VIEW_LOG = "View download log"
 
@@ -31,14 +31,14 @@ TOOLTIP_VIEW_LOG = "View download log"
 #TOOLTIP_TOOLS_DOWNLOAD_OR_PRV_QUEUE = "Download selected episodes, or queue episodes if 'PVR' is enabled"
 TOOLTIP_TOOLS_DOWNLOAD = "Download selected episodes"
 TOOLTIP_TOOLS_CLEAR = "Clear selected episodes"
-TOOLTIP_TOOLS_REFRESH = "Refresh episode cache, limited of the selected programme type (radio, podcast or TV)"
+TOOLTIP_TOOLS_REFRESH = "Refresh episode cache, limited of the selected programme type (radio or TV)"
 
 TOOLTIP_SEARCH_FIND = "Find episodes"
 TOOLTIP_SEARCH_CLEAR = "Clear search text"
 TOOLTIP_SEARCH_GO_TO_FIND = "Go to search entry field on the tool bar"
 TOOLTIP_SEARCH_LOCATE_SIMILAR = "Find more similar episodes on the file system, using the updatedb \"locate\" command"
 TOOLTIP_SEARCH_ROTATE_SINCE = "Select since episodes were added to the cache"
-TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio, podcast or TV)"
+TOOLTIP_SEARCH_ROTATE_PROG_TYPE = "Select programme type (radio or TV)"
 TOOLTIP_SEARCH_ROTATE_CATEGORY = "Select programme category"
 TOOLTIP_SEARCH_ROTATE_CHANNEL = "Select channel"
 
@@ -324,14 +324,12 @@ class MainToolBarBox(Gtk.Box):
 
         #NOTE Preset can be None. However cannot set presets in the model to None: 
         #     the toolbar models and configuration are based on presets, not programme types
-        #(TODO Group episodes in programme types (radio, podcasts or TV), not on presets (radio or TV))
+        #(TODO Group episodes in programme types (radio or TV), not on presets (radio or TV))
         #if disable_presets:
         #    presets = [[None, get_iplayer.ProgType.RADIO, "Radio"],
-        #               [None, get_iplayer.ProgType.PODCAST, "Podcast"],
         #               [None, get_iplayer.ProgType.TV, "TV"]]
         #else:
         presets = [[get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, "Radio"],
-                   [get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST, "Podcast"],
                    [get_iplayer.Preset.TV, get_iplayer.ProgType.TV, "TV"]]
         if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-ch4")):
             presets.append([get_iplayer.Preset.TV, get_iplayer.ProgType.CH4, "CH4"])
@@ -377,14 +375,6 @@ class MainToolBarBox(Gtk.Box):
             self.cat_radio_store.append(categories)
         ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.RADIO[1:]]:
         #self.cat_radio_store.append([None, "ANY"])
-
-        self.cat_podcast_store = Gtk.ListStore(str, str)
-        for i, categories in enumerate(get_iplayer.Categories.PODCAST):
-            if compact_toolbar and i > 0:
-                categories[1] = INDENT_STR + categories[1]
-            self.cat_podcast_store.append(categories)
-        ##if not "ANY" in [row[VALUE_INDEX] for row in get_iplayer.Categories.PODCAST[1:]]:
-        #self.cat_podcast_store.append([None, "ANY"])
 
         self.cat_tv_store = Gtk.ListStore(str, str)
         for i, categories in enumerate(get_iplayer.Categories.TV):

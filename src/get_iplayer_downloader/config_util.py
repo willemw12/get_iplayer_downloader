@@ -7,12 +7,8 @@ def list_categories():
     get_iplayer.refresh()
     print()
 
-    categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.PODCAST)
-    print("[radio]")
-    print("categories-podcast =", categories)
-    
     categories = get_iplayer.categories("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO)
-    print("categories-radio =", categories)
+    print("categories =", categories)
     print()
 
     categories = get_iplayer.categories("", get_iplayer.Preset.TV, get_iplayer.ProgType.TV)
@@ -24,7 +20,7 @@ def list_channels(compact=True):
     get_iplayer.refresh()
     print()
 
-    channels = get_iplayer.channels("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO + "," + get_iplayer.ProgType.PODCAST, compact=compact)
+    channels = get_iplayer.channels("", get_iplayer.Preset.RADIO, get_iplayer.ProgType.RADIO, compact=compact)
     print("[radio]")
     print("channels =", channels)
     print()

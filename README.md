@@ -65,7 +65,7 @@ In short:
 
 get\_iplayer\_downloader's default configuration has two get\_iplayer presets defined:
 
-* radio - for radio episodes and podcasts
+* radio - for radio episodes
 * tv - for television episodes
 
 The preset names are configurable. There is also an option in get\_iplayer\_downloader to disable the use of get\_iplayer presets.
@@ -86,7 +86,7 @@ File ~/.get\_iplayer/presets/tv:
     #command /usr/share/get_iplayer_downloader/scripts/get_iplayer_post_subdir.py --categories="<categories>" --dir="<dir>" --filename="<filename>" --subdir-format="bbc.<week>//<categorymain>_<categorysub>//<longname>" --force
     info 0
     output /home/willemw12/Videos/bbc
-    #tvmode better
+    #tvmode good,better
 
 Verify that `get_iplayer --preset=radio ...` and `get_iplayer --preset=tv ...` work properly from the command line.
 
@@ -186,9 +186,9 @@ The keyboard shortcuts are:
     ctrl+l                  Log           View download log
     ctrl+p                  Play          Go to BBC iPlayer web page of the highlighted episode
     ctrl+q                  Queue         Queue selected episodes for one-off downloading
-    ctrl+r                  Refresh       Refresh episode cache, limited of the selected programme type (radio, podcast or TV)
+    ctrl+r                  Refresh       Refresh episode cache, limited of the selected programme type (radio or TV)
     ctrl+s, ctrl+shift+s    Since         Select since episodes were added to the search cache
-    ctrl+t                  Type          Select programme type (radio, podcast or TV)
+    ctrl+t                  Type          Select programme type (radio or TV)
     f1                      Help          View keyboard shortcuts
 
     ctrl+1                  Type
