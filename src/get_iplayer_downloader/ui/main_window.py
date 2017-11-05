@@ -972,7 +972,7 @@ class MainTreeView(Gtk.TreeView):
 
         tooltip.set_markup(tooltip_text)
 
-        if self.show_images and image_url is not None:
+        if self.show_images and image_url:
             image = Image.image(image_url, relpath="thumbnails", timeout=self.load_image_timeout_seconds,
                                 max_width=ICON_IMAGE_MAX_WIDTH, max_height=ICON_IMAGE_MAX_HEIGHT)
             if image is not None:
