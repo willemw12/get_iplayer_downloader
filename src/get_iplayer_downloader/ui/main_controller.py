@@ -735,6 +735,9 @@ class MainWindowController:
                 if tree_iter is not None:
                     model = combo.get_model()
                     categories = model[tree_iter][KEY_INDEX]
+                if categories.startswith(","):
+                    # Remove prepended "all" filter
+                    categories = categories[1:]
 
             channels = None
             if string.str2bool(settings.get_config().get(config.NOSECTION, "enable-channel-filter")):
