@@ -279,6 +279,9 @@ def search(search_text, preset=None, prog_type=None,
             cmd += " --exclude=\"" + search_text[1:] + "\""
         else:
             cmd += " \"" + search_text + "\""
+    else:
+        # Wildcard search
+        cmd += " \".*\""
     
     process_output = command.run(cmd)
 
