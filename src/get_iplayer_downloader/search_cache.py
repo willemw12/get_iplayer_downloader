@@ -211,7 +211,7 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
                        episode = series
 
                     #TODO Episode description: concatenate all lines, up to the first line starting with a link ("^[ ]*\[")
-                    episode = episode + " ~ " + lines[i + 2].strip()
+                    episode = episode + " ~ " + lines[i + 1].strip()
 
                     #TODO Get channel name from the next line staring with a link ("^[ ]*\[")
                     #TODO Strip "except ..."
@@ -287,7 +287,7 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
                                     None, 
                                     None])
                                     #series])    #TEMP
-                    skip_lines = 4
+                    skip_lines = 3
                 #continue
             elif next_page_parse_state == ParseState.BUSY:
                 next_page_url = _regex_substring("\[(.*)\]Next", line)
