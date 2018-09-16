@@ -472,7 +472,7 @@ def write_cache(prog_type, categories, fast=False):
     else:
         prog_type_list = prog_type.split()
     for prog_type in prog_type_list:
-        url_genre_template = "http://www.bbc.co.uk/%(prog_type)s/categories/%(subgenre)s?sort=-available_from_date"
+        url_genre_template = "http://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s?sort=-available_from_date"
         url_subgenre_template = "http://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s-%(subgenre)s?sort=-available_from_date"
 
         search_result_lines = []
