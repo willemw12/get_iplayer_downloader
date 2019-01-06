@@ -383,29 +383,19 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                 # Found first non-empty line
                 
                 # Get the category name(s) from, for example:
+                #     [http://www.bbc.co.uk/radio/categories]Categories: [http://www.bbc.co.uk/radio/categories/comedy?sort=-available_from_date]Comedy - Sitcoms
                 #     [http://www.bbc.co.uk/radio/categories]Categories: Comedy
-                #     [http://www.bbc.co.uk/radio/categories]Categories: [http://www.bbc.co.uk/radio/categories/comedy?sort=-available_from_date]Comedy: Sitcoms             
-                result = re.search("^\[.*\](.*): (.*)", line)
+                result = re.search("\[.*\]Categories: \[.*\](.*)", line)
                 if result is None:
-                    break
-                category1 = result.group(1) if result is not None else None
-                category2 = result.group(2) if result is not None else None
-                if category1 is None or category2 is None:
+                    result = re.search("\[.*\]Categories: (.*)", line)
+                    if result is None:
+                        break
+                categories = result.group(1) if result is not None else None
+                if categories is None:
                     #logger.fatal("Categories not found in %s" % url)
                     #sys.exit(1)
                     break
 
-                # Get the category name from, for example:
-                #     Comedy
-                #if result is None:
-                #    category1 = None
-                #    category2 = line
-
-                if category1 is None or category1 == "Categories":
-                    # There are no subcategories
-                    categories = "%s" % (category2)
-                else:
-                    categories = "%s,%s" % (category1, category2)
                 logger.info("categories = %s" % categories)
                 categories_parse_state = ParseState.STOPPED
                 #continue
