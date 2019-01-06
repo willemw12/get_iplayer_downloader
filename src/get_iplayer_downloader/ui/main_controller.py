@@ -111,7 +111,10 @@ class MainWindowController:
                 self.on_button_play_clicked_by_url(None, pid)
             else:
                 #TODO if prog_type not in [get_iplayer.Channels.CH4, get_iplayer.Channels.ITV]:
-                self.on_button_play_clicked_by_url(None, "http://www.bbc.co.uk/iplayer/episode/" + pid)
+                # Go to episode's information page
+                #self.on_button_play_clicked_by_url(None, "http://www.bbc.co.uk/iplayer/episode/" + pid)
+                # Go to episode's player page
+                self.on_button_play_clicked_by_url(None, "https://www.bbc.co.uk/sounds/play/" + pid)
 
     def on_button_play_clicked_by_url(self, button, url):
         """ Visit BBC iPlayer web site. """
