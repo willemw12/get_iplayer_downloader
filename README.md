@@ -145,7 +145,7 @@ To uninstall, run from this directory:
 
     $ ./uninstall.sh
 
-When python is upgraded to a newer minor version, then uninstall and install again.
+When python has been upgraded to a newer minor version, then uninstall and install again.
 
 
 ### Arch Linux package
@@ -160,7 +160,7 @@ To install the latest version:
 
 ### Debian/Ubuntu package
 
-__Warning: this does not work. Distutils command "bdist_deb" in package "python-stdeb" is not available for Python 3.__
+__Warning: this may not work. Distutils command "bdist_deb" in package "python-stdeb" is required for Python 3.__
 
 Install build and package tools (run as root)
 
