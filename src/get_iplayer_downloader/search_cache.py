@@ -356,7 +356,7 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                 # Found header of main category section
                 categories_parse_state = ParseState.BUSY
                 #NOT continue
-            #elif categories_parse_state == ParseState.STOPPED and episodes_parse_state == ParseState.READY and _regex_substring("^\[http://www.bbc.co.uk/iplayer/episode/.*\]", lines) is not None:
+            #elif categories_parse_state == ParseState.STOPPED and episodes_parse_state == ParseState.READY and _regex_substring("^\[https://www.bbc.co.uk/iplayer/episode/.*\]", lines) is not None:
             #    # Found start of episode list ("^[")
             #    episodes_parse_state = ParseState.BUSY
             #    continue
@@ -383,8 +383,8 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                 # Found first non-empty line
                 
                 # Get the category name(s) from, for example:
-                #     [http://www.bbc.co.uk/radio/categories]Categories: [http://www.bbc.co.uk/radio/categories/comedy?sort=-available_from_date]Comedy - Sitcoms
-                #     [http://www.bbc.co.uk/radio/categories]Categories: Comedy
+                #     [https://www.bbc.co.uk/radio/categories]Categories: [https://www.bbc.co.uk/radio/categories/comedy?sort=-available_from_date]Comedy - Sitcoms
+                #     [https://www.bbc.co.uk/radio/categories]Categories: Comedy
                 result = re.search("\[.*\]Categories: \[.*\](.*)", line)
                 if result is None:
                     result = re.search("\[.*\]Categories: (.*)", line)
@@ -404,8 +404,8 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                     # Found an episode ("^[")
                     series = _regex_substring("\](.*)", line)
                 else:
-                    #if line.startswith("   [http://www.bbc.co.uk/programmes/") and ...
-                    result = re.search("\[http://www.bbc.co.uk/programmes/.*/episodes\]", line)
+                    #if line.startswith("   [https://www.bbc.co.uk/programmes/") and ...
+                    result = re.search("\[https://www.bbc.co.uk/programmes/.*/episodes\]", line)
                     if result is not None:
                         # Found link to episodes
                         available_episodes_url = _regex_substring("\[(.*)\]", line)
@@ -462,8 +462,8 @@ def write_cache(prog_type, categories, fast=False):
     else:
         prog_type_list = prog_type.split()
     for prog_type in prog_type_list:
-        url_genre_template = "http://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s?sort=-available_from_date"
-        url_subgenre_template = "http://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s-%(subgenre)s?sort=-available_from_date"
+        url_genre_template = "https://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s?sort=-available_from_date"
+        url_subgenre_template = "https://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s-%(subgenre)s?sort=-available_from_date"
 
         search_result_lines = []
         

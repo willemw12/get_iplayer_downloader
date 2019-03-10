@@ -225,7 +225,7 @@ class PropertiesWindow(Gtk.Window):
         self.grid.add(frame)
 
         #TODO if prog_type not in [get_iplayer.Channels.CH4, get_iplayer.Channels.ITV]:
-        url = "<a href=\"http://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
+        url = "<a href=\"https://www.bbc.co.uk/iplayer\" title=\"BBC iPlayer\">BBC iPlayer</a>"
         url += "      "
 
         # Add URLs to get_iplayer's pvr configuration folder and filenames
