@@ -48,7 +48,7 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
         logger.debug("run(): cmd_exec=%s", cmd_exec)
         logger.info("run(): cmd=%s", cmd)
         if terminal_prog:
-            # Log this now. Log statements after subprocess.check_output() will
+            # Log this now. Log statements after subprocess.run() will
             # only be printed after the terminal window has been closed
             logger.debug("run(): process_output logged to %s", cmd_logname)
 
@@ -61,12 +61,12 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
     
     # Run command. Command output is expected to be UTF-8
     #try:
-    #    #NOTE check_output() and Popen() expect a UTF-8 text output and uses the "strict" encoding option (string.decode("UTF-8", "strict"))
-    #    process_output = subprocess.check_output(cmd_exec, shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
+    #    #NOTE run() and Popen() expect a UTF-8 text output and uses the "strict" encoding option (string.decode("UTF-8", "strict"))
+    #    process_output = subprocess.run(cmd_exec, shell=True, text=True, check=True, capture_output=True).stdout
     #    #
-    #    #ALTERNATIVE subprocess.Popen() instead of subprocess.check_output() 
+    #    #ALTERNATIVE subprocess.Popen() instead of subprocess.run() 
     #    #text_output = io.StringIO()
-    #    #with subprocess.Popen(cmd_exec, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
+    #    #with subprocess.Popen(cmd_exec, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
     #    #    text_output.write(proc.stdout.read())
     #    #process_output = text_output.getvalue()
     #except UnicodeDecodeError as exc:
@@ -76,9 +76,9 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
 
     # Run command. Command output can be non-UTF-8
     try:
-        #NOTE universal_newlines=True turns proc.stdout into a TextIOWrapper, i.e. a buffer interface, which the encode method in text_input.read() does not support
+        #NOTE text/universal_newlines=True turns proc.stdout into a TextIOWrapper, i.e. a buffer interface, which the encode method in text_input.read() does not support
         #with subprocess.Popen(..., stdout=file, ...
-        with subprocess.Popen(cmd_exec, shell=True, universal_newlines=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
+        with subprocess.Popen(cmd_exec, shell=True, text=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
             # Cannot seek a pipe (proc.stdout) to retry another encoding on the command/process output
             # Copy pipe content into memory
 
@@ -151,7 +151,7 @@ def run(cmd, terminal_prog=None, terminal_title=None, quiet=False, dry_run=False
 #    #ALTERNATIVE using buffer = io.BytesIO() and io.TextIOWrapper(buffer, ...)
 #    # Run command. Command output can be non-UTF-8
 #    try:
-#        with subprocess.Popen(cmd_exec, shell=True, universal_newlines=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
+#        with subprocess.Popen(cmd_exec, shell=True, text=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as proc:
 #            bytes_input = io.BytesIO()
 #            bytes_input.write(proc.stdout.read())
 #            bytes_input.seek(0)

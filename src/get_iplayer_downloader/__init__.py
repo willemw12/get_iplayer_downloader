@@ -30,9 +30,9 @@ def _version():
         # Get and save the git version, during installation or when run without being installed
         try:
             # Linux specific
-            #version = subprocess.check_output("echo -n $(git describe --tags | head -1)", shell=True, stderr=subprocess.STDOUT)
+            #version = subprocess.run("echo -n $(git describe --tags | head -1)", shell=True, check=True, capture_output=True).stdout
             
-            version = subprocess.check_output("git describe --tags", shell=True, universal_newlines=True, stderr=subprocess.STDOUT)
+            version = subprocess.run("git describe --tags", shell=True, text=True, check=True, capture_output=True).stdout
             version = version.split("\n", 1)[0].lstrip()
             
             # setup.py stdb (create .deb packages): doesn't like the version to start with a non-digit character
