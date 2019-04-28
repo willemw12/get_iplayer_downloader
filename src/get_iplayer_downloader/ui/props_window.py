@@ -112,7 +112,6 @@ class PropertiesWindow(Gtk.Window):
             #label1.set_selectable(False)
             self.grid.add(label1)
 
-        # The play button URL is the same as the "player" property URL
         #NOTE Do not expand/fill the button in the grid: halign=Gtk.Align.CENTER
         button = Gtk.Button(relief=Gtk.ReliefStyle.NONE, image_position=Gtk.PositionType.TOP, halign=Gtk.Align.CENTER)
         button.set_image(Gtk.Image(icon_name=Gtk.STOCK_MEDIA_PLAY))
