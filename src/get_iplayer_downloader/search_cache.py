@@ -383,8 +383,8 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
                 # Found first non-empty line
                 
                 # Get the category name(s) from, for example:
-                #     [https://www.bbc.co.uk/radio/categories]Categories: [https://www.bbc.co.uk/radio/categories/comedy?sort=-available_from_date]Comedy - Sitcoms
-                #     [https://www.bbc.co.uk/radio/categories]Categories: Comedy
+                #     [https://www.bbc.co.uk/sounds/categories]Categories: [https://www.bbc.co.uk/sounds/categories/comedy?sort=-available_from_date]Comedy - Sitcoms
+                #     [https://www.bbc.co.uk/sounds/categories]Categories: Comedy
                 result = re.search("\[.*\]Categories: \[.*\](.*)", line)
                 if result is None:
                     result = re.search("\[.*\]Categories: (.*)", line)
