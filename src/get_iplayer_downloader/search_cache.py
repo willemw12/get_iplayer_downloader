@@ -13,7 +13,7 @@ import re
 import traceback
 import urllib.parse     #, urllib.error
 
-from datetime import datetime, timedelta
+#from datetime import datetime, timedelta
 from enum import Enum
 from get_iplayer_downloader.tools import command
 
@@ -60,8 +60,9 @@ LYNX_DUMP_CMD = "lynx -dump -list_inline -width=1024 "
 #class ParseState:            # Python < 3.4
 class ParseState(Enum):
     READY = 0
-    BUSY = 1
-    STOPPED = 2
+    SCANNING = 1        // Optional
+    PROCESSING = 2
+    STOPPED = 3
 
 def _find(f, seq):
     """ Return first item in sequence where f(item) == True. """
@@ -104,7 +105,7 @@ def _http_dump(url):
         process_output = None
     return process_output
 
-# #TEMP use of SearchResultColumn.LOCATE_SEARCH_TERM
+# #TEMP Use of SearchResultColumn.LOCATE_SEARCH_TERM
 # def _keyfunc(line):
 #     series = line[SearchResultColumn.SERIES] if line[SearchResultColumn.SERIES] is not None else ""
 #     if series is not None:
@@ -144,11 +145,33 @@ def _merge_categories(categories1, categories2):
     category_list1.extend(sorted(set(subcategory_list1)))
     return ",".join(category_list1)
 
+def _episodes_url(episode_url):
+    pid = os.path.basename(urllib.parse.urlsplit(episode_url).path)
+    url = "https://www.bbc.co.uk/programmes/" + pid
+
+    process_output = _http_dump(url)
+    if process_output is None:
+        logger.error("Episode's \"Programme Website\" page %s not found" % episode_url)
+        return None
+
+    lines = process_output.splitlines()
+    for line in lines:
+        #url = _regex_substring("\[(.*)\]See all episodes from ", line)
+        #if url is not None:
+        #    return url
+        if "See all episodes from " in line:
+            return _regex_substring("\[(.*)\]", line)
+
+    return None
+
 #DOUBLE Partly with _search_results_category()
 def _search_results_all_available_episodes(url, categories, series, search_result_lines, is_format_url=False, fast=False):
     """ Collect episode search results of a series. """
     
     #search_result_lines = []
+
+    episodes_parse_state = ParseState.READY
+    next_page_parse_state = ParseState.READY
 
     skip_lines = 0
 
@@ -179,24 +202,26 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
             #if episodes_parse_state == ParseState.READY and line.endswith("Episodes Available now"):
             if episodes_parse_state == ParseState.READY and line.endswith("Available now"):
                 # Found start of episode list ("^[")
-                episodes_parse_state = ParseState.BUSY
+                episodes_parse_state = ParseState.PROCESSING
                 continue
     
             # Check for "end read" triggers (in case of lists)
-            if episodes_parse_state == ParseState.BUSY and len(search_result_lines) > 0 and re.search("4\. .*Next$", line) is not None:    # re.compile()
+            if episodes_parse_state == ParseState.PROCESSING and len(search_result_lines) > 0 and re.search("4\. .*Next$", line) is not None:    # re.compile()
                 # Found previous/next page link list
                 #       4. [https://www.bbc.co.uk/programmes/xxxxxxxx/episodes/player?page=2]Next
                 #       4. Next
                 episodes_parse_state = ParseState.STOPPED
-                next_page_parse_state = ParseState.BUSY
+                next_page_parse_state = ParseState.PROCESSING
                 #NOT continue
-            elif next_page_parse_state == ParseState.BUSY and line == "":
+            elif next_page_parse_state == ParseState.PROCESSING and line == "":
                 # Found empty line after previous/next page link list
                 next_page_parse_state = ParseState.STOPPED
                 continue
             
             # Read data 
-            if episodes_parse_state == ParseState.BUSY:
+            #NOTE Get the category name(s) from, for example:
+            #     * [https://www.bbc.co.uk/programmes/genres/comedy]Comedy > [https://www.bbc.co.uk/programmes/genres/comedy/sitcoms]Sitcoms
+            if episodes_parse_state == ParseState.PROCESSING:
                 if line.startswith("["):
                     pid = _regex_substring("^\[(.*)\]", line)
                     
@@ -205,10 +230,10 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
                     pid = os.path.basename(urllib.parse.urlsplit(pid).path)
                 
                     if series is not None:
-                       episode = _regex_substring("\](.*)$", line)
+                        episode = _regex_substring("\](.*)$", line)
                     else:
-                       series = _regex_substring("\](.*)$", lines)
-                       episode = series
+                        series = _regex_substring("\](.*)$", lines)
+                        episode = series
 
                     #TODO Episode description: concatenate all lines, up to the first line starting with a link ("^[ ]*\[")
                     episode = episode + " ~ " + lines[i + 1].strip()
@@ -239,8 +264,8 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
                         # Add episode
                         # Don't add if url is a format url
 
-                        #ISSUE in case of subcategory support:
-                        # when episode is in 'format', but episode not in one of the 'Filter by' filters
+                        #ISSUE In case of subcategory support:
+                        # When episode is in 'format', but episode not in one of the 'Filter by' filters
                         # For example, "Act your age": Games & Quizes --> Comedy,Games & Quizes
 
                         if not is_format_url:
@@ -289,9 +314,10 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
                                     #series])    #TEMP
                     skip_lines = 3
                 #continue
-            elif next_page_parse_state == ParseState.BUSY:
+            elif next_page_parse_state == ParseState.PROCESSING:
                 next_page_url = _regex_substring("\[(.*)\]Next", line)
                 next_page_parse_state = ParseState.STOPPED
+                #skip_lines = 2
                 break
 
         if not fast:
@@ -308,7 +334,7 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
     if episodes_parse_state != ParseState.STOPPED:
         logger.error("Episodes not found in %s" % url)
         #sys.exit(1)
-    if next_page_parse_state != ParseState.STOPPED:
+    if next_page_parse_state != ParseState.STOPPED and next_page_parse_state != ParseState.READY:
         logger.error("Next page link not found in %s" % url)
         #sys.exit(1)
 
@@ -319,10 +345,13 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
     
     #return search_result_lines
 
-def _search_results_category(url, search_result_lines, is_format_url=False, fast=False):
+def _search_results_category(url, categories, search_result_lines, is_format_url=False, fast=False):
     """ Collect episode search results of a single category (either main or subcategory). """
     
     #search_result_lines = []
+
+    episodes_parse_state = ParseState.READY
+    next_page_parse_state = ParseState.READY
 
     skip_lines = 0
 
@@ -330,9 +359,7 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
     while next_page_url is not None:
         url = next_page_url
         next_page_url = None
-        categories = None
 
-        categories_parse_state = ParseState.READY
         episodes_parse_state = ParseState.READY
         next_page_parse_state = ParseState.READY
 
@@ -352,68 +379,60 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
             #line_stripped = line.strip()
             
             # Check for "start read" triggers
-            if categories_parse_state == ParseState.READY and line and not line.startswith(" ") and line.strip() != "Accessibility links":
+            #NOTE "sounds" type only
+            if line and line.startswith("BBC Sounds - Categories - "):
                 # Found header of main category section
-                categories_parse_state = ParseState.BUSY
+                episodes_parse_state = ParseState.PROCESSING
                 #NOT continue
-            #elif categories_parse_state == ParseState.STOPPED and episodes_parse_state == ParseState.READY and _regex_substring("^\[https://www.bbc.co.uk/iplayer/episode/.*\]", lines) is not None:
-            #    # Found start of episode list ("^[")
-            #    episodes_parse_state = ParseState.BUSY
-            #    continue
-            elif categories_parse_state == ParseState.STOPPED and episodes_parse_state == ParseState.READY and line.startswith("["):
-                # Found start of episode list ("^[")
-                episodes_parse_state = ParseState.BUSY
-                #NOT continue
-    
+ 
             # Check for "end read" triggers (in case of lists)
-            if episodes_parse_state == ParseState.BUSY and len(search_result_lines) > 0 and re.search("4\. .*Next$", line) is not None:    # re.compile()
-                # Found previous/next page link list ("1.")
-                #       4. [https://www.bbc.co.uk/programmes/xxxxxxxx/episodes/player?page=2]Next
-                #       4. Next
-                episodes_parse_state = ParseState.STOPPED
-                next_page_parse_state = ParseState.BUSY
+            if episodes_parse_state == ParseState.PROCESSING:
+                if line.startswith("     * ") and lines[i + 1].startswith("     * "):
+                    # Reached list of links or possibly the list of previous/next links at the bottom of the page
+                    episodes_parse_state = ParseState.STOPPED
+                    next_page_parse_state = ParseState.SCANNING
+            if next_page_parse_state == ParseState.SCANNING and re.search("     \* [123456789]$", line) is not None:    # re.compile()
+                # Found previous/next page link list
+                # - First page
+                #       *
+                #       * 1
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=2&sort=latest]2
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=3&sort=latest]3
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=2&sort=latest]
+                #
+                # - Intermediate page
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=1&sort=latest]
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=1&sort=latest]1
+                #       * 2
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=3&sort=latest]3
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=3&sort=latest]
+                #
+                # - Last page
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=2&sort=latest]
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=1&sort=latest]1
+                #       * [https://www.bbc.co.uk/sounds/category/comedy-sitcoms?page=2&sort=latest]2
+                #       * 3
+                #       *
+                #episodes_parse_state = ParseState.STOPPED
+                next_page_parse_state = ParseState.PROCESSING
                 #NOT continue
-            elif next_page_parse_state == ParseState.BUSY and line == "":
+            elif next_page_parse_state == ParseState.PROCESSING and line == "":
                 # Found empty line after previous/next page link list
                 next_page_parse_state = ParseState.STOPPED
                 continue
             
             # Read data 
-            if categories_parse_state == ParseState.BUSY and line != "":
-                # Found first non-empty line
-                
-                # Get the category name(s) from, for example:
-                #     [https://www.bbc.co.uk/sounds/categories]Categories: [https://www.bbc.co.uk/sounds/categories/comedy?sort=-available_from_date]Comedy - Sitcoms
-                #     [https://www.bbc.co.uk/sounds/categories]Categories: Comedy
-                result = re.search("\[.*\]Categories: \[.*\](.*)", line)
-                if result is None:
-                    result = re.search("\[.*\]Categories: (.*)", line)
-                    if result is None:
-                        break
-                categories = result.group(1) if result is not None else None
-                if categories is None:
-                    #logger.fatal("Categories not found in %s" % url)
-                    #sys.exit(1)
-                    break
-
-                logger.info("categories = %s" % categories)
-                categories_parse_state = ParseState.STOPPED
-                #continue
-            elif episodes_parse_state == ParseState.BUSY:
-                if line.startswith("["):
-                    # Found an episode ("^[")
-                    series = _regex_substring("\](.*)", line)
-                else:
-                    #if line.startswith("   [https://www.bbc.co.uk/programmes/") and ...
-                    result = re.search("\[https://www.bbc.co.uk/programmes/.*/episodes\]", line)
-                    if result is not None:
-                        # Found link to episodes
-                        available_episodes_url = _regex_substring("\[(.*)\]", line)
-                        if available_episodes_url is not None:
-                            _search_results_all_available_episodes(available_episodes_url, categories, series, search_result_lines, is_format_url=False, fast=False)
-            elif next_page_parse_state == ParseState.BUSY:
-                next_page_url = _regex_substring("\[(.*)\]Next", line)
+            if episodes_parse_state == ParseState.PROCESSING:
+                if line.startswith("     * ["):
+                    # Found an episode
+                    series = lines[i + 2]
+                    episode_url = _regex_substring("\[(.*)\]", line)
+                    _search_results_all_available_episodes(_episodes_url(episode_url), categories, series, search_result_lines, is_format_url=False, fast=False)
+            elif next_page_parse_state == ParseState.PROCESSING:
+                next_page_url = _regex_substring("^     \* \[(.*)\]", lines[i + 1])
                 next_page_parse_state = ParseState.STOPPED
+                logger.debug("Next page URL: %s" % next_page_url)
+                #skip_lines = 2
                 break
 
         # Reached end of single page
@@ -424,13 +443,13 @@ def _search_results_category(url, search_result_lines, is_format_url=False, fast
 
     ####
 
-    if categories_parse_state != ParseState.STOPPED:
-        logger.error("Categories not found in %s" % url)
-        #sys.exit(1)
+    #if categories_parse_state != ParseState.STOPPED:
+    #    logger.error("Categories not found in %s" % url)
+    #    #sys.exit(1)
     if episodes_parse_state != ParseState.STOPPED:
         logger.error("Episodes not found in %s" % url)
         #sys.exit(1)
-    if next_page_parse_state != ParseState.STOPPED:
+    if next_page_parse_state != ParseState.STOPPED and next_page_parse_state != ParseState.READY:
         logger.error("Next page link not found in %s" % url)
         #sys.exit(1)
 
@@ -462,8 +481,14 @@ def write_cache(prog_type, categories, fast=False):
     else:
         prog_type_list = prog_type.split()
     for prog_type in prog_type_list:
-        url_genre_template = "https://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s?sort=-available_from_date"
-        url_subgenre_template = "https://www.bbc.co.uk/%(prog_type)s/categories/%(genre)s-%(subgenre)s?sort=-available_from_date"
+        #NOTE "sounds" type only
+        #url_genre_template = "https://www.bbc.co.uk/%(prog_type)s/category/%(genre)s?sort=latest"
+        #url_subgenre_template = "https://www.bbc.co.uk/%(prog_type)s/category/%(genre)s-%(subgenre)s?sort=latest"
+        url_genre_template = "https://www.bbc.co.uk/sounds/category/%(genre)s?sort=latest"
+        url_subgenre_template = "https://www.bbc.co.uk/sounds/category/%(genre)s-%(subgenre)s?sort=latest"
+
+        genre_template = "%(genre)s"
+        subgenre_template = "%(genre)s-%(subgenre)s"
 
         search_result_lines = []
         
@@ -478,12 +503,14 @@ def write_cache(prog_type, categories, fast=False):
                 for subcategory in subcategories:
                     url_dict = dict(prog_type=prog_type, genre=main_category.lower(), subgenre=subcategory.lower())
                     url = url_subgenre_template % url_dict
-                    _search_results_category(url, search_result_lines)
+                    genre = subgenre_template % url_dict
+                    _search_results_category(url, genre, search_result_lines)
             else:
                 # Main category without subcategories
                 url_dict = dict(prog_type=prog_type, genre=main_category.lower())
                 url = url_genre_template % url_dict
-                _search_results_category(url, search_result_lines)
+                genre = genre_template % url_dict
+                _search_results_category(url, genre, search_result_lines)
 
         if not os.path.exists(SEARCH_RESULT_CACHE_PATHNAME):
             os.mkdir(SEARCH_RESULT_CACHE_PATHNAME)
