@@ -60,7 +60,7 @@ LYNX_DUMP_CMD = "lynx -dump -list_inline -width=1024 "
 #class ParseState:            # Python < 3.4
 class ParseState(Enum):
     READY = 0
-    SCANNING = 1        // Optional
+    SCANNING = 1             # Optional
     PROCESSING = 2
     STOPPED = 3
 
@@ -334,7 +334,7 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
     if episodes_parse_state != ParseState.STOPPED:
         logger.error("Episodes not found in %s" % url)
         #sys.exit(1)
-    if next_page_parse_state != ParseState.STOPPED and next_page_parse_state != ParseState.READY:
+    if next_page_parse_state == ParseState.PROCESSING:
         logger.error("Next page link not found in %s" % url)
         #sys.exit(1)
 
@@ -427,7 +427,12 @@ def _search_results_category(url, categories, search_result_lines, is_format_url
                     # Found an episode
                     series = lines[i + 2]
                     episode_url = _regex_substring("\[(.*)\]", line)
-                    _search_results_all_available_episodes(_episodes_url(episode_url), categories, series, search_result_lines, is_format_url=False, fast=False)
+                    episodes_url = _episodes_url(episode_url)
+                    if episode_url is None or episodes_url is None:
+                        logger.debug("Episode(s) URL not found")
+                    else:
+                        _search_results_all_available_episodes(episodes_url, categories, series,
+                                                               search_result_lines, is_format_url=False, fast=False)
             elif next_page_parse_state == ParseState.PROCESSING:
                 next_page_url = _regex_substring("^     \* \[(.*)\]", lines[i + 1])
                 next_page_parse_state = ParseState.STOPPED
@@ -449,7 +454,7 @@ def _search_results_category(url, categories, search_result_lines, is_format_url
     if episodes_parse_state != ParseState.STOPPED:
         logger.error("Episodes not found in %s" % url)
         #sys.exit(1)
-    if next_page_parse_state != ParseState.STOPPED and next_page_parse_state != ParseState.READY:
+    if next_page_parse_state == ParseState.PROCESSING:
         logger.error("Next page link not found in %s" % url)
         #sys.exit(1)
 
