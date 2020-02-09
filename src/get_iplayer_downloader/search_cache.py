@@ -423,7 +423,7 @@ def _search_results_category(url, categories, search_result_lines, is_format_url
             if episodes_parse_state == ParseState.PROCESSING:
                 if line.startswith("     * ["):
                     # Found an episode
-                    series = lines[i + 2]
+                    series = _regex_substring("\](.*)", line)
                     episode_url = _regex_substring("\[(.*)\]", line)
                     episodes_url = _episodes_url(episode_url)
                     if episode_url is None or episodes_url is None:
