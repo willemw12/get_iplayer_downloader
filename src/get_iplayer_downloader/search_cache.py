@@ -15,10 +15,16 @@ import urllib.parse     #, urllib.error
 
 #from datetime import datetime, timedelta
 from enum import Enum
+from random import randrange
+from time import sleep
+
+# Load application-wide definitions
+import get_iplayer_downloader
 from get_iplayer_downloader.tools import command
 
 #TODO circular import
 #from get_iplayer_downloader.get_iplayer import SearchResultColumn
+
 class SearchResultColumn:
     DOWNLOAD = 0
     PID = 1
@@ -31,12 +37,6 @@ class SearchResultColumn:
     AVAILABLE = 8
     DURATION = 9
     LOCATE_SEARCH_TERM = 10
-
-from random import randrange
-from time import sleep
-
-# Load application-wide definitions
-import get_iplayer_downloader
 
 logger = logging.getLogger(__name__)
 
@@ -228,12 +228,10 @@ def _search_results_all_available_episodes(url, categories, series, search_resul
                     # Convert url pid to pid. If pid is a url, get the last part of the url path
                     # This is done in order to detect if an episode is already in the download history, when queuing an episode
                     pid = os.path.basename(urllib.parse.urlsplit(pid).path)
-                
-                    if series is not None:
-                        episode = _regex_substring("\](.*)$", line)
-                    else:
-                        series = _regex_substring("\](.*)$", lines)
-                        episode = series
+
+                    episode = _regex_substring("\](.*)$", line)
+                    if series is None:
+                        series = episode
 
                     #TODO Episode description: concatenate all lines, up to the first line starting with a link ("^[ ]*\[")
                     episode = episode + " ~ " + lines[i + 1].strip()

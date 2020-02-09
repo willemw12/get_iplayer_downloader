@@ -9,7 +9,7 @@ Features:
 * Download episodes or queue episodes for download
 * Visit the episode's "BBC iPlayer" web page
 * View episode properties
-* View download logs. Check for download errors
+* View download logs and errors
 
 Screenshots:
 
