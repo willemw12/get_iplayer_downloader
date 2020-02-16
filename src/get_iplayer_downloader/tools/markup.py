@@ -1,4 +1,4 @@
-import cgi
+import html
 import re
 
 _re_string = re.compile(r'(?P<htmlchars>[<&>])|(?P<space>^[ \t]+)|(?P<lineend>\r\n|\r|\n)|(?P<protocal>(^|\s)((http|ftp)://.*?))(\s|$)', re.S | re.M | re.I)
@@ -9,7 +9,7 @@ def text2html(text, tabstop=4):
     def do_sub(m):
         c = m.groupdict()
         if c['htmlchars']:
-            return cgi.escape(c['htmlchars'])
+            return html.escape(c['htmlchars'])
         if c['lineend']:
             #return '<br/>'
             return '\n'
@@ -38,7 +38,7 @@ def text2html(text, tabstop=4):
     return re.sub(_re_string, do_sub, text)
 
 def html2text(markup_text):
-    # markup is None allowed
+    # markup is None is allowed
     return re.sub("<[^<]+?>", "", markup_text)
 
     #ALTERNATIVE
